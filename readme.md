@@ -5,9 +5,7 @@
 [![Build Status][ico-travis]][link-travis]
 [![StyleCI][ico-styleci]][link-styleci]
 
-Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@asset('file.css')` and `@asset('file.js')` and this package will make sure that CSS or JS will only be loaded the first time it's called.
-
-> THIS PACKAGE IS UNDER DEVELOPMENT AND NOT READY TO BE USED. STAY TUNED FOR AN OFFICIAL 1.0 RELEASE, THAT'S WHEN YOU'LL BE ABLE TO USE THIS IN YOUR PROJECTS. UNTIL THEN, DON'T! WE'RE STILL CHANGING DIRECTIVE NAMES AND STUFF.
+Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@asset('file.css')` and `@asset('file.js')` and this package will make sure that CSS or JS will only be loaded one time per page.
 
 ## Installation
 
