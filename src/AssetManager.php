@@ -11,6 +11,28 @@ class AssetManager
         $this->loaded_assets = [];
     }
 
+    public function echoCss($path)
+    {
+        if ($this->isAssetLoaded($path)) {
+            return;
+        }
+
+        $this->markAssetAsLoaded($path);
+
+        echo '<link href="'.asset($path).'" rel="stylesheet" type="text/css" />';
+    }
+
+    public function echoJs($path)
+    {
+        if ($this->isAssetLoaded($path)) {
+            return;
+        }
+
+        $this->markAssetAsLoaded($path);
+
+        echo '<script src="'.asset($path).'"></script>';
+    }
+
     /**
      * Adds the asset to the current loaded assets.
      *
@@ -47,28 +69,5 @@ class AssetManager
     public function loadedAssets()
     {
         return $this->loaded_assets;
-    }
-
-    /**
-     * Echoes the link to load the js file.
-     *
-     * @param  string  $path
-     * @return string
-     */
-    public function echoJsFileLink($path)
-    {
-        return '<script src="'.asset($path).'"></script>';
-    }
-
-    /**
-     * Echoes the link to load the css file.
-     *
-     * @param  string  $path
-     * @return string
-     */
-    public function echoCssFileLink($path)
-    {
-        //dd($path);
-        return '<link href="'.asset($path).'" rel="stylesheet" type="text/css" />';
     }
 }

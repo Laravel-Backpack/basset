@@ -1,33 +1,39 @@
 <?php
 
-Blade::directive('loadCssOnce', function ($parameter) {
-    //remove the single/double quotation marks from the parameter.
-    $parameter = trim($parameter, "'");
-    $parameter = trim($parameter, "'");
+Blade::directive('asset', function ($parameter) {
+    //remove the single/double quotation marks from the parameter to get to the file extension
+    $extension = trim($parameter, "'");
+    $extension = trim($extension, '"');
+    $extension = trim($extension, '`');
+    $extension = substr($extension, -3);
 
-    //check if parameter is a variable and should be evaluated at run time.
-    if (! substr($parameter, 0, 1) === '$') {
-        return "<?php if(! Assets::isAssetLoaded('".$parameter."')) { Assets::markAssetAsLoaded('".$parameter."'); echo Assets::echoCssFileLink('".$parameter."'); } ?>";
+    switch ($extension) {
+        case 'css':
+            return "<?php Assets::echoCss({$parameter}); ?>";
+            break;
+
+        case '.js':
+            return "<?php Assets::echoJs({$parameter}); ?>";
+            break;
+
+        default:
+            abort(500, 'Could not automatically recognize '.$parameter.' as either a CSS or JS file. Please use @loadCssOnce() or @loadJsOnce() instead of @asset()');
+            break;
     }
+});
 
-    return "<?php if(! Assets::isAssetLoaded({$parameter})) { Assets::markAssetAsLoaded({$parameter}); echo Assets::echoCssFileLink({$parameter}); } ?>";
+Blade::directive('loadCssOnce', function ($parameter) {
+    return "<?php Assets::echoCss({$parameter}); ?>";
 });
 
 Blade::directive('loadJsOnce', function ($parameter) {
-    //remove the single/double quotation marks from the parameter.
-    $parameter = trim($parameter, "'");
-    $parameter = trim($parameter, "'");
-
-    //check if parameter is a variable and should be evaluated at run time.
-    if (! substr($parameter, 0, 1) === '$') {
-        return "<?php if(! Assets::isAssetLoaded('".$parameter."')) { Assets::markAssetAsLoaded('".$parameter."'); echo Assets::echoJsFileLink('".$parameter."'); } ?>";
-    }
-
-    return "<?php if(! Assets::isAssetLoaded({$parameter})) { Assets::markAssetAsLoaded({$parameter}); echo Assets::echoJsFileLink({$parameter}); } ?>";
+    return "<?php Assets::echoJs({$parameter}); ?>";
 });
 
 Blade::directive('loadOnce', function ($parameter) {
     $parameter = trim($parameter, "'");
+    $parameter = trim($parameter, '"');
+    $parameter = trim($parameter, '`');
 
     return "<?php if(! Assets::isAssetLoaded('".$parameter."')) { Assets::markAssetAsLoaded('".$parameter."');  ?>";
 });
