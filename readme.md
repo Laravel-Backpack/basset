@@ -5,7 +5,7 @@
 [![Build Status][ico-travis]][link-travis]
 [![StyleCI][ico-styleci]][link-styleci]
 
-Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@loadCssOnce('file.css')` and `@loadJsOnce('file.js')` and this package will make sure that CSS or JS will only be loaded the first time it's called.
+Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@asset('file.css')` and `@asset('file.js')` and this package will make sure that CSS or JS will only be loaded the first time it's called.
 
 > THIS PACKAGE IS UNDER DEVELOPMENT AND NOT READY TO BE USED. STAY TUNED FOR AN OFFICIAL 1.0 RELEASE, THAT'S WHEN YOU'LL BE ABLE TO USE THIS IN YOUR PROJECTS. UNTIL THEN, DON'T! WE'RE STILL CHANGING DIRECTIVE NAMES AND STUFF.
 
@@ -19,9 +19,29 @@ $ composer require digitallyhappy/assets
 
 ## Usage
 
+Replace your standard CSS and JS loading HTML with the `@asset()` Blade directive this package provides:
+
+```diff
+-    <script src="{{ asset('path/to/file.js') }}">
++    @asset('path/to/file.js')
+
+-    <link href="{{ asset('path/to/file.css') }}" rel="stylesheet" type="text/css">
++    @asset('path/to/file.css')
+```
+
 At this moment, the package provides a few Blade directives:
 
 ```php
+@asset('path/to/file.css')
+@asset('path/to/file.js')
+// depending of the file extension, the first time it will output
+// <link href="{{ asset('path/to/file.css')" rel="stylesheet" type="text/css">
+// or
+// <script src="{{ asset('path/to/file.js')"></script>
+// then the rest of the times this is called... it'll output nothing
+
+// ALTERNATIVELY, if prefer to specify the type of file (CSS/JS) you can call:
+
 @loadCssOnce('path/to/file.css')
 // will output <link href="{{ asset('path/to/file.css')"> the first time
 // then the second time this is called it'll output nothing
@@ -29,6 +49,8 @@ At this moment, the package provides a few Blade directives:
 @loadJsOnce('path/to/file.js')
 // will output <script src="{{ asset('path/to/file.js')"></script> the first time
 // then the second time this is called it'll output nothing
+
+// IN ADDITION, if you have an entire block of HTML that you want to only output once:
 
 @loadOnce('unique_name_for_code_block')
     <script>
