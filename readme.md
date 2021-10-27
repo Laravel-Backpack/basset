@@ -30,7 +30,7 @@ At this moment, the package provides a few Blade directives:
 // will output <script src="{{ asset('path/to/file.js')"></script> the first time
 // then the second time this is called it'll output nothing
 
-@loadOnce
+@loadOnce('unique_name_for_code_block')
     <script>
         <!-- Your JS here -->
     </script>
