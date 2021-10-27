@@ -5,7 +5,7 @@
 [![Build Status][ico-travis]][link-travis]
 [![StyleCI][ico-styleci]][link-styleci]
 
-Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@asset('file.css')` and this package will make sure that CSS or JS is only be loaded the first time it's called.
+Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@asset('file.css')` and this package will make sure that CSS or JS will only be loaded the first time it's called.
 
 > THIS PACKAGE IS UNDER DEVELOPMENT AND NOT READY TO BE USED. STAY TUNED FOR AN OFFICIAL 1.0 RELEASE, THAT'S WHEN YOU'LL BE ABLE TO USE THIS IN YOUR PROJECTS. UNTIL THEN, DON'T! WE'RE STILL CHANGING DIRECTIVE NAMES AND STUFF.
 
@@ -152,11 +152,11 @@ MIT. Please see the [license file](license.md) for more information.
 [ico-version]: https://img.shields.io/packagist/v/digitallyhappy/assets.svg?style=flat-square
 [ico-downloads]: https://img.shields.io/packagist/dt/digitallyhappy/assets.svg?style=flat-square
 [ico-travis]: https://img.shields.io/travis/digitallyhappy/assets/master.svg?style=flat-square
-[ico-styleci]: https://styleci.io/repos/12345678/shield
+[ico-styleci]: https://styleci.io/repos/421785142/shield
 
 [link-packagist]: https://packagist.org/packages/digitallyhappy/assets
 [link-downloads]: https://packagist.org/packages/digitallyhappy/assets
 [link-travis]: https://travis-ci.org/digitallyhappy/assets
-[link-styleci]: https://styleci.io/repos/12345678
+[link-styleci]: https://styleci.io/repos/421785142
 [link-author]: https://github.com/digitallyhappy
 [link-contributors]: ../../contributors
