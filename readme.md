@@ -5,7 +5,7 @@
 [![Build Status][ico-travis]][link-travis]
 [![StyleCI][ico-styleci]][link-styleci]
 
-Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@asset('file.css')` and this package will make sure that CSS or JS will only be loaded the first time it's called.
+Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@loadCssOnce('file.css')` and `@loadJsOnce('file.js')` and this package will make sure that CSS or JS will only be loaded the first time it's called.
 
 > THIS PACKAGE IS UNDER DEVELOPMENT AND NOT READY TO BE USED. STAY TUNED FOR AN OFFICIAL 1.0 RELEASE, THAT'S WHEN YOU'LL BE ABLE TO USE THIS IN YOUR PROJECTS. UNTIL THEN, DON'T! WE'RE STILL CHANGING DIRECTIVE NAMES AND STUFF.
 
@@ -45,51 +45,6 @@ At this moment, the package provides a few Blade directives:
 // then the second time it will just output nothing
 ```
 
-TODO:
-- [ ] `@asset()` or `@loadAssetOnce()` that will determine the type of asset from its extension and load it appropriately
-- [ ] maybe rename `@loadOnce` and `@endLoadOnce` with `@assetBlock` and `@endAssetBlock`
-- [ ] add CDN assets to a queue, and provide a command for that queue to pull the asset from CDN, store it on the local drive (with a public link), and next time serve it from that local path instead of the public link
-
-After TODOs, the docs will look like this:
-
-```php
-
-// FOR LOCAL ASSETS
-
-@asset('path/to/file.css')
-// will output <link href="{{ asset('path/to/file.css')"> the first time
-// then the second time this is called it'll output nothing
-
-@asset('path/to/file.js')
-// will output <script src="{{ asset('path/to/file.js')"></script> the first time
-// then the second time this is called it'll output nothing
-
-@assetBlock
-    <script>
-        <!-- Your JS here -->
-    </script>
-
-    <!-- OR -->
-
-    <style>
-        <!-- Your CSS here -->
-    </style>
-@endAssetBlock
-// will output the contents the first time...
-// then the second time it will just output nothing
-
-// FOR ASSETS FROM CDNs
-@asset('https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js')
-// will output <link href="{{ asset('https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js')"> the first time
-// and it will add 'https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' to a queue of files to be downloaded;
-// after that queue has been run (you choose how often), the file has been "localized", which means it's
-// also available in your /public/assets/localized/cdn.jsdelivr.net/npm/axios/dist/axios.min.js
-// so this package will just load it from there instead, by outputting
-// will output <link href="{{ asset('assets/localized/cdn.jsdelivr.net/npm/axios/dist/axios.min.js')">
-//
-// This has HUUUGE power, because now you can use CDN assets just like they were local. You do NOT have to
-// provide them in your public directory, this package will do it for you.
-```
 ## Why does this package exist?
 
 In Laravel 8+, if your CSS or JS assets are loaded inside a blade file:
