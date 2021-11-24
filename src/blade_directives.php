@@ -14,28 +14,22 @@ Blade::directive('loadOnce', function ($parameter) {
     // determine if it's a CSS or JS file
     $cleanParameter = Str::of($parameter)->trim("'")->trim('"')->trim('`');
     $filePath = Str::of($cleanParameter)->before('?')->before('#');
-    $extension = substr($filePath, -3);
 
     // mey be useful to get the second parameter
     // if (Str::contains($parameter, ',')) {
     //     $secondParameter = Str::of($parameter)->after(',')->trim(' ');
     // }
 
-    switch ($extension) {
-        case 'css':
-            return "<?php Assets::echoCss({$parameter}); ?>";
-            break;
-
-        case '.js':
-            return "<?php Assets::echoJs({$parameter}); ?>";
-            break;
-
-        default:
-            // it's a block start
-
-            return "<?php if(! Assets::isAssetLoaded('".$cleanParameter."')) { Assets::markAssetAsLoaded('".$cleanParameter."');  ?>";
-            break;
+    if (substr($filePath, -3) == '.js') {
+        return "<?php Assets::echoJs({$parameter}); ?>";
     }
+
+    if (substr($filePath, -4) == '.css') {
+        return "<?php Assets::echoCss({$parameter}); ?>";
+    }
+
+    // it's a block start
+    return "<?php if(! Assets::isLoaded('".$cleanParameter."')) { Assets::markAsLoaded('".$cleanParameter."');  ?>";
 });
 
 Blade::directive('endLoadOnce', function () {
