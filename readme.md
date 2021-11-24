@@ -5,7 +5,7 @@
 [![Build Status][ico-travis]][link-travis]
 [![StyleCI][ico-styleci]][link-styleci]
 
-Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@asset('file.css')` and `@asset('file.js')` and this package will make sure that CSS or JS will only be loaded one time per page.
+Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@loadOnce('file.css')` and `@loadOnce('file.js')` and this package will make sure that CSS or JS will only be loaded one time per page.
 
 ## Installation
 
