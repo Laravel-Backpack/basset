@@ -1,11 +1,25 @@
 <?php
 
-Blade::directive('asset', function ($parameter) {
-    //remove the single/double quotation marks from the parameter to get to the file extension
-    $extension = trim($parameter, "'");
-    $extension = trim($extension, '"');
-    $extension = trim($extension, '`');
-    $extension = substr($extension, -3);
+use Illuminate\Support\Str;
+
+Blade::directive('loadStyleOnce', function ($parameter) {
+    return "<?php Assets::echoCss({$parameter}); ?>";
+});
+
+Blade::directive('loadScriptOnce', function ($parameter) {
+    return "<?php Assets::echoJs({$parameter}); ?>";
+});
+
+Blade::directive('loadOnce', function ($parameter) {
+    // determine if it's a CSS or JS file
+    $cleanParameter = Str::of($parameter)->trim("'")->trim('"')->trim('`');
+    $filePath = Str::of($cleanParameter)->before('?')->before('#');
+    $extension = substr($filePath, -3);
+
+    // mey be useful to get the second parameter
+    // if (Str::contains($parameter, ',')) {
+    //     $secondParameter = Str::of($parameter)->after(',')->trim(' ');
+    // }
 
     switch ($extension) {
         case 'css':
@@ -17,25 +31,11 @@ Blade::directive('asset', function ($parameter) {
             break;
 
         default:
-            abort(500, 'Could not automatically recognize '.$parameter.' as either a CSS or JS file. Please use @loadCssOnce() or @loadJsOnce() instead of @asset()');
+            // it's a block start
+
+            return "<?php if(! Assets::isAssetLoaded('".$cleanParameter."')) { Assets::markAssetAsLoaded('".$cleanParameter."');  ?>";
             break;
     }
-});
-
-Blade::directive('loadCssOnce', function ($parameter) {
-    return "<?php Assets::echoCss({$parameter}); ?>";
-});
-
-Blade::directive('loadJsOnce', function ($parameter) {
-    return "<?php Assets::echoJs({$parameter}); ?>";
-});
-
-Blade::directive('loadOnce', function ($parameter) {
-    $parameter = trim($parameter, "'");
-    $parameter = trim($parameter, '"');
-    $parameter = trim($parameter, '`');
-
-    return "<?php if(! Assets::isAssetLoaded('".$parameter."')) { Assets::markAssetAsLoaded('".$parameter."');  ?>";
 });
 
 Blade::directive('endLoadOnce', function () {
