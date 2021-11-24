@@ -17,36 +17,26 @@ $ composer require digitallyhappy/assets
 
 ## Usage
 
-Replace your standard CSS and JS loading HTML with the `@asset()` Blade directive this package provides:
+Replace your standard CSS and JS loading HTML with the `@loadOnce()` Blade directive this package provides:
 
 ```diff
 -    <script src="{{ asset('path/to/file.js') }}">
-+    @asset('path/to/file.js')
++    @loadOnce('path/to/file.js')
 
 -    <link href="{{ asset('path/to/file.css') }}" rel="stylesheet" type="text/css">
-+    @asset('path/to/file.css')
++    @loadOnce('path/to/file.css')
 ```
 
-At this moment, the package provides a few Blade directives:
+The package provides three Blade directives, in 99% of the cases you'll use `@loadOnce()`:
 
 ```php
-@asset('path/to/file.css')
-@asset('path/to/file.js')
+@loadOnce('path/to/file.css')
+@loadOnce('path/to/file.js')
 // depending of the file extension, the first time it will output
 // <link href="{{ asset('path/to/file.css')" rel="stylesheet" type="text/css">
 // or
 // <script src="{{ asset('path/to/file.js')"></script>
 // then the rest of the times this is called... it'll output nothing
-
-// ALTERNATIVELY, if prefer to specify the type of file (CSS/JS) you can call:
-
-@loadCssOnce('path/to/file.css')
-// will output <link href="{{ asset('path/to/file.css')"> the first time
-// then the second time this is called it'll output nothing
-
-@loadJsOnce('path/to/file.js')
-// will output <script src="{{ asset('path/to/file.js')"></script> the first time
-// then the second time this is called it'll output nothing
 
 // IN ADDITION, if you have an entire block of HTML that you want to only output once:
 
@@ -63,6 +53,23 @@ At this moment, the package provides a few Blade directives:
 @endLoadOnce
 // will output the contents the first time...
 // then the second time it will just output nothing
+```
+
+However, if you want to pass a _variable_ as the parameter, not a _string_, you'll notice it won't work, because the directive can't tell if it's a CSS, JS or code block. That's why we've created `@loadStyleOnce()` and `@loadScriptOnce()`:
+
+```php
+@php
+    $pathToCssFile = 'path/to/file.css';
+    $pathToJsFile = 'path/to/file.js';
+@endphp
+
+@loadStyleOnce($pathToCssFile)
+// will output <link href="{{ asset('path/to/file.css')"> the first time
+// then the second time this is called it'll output nothing
+
+@loadScriptOnce($pathToJsFile)
+// will output <script src="{{ asset('path/to/file.js')"></script> the first time
+// then the second time this is called it'll output nothing
 ```
 
 ## Why does this package exist?
