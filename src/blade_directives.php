@@ -12,13 +12,14 @@ Blade::directive('loadScriptOnce', function ($parameter) {
 
 Blade::directive('loadOnce', function ($parameter) {
     // determine if it's a CSS or JS file
-    $filePath = $parameter;
-    $filePath = trim($filePath, "'");
-    $filePath = trim($filePath, '"');
-    $filePath = trim($filePath, '`');
-    $filePath = Str::before($filePath, '?');
-    $filePath = Str::before($filePath, '#');
+    $cleanParameter = Str::of($parameter)->trim("'")->trim('"')->trim('`');
+    $filePath = Str::of($cleanParameter)->before('?')->before('#');
     $extension = substr($filePath, -3);
+
+    // mey be useful to get the second parameter
+    // if (Str::contains($parameter, ',')) {
+    //     $secondParameter = Str::of($parameter)->after(',')->trim(' ');
+    // }
 
     switch ($extension) {
         case 'css':
@@ -31,11 +32,8 @@ Blade::directive('loadOnce', function ($parameter) {
 
         default:
             // it's a block start
-            $parameter = trim($parameter, "'");
-            $parameter = trim($parameter, '"');
-            $parameter = trim($parameter, '`');
 
-            return "<?php if(! Assets::isAssetLoaded('".$parameter."')) { Assets::markAssetAsLoaded('".$parameter."');  ?>";
+            return "<?php if(! Assets::isAssetLoaded('".$cleanParameter."')) { Assets::markAssetAsLoaded('".$cleanParameter."');  ?>";
             break;
     }
 });
