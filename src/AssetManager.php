@@ -4,31 +4,31 @@ namespace DigitallyHappy\Assets;
 
 class AssetManager
 {
-    public $loaded_assets;
+    public $loaded;
 
     public function __construct()
     {
-        $this->loaded_assets = [];
+        $this->loaded = [];
     }
 
     public function echoCss($path)
     {
-        if ($this->isAssetLoaded($path)) {
+        if ($this->isLoaded($path)) {
             return;
         }
 
-        $this->markAssetAsLoaded($path);
+        $this->markAsLoaded($path);
 
         echo '<link href="'.asset($path).'" rel="stylesheet" type="text/css" />';
     }
 
     public function echoJs($path)
     {
-        if ($this->isAssetLoaded($path)) {
+        if ($this->isLoaded($path)) {
             return;
         }
 
-        $this->markAssetAsLoaded($path);
+        $this->markAsLoaded($path);
 
         echo '<script src="'.asset($path).'"></script>';
     }
@@ -39,10 +39,10 @@ class AssetManager
      * @param  string  $asset
      * @return void
      */
-    public function markAssetAsLoaded($asset)
+    public function markAsLoaded($asset)
     {
-        if (! $this->isAssetLoaded($asset)) {
-            $this->loaded_assets[] = $asset;
+        if (! $this->isLoaded($asset)) {
+            $this->loaded[] = $asset;
         }
     }
 
@@ -52,9 +52,9 @@ class AssetManager
      * @param  string  $asset
      * @return bool
      */
-    public function isAssetLoaded($asset)
+    public function isLoaded($asset)
     {
-        if (in_array($asset, $this->loaded_assets)) {
+        if (in_array($asset, $this->loaded)) {
             return true;
         }
 
@@ -66,8 +66,8 @@ class AssetManager
      *
      * @return array
      */
-    public function loadedAssets()
+    public function loaded()
     {
-        return $this->loaded_assets;
+        return $this->loaded;
     }
 }
