@@ -3,9 +3,13 @@
 namespace DigitallyHappy\Assets;
 
 use Exception;
+use Illuminate\Support\Str;
 
 class AssetManager
 {
+    const TYPE_STYLE = 'style';
+    const TYPE_SCRIPT = 'script';
+
     const STATUS_DISABLED = 'Cache CDN is disabled in the configuration.';
     const STATUS_LOCAL = 'Asset is not in a CDN.';
     const STATUS_IN_CACHE = 'Asset was already in cache.';
@@ -25,13 +29,13 @@ class AssetManager
      * @param string $path
      * @return void
      */
-    public function echoFile(string $path, array $attributes = []): void
+    public function echoFile(string $path, array $attributes = [], string $type = null): void
     {
-        if (substr($path, -3) === '.js') {
+        if ($type === self::TYPE_SCRIPT || substr($path, -3) === '.js') {
             $this->echoJs($path, $attributes);
         }
 
-        if (substr($path, -4) === '.css') {
+        if ($type === self::TYPE_STYLE || substr($path, -4) === '.css') {
             $this->echoCss($path, $attributes);
         }
     }
@@ -120,10 +124,11 @@ class AssetManager
      * @param string $asset
      * @return void
      */
-    public function basset(string $asset, bool $output = true, array $attributes = []): string
+    public function basset(string $asset, bool $output = true, array $attributes = [], string $type = null): string
     {
         // Valiate user configuration
         if (! config('digitallyhappy.assets.cache_cdns')) {
+            $output && $this->echoFile($asset, $attributes, $type);
             return self::STATUS_DISABLED;
         }
 
@@ -132,16 +137,21 @@ class AssetManager
 
         // Validate the asset comes from a CDN
         if (substr($asset, 0, 4) !== 'http') {
-            $output && $this->echoFile($asset, $attributes);
+            $output && $this->echoFile($asset, $attributes, $type);
             return self::STATUS_LOCAL;
         }
 
-        $localizedFilePath = config('digitallyhappy.assets.cache_directory').'/'.str_replace(['http://', 'https://', '://'], '', strrpos($asset, '?') ? substr($asset, 0, strrpos($asset, '?')) : $asset);
-        $localizedPath = substr($localizedFilePath, 0, strrpos($localizedFilePath, '/'));
+        $localizedFilePath = Str::of(config('digitallyhappy.assets.cache_directory'))
+            ->after(public_path())
+            ->trim('\\/')
+            ->finish('/')
+            ->append(str_replace(['http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'"], '', $asset));
+
+        $localizedPath = $localizedFilePath->beforeLast('/');
 
         // Check if asset exists in public/bassets/...
-        if (file_exists($localizedFilePath)) {
-            $output && $this->echoFile($localizedFilePath, $attributes);
+        if (is_file($localizedFilePath)) {
+            $output && $this->echoFile($localizedFilePath, $attributes, $type);
             return self::STATUS_IN_CACHE;
         }
 
@@ -166,12 +176,12 @@ class AssetManager
         }
 
         if ($httpCode === 200) {
-            $output && $this->echoFile($localizedFilePath, $attributes);
+            $output && $this->echoFile($localizedFilePath, $attributes, $type);
             return self::STATUS_DOWNLOADED;
         }
 
         // Fallback to the CDN
-        $output && $this->echoFile($asset, $attributes);
+        $output && $this->echoFile($asset, $attributes, $type);
         return self::STATUS_NO_ACTION;
     }
 }
