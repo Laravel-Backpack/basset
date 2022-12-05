@@ -145,7 +145,7 @@ class AssetManager
             ->after(public_path())
             ->trim('\\/')
             ->finish('/')
-            ->append(str_replace(['http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'"], '', $asset));
+            ->append(str_replace(['http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $asset));
 
         $localizedPath = $localizedFilePath->beforeLast('/');
 
