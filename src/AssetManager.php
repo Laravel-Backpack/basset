@@ -141,17 +141,15 @@ class AssetManager
             return self::STATUS_LOCAL;
         }
 
-        $localizedFilePath = Str::of(config('digitallyhappy.assets.cache_directory'))
-            ->after(public_path())
-            ->trim('\\/')
-            ->finish('/')
-            ->append(str_replace(['http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $asset));
+        $assetSlug = str_replace(['http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $asset);
 
+        $localizedFilePath = Str::of(config('digitallyhappy.assets.cache_directory'))->trim('\\/')->finish('/')->append($assetSlug);
         $localizedPath = $localizedFilePath->beforeLast('/');
+        $localizedUrl = $localizedFilePath->after(public_path())->trim('\\/');
 
-        // Check if asset exists in public/bassets/...
+        // Check if asset exists in bassets folder
         if (is_file($localizedFilePath)) {
-            $output && $this->echoFile($localizedFilePath, $attributes, $type);
+            $output && $this->echoFile($localizedUrl, $attributes, $type);
             return self::STATUS_IN_CACHE;
         }
 
@@ -160,23 +158,20 @@ class AssetManager
             mkdir($localizedPath, recursive:true);
         }
 
-        // Download the file
         try {
-            $curl = curl_init();
-            curl_setopt_array($curl, [
-                CURLOPT_FILE => fopen($localizedFilePath, 'w'),
-                CURLOPT_TIMEOUT => 5, // seconds
-                CURLOPT_URL => $asset,
-            ]);
-            curl_exec($curl);
-            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            curl_close($curl);
+            // Download file
+            $content = file_get_contents($asset);
+
+            // Clean source map
+            $content = preg_replace('/sourceMappingURL=/', '', $content);
+
+            $result = file_put_contents($localizedFilePath, $content);
         } catch (Exception $e) {
-            $httpCode = 500;
+            $result = false;
         }
 
-        if ($httpCode === 200) {
-            $output && $this->echoFile($localizedFilePath, $attributes, $type);
+        if ($result) {
+            $output && $this->echoFile($localizedUrl, $attributes, $type);
             return self::STATUS_DOWNLOADED;
         }
 
