@@ -46,6 +46,7 @@ class BassetInternalize extends Command
                 $totalFiles += $count;
 
                 $this->line(" - $directory ($count blade files)");
+
                 return $files;
             })
             ->flatten()
@@ -61,6 +62,7 @@ class BassetInternalize extends Command
         $totalBassets = count($bassets);
         if (! $totalBassets) {
             $this->line('No bassets found.');
+
             return;
         }
 
@@ -89,9 +91,9 @@ class BassetInternalize extends Command
     }
 
     /**
-     * Gets all blade files in a directory recursively
+     * Gets all blade files in a directory recursively.
      *
-     * @param string $path
+     * @param  string  $path
      * @return array
      */
     private function getBladeFiles(string $path): array

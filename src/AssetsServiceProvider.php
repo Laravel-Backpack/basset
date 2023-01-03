@@ -67,7 +67,7 @@ class AssetsServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register Blade Directives
+     * Register Blade Directives.
      *
      * @return void
      */

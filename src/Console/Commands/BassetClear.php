@@ -44,9 +44,9 @@ class BassetClear extends Command
     }
 
     /**
-     * Remove Directory
+     * Remove Directory.
      *
-     * @param string $path
+     * @param  string  $path
      * @return void
      */
     private function removeDirectory(string $path): void

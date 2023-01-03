@@ -24,9 +24,9 @@ class AssetManager
     }
 
     /**
-     * Outputs a file depending on its type
+     * Outputs a file depending on its type.
      *
-     * @param string $path
+     * @param  string  $path
      * @return void
      */
     public function echoFile(string $path, array $attributes = [], string $type = null): void
@@ -41,9 +41,9 @@ class AssetManager
     }
 
     /**
-     * Outputs the CSS link tag
+     * Outputs the CSS link tag.
      *
-     * @param string $path
+     * @param  string  $path
      * @return void
      */
     public function echoCss(string $path, array $attributes = []): void
@@ -63,9 +63,9 @@ class AssetManager
     }
 
     /**
-     * Outputs the JS script tag
+     * Outputs the JS script tag.
      *
-     * @param string $path
+     * @param  string  $path
      * @return void
      */
     public function echoJs(string $path, array $attributes = []): void
@@ -119,9 +119,9 @@ class AssetManager
     }
 
     /**
-     * Localize a CDN asset
+     * Localize a CDN asset.
      *
-     * @param string $asset
+     * @param  string  $asset
      * @return void
      */
     public function basset(string $asset, bool $output = true, array $attributes = [], string $type = null): string
@@ -129,6 +129,7 @@ class AssetManager
         // Valiate user configuration
         if (! config('digitallyhappy.assets.cache_cdns')) {
             $output && $this->echoFile($asset, $attributes, $type);
+
             return self::STATUS_DISABLED;
         }
 
@@ -138,6 +139,7 @@ class AssetManager
         // Validate the asset comes from a CDN
         if (substr($asset, 0, 4) !== 'http') {
             $output && $this->echoFile($asset, $attributes, $type);
+
             return self::STATUS_LOCAL;
         }
 
@@ -150,6 +152,7 @@ class AssetManager
         // Check if asset exists in bassets folder
         if (is_file($localizedFilePath)) {
             $output && $this->echoFile($localizedUrl, $attributes, $type);
+
             return self::STATUS_IN_CACHE;
         }
 
@@ -172,11 +175,13 @@ class AssetManager
 
         if ($result) {
             $output && $this->echoFile($localizedUrl, $attributes, $type);
+
             return self::STATUS_DOWNLOADED;
         }
 
         // Fallback to the CDN
         $output && $this->echoFile($asset, $attributes, $type);
+
         return self::STATUS_NO_ACTION;
     }
 }
