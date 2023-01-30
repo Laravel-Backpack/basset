@@ -67,7 +67,7 @@ class BassetInternalize extends Command
         }
 
         $this->newLine();
-        $this->line("Found $totalBassets bassets out of $totalFiles blade files.");
+        $this->line("Found $totalBassets assets in $totalFiles blade files. Internalizing:");
 
         $bar = $this->output->createProgressBar($totalBassets);
         $bar->start();
