@@ -157,9 +157,9 @@ class AssetManager
 
         $assetSlug = str_replace(['http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $asset);
 
-        $localizedFilePath = Str::of(config('digitallyhappy.assets.cache_path'))->trim('\\/')->finish('/')->append($assetSlug);
+        $localizedFilePath = Str::of(config('digitallyhappy.assets.cache_path'))->trim('\\/')->append("/$assetSlug");
+        $localizedUrl = Str::of(config('digitallyhappy.assets.cache_public_path'))->trim('\\/')->append("/$assetSlug");
         $localizedPath = $localizedFilePath->beforeLast('/');
-        $localizedUrl = $localizedFilePath->after(config('digitallyhappy.assets.cache_path'))->trim('\\/')->prepend(Str::of(config('digitallyhappy.assets.cache_public_path'))->finish('/'));
 
         // Check if asset exists in bassets folder
         if (is_file($localizedFilePath)) {
