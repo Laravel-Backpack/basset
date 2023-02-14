@@ -27,6 +27,8 @@ class AssetManager
      * Outputs a file depending on its type.
      *
      * @param  string  $path
+     * @param  array   $attributes
+     * @param  string  $type
      * @return void
      */
     public function echoFile(string $path, array $attributes = [], string $type = null): void
@@ -44,9 +46,11 @@ class AssetManager
      * Outputs the CSS link tag.
      *
      * @param  string  $path
+     * @param  array   $attributes
+     * @param  string  $type
      * @return void
      */
-    public function echoCss(string $path, array $attributes = []): void
+    public function echoCss(string $path, array $attributes = [], $suffix = PHP_EOL): void
     {
         if ($this->isLoaded($path)) {
             return;
@@ -59,7 +63,7 @@ class AssetManager
             $args .= " $key".($value === true || empty($value) ? '' : "=\"$value\"");
         }
 
-        echo '<link href="'.asset($path).'"'.$args.' rel="stylesheet" type="text/css" />';
+        echo '<link href="'.asset($path).'"'.$args.' rel="stylesheet" type="text/css" />'.$suffix;
     }
 
     /**
@@ -68,7 +72,7 @@ class AssetManager
      * @param  string  $path
      * @return void
      */
-    public function echoJs(string $path, array $attributes = []): void
+    public function echoJs(string $path, array $attributes = [], $suffix = PHP_EOL): void
     {
         if ($this->isLoaded($path)) {
             return;
@@ -81,7 +85,7 @@ class AssetManager
             $args .= " $key".($value === true || empty($value) ? '' : "=\"$value\"");
         }
 
-        echo '<script src="'.asset($path).'"'.$args.'></script>';
+        echo '<script src="'.asset($path).'"'.$args.'></script>'.$suffix;
     }
 
     /**
@@ -122,9 +126,12 @@ class AssetManager
      * Localize a CDN asset.
      *
      * @param  string  $asset
+     * @param  mixed   $output
+     * @param  array   $attributes
+     * @param  string  $type
      * @return void
      */
-    public function basset(string $asset, bool $output = true, array $attributes = [], string $type = null): string
+    public function basset(string $asset, mixed $output = true, array $attributes = [], string $type = null): string
     {
         // Valiate user configuration
         if (! config('digitallyhappy.assets.cache_cdns')) {
@@ -143,11 +150,16 @@ class AssetManager
             return self::STATUS_LOCAL;
         }
 
+        // Override asset in case output is a string
+        if (is_string($output)) {
+            $asset = $output;
+        }
+
         $assetSlug = str_replace(['http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $asset);
 
-        $localizedFilePath = Str::of(config('digitallyhappy.assets.cache_directory'))->trim('\\/')->finish('/')->append($assetSlug);
+        $localizedFilePath = Str::of(config('digitallyhappy.assets.cache_path'))->trim('\\/')->append("/$assetSlug");
+        $localizedUrl = Str::of(config('digitallyhappy.assets.cache_public_path'))->trim('\\/')->append("/$assetSlug");
         $localizedPath = $localizedFilePath->beforeLast('/');
-        $localizedUrl = $localizedFilePath->after(public_path())->trim('\\/');
 
         // Check if asset exists in bassets folder
         if (is_file($localizedFilePath)) {
