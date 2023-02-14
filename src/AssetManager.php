@@ -27,7 +27,7 @@ class AssetManager
      * Outputs a file depending on its type.
      *
      * @param  string  $path
-     * @param  array   $attributes
+     * @param  array  $attributes
      * @param  string  $type
      * @return void
      */
@@ -46,7 +46,7 @@ class AssetManager
      * Outputs the CSS link tag.
      *
      * @param  string  $path
-     * @param  array   $attributes
+     * @param  array  $attributes
      * @param  string  $type
      * @return void
      */
@@ -126,8 +126,8 @@ class AssetManager
      * Localize a CDN asset.
      *
      * @param  string  $asset
-     * @param  mixed   $output
-     * @param  array   $attributes
+     * @param  mixed  $output
+     * @param  array  $attributes
      * @param  string  $type
      * @return void
      */
