@@ -111,6 +111,16 @@ class AssetsServiceProvider extends ServiceProvider
             $bladeCompiler->directive('basset', function (string $parameter): string {
                 return "<?php Assets::basset({$parameter}); ?>";
             });
+
+            $bladeCompiler->directive('bassetBlock', function (string $parameter): string {
+                $filePath = Str::of($parameter)->trim("'")->trim('"')->trim('`')->before('?')->before('#');
+
+                return "<?php \$bassetBlock = '{$filePath}'; ob_start(); ?>";
+            });
+
+            $bladeCompiler->directive('endBassetBlock', function (): string {
+                return '<?php Assets::bassetBlock($bassetBlock, ob_get_clean()); ?>';
+            });
         });
     }
 
