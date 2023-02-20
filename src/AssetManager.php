@@ -174,7 +174,6 @@ class AssetManager
             $content = preg_replace('/sourceMappingURL=/', '', $content);
 
             $result = $this->disk->put($path, $content);
-
         } catch (Exception $e) {
             $result = false;
         }
@@ -192,10 +191,10 @@ class AssetManager
     }
 
     /**
-     * Internalize a basset code block
+     * Internalize a basset code block.
      *
-     * @param string $asset
-     * @param string $code
+     * @param  string  $asset
+     * @param  string  $code
      * @return void
      */
     public function bassetBlock(string $asset, string $code)
@@ -203,6 +202,7 @@ class AssetManager
         // Valiate user configuration
         if (! config('digitallyhappy.assets.cache')) {
             echo $code;
+
             return;
         }
 
@@ -237,9 +237,9 @@ class AssetManager
     }
 
     /**
-     * Returns the asset proper path and url
+     * Returns the asset proper path and url.
      *
-     * @param string $asset
+     * @param  string  $asset
      * @return array
      */
     private function getAssetPaths(string $asset): array
