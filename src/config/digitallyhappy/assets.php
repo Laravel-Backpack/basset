@@ -1,9 +1,6 @@
 <?php
 
 return [
-    // cache assets
-    'cache' => true,
-
     // disk and path where to store bassets
     'disk' => 'public',
     'path' => 'bassets',
