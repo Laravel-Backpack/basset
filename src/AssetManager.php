@@ -152,7 +152,6 @@ class AssetManager
         [$path, $url] = $this->getAssetPaths($path);
 
         if ($this->isLoaded($path)) {
-
             return self::STATUS_LOADED;
         }
 
@@ -210,6 +209,7 @@ class AssetManager
         // Check if asset exists in bassets folder
         if ($this->disk->exists($path)) {
             $this->echoFile($url);
+
             return;
         }
 
@@ -232,6 +232,7 @@ class AssetManager
 
         if ($result) {
             $this->echoFile($url);
+
             return;
         }
 
