@@ -16,11 +16,15 @@ class AssetManager
 
     private $loaded;
     private $disk;
+    private $cachebusting;
 
     public function __construct()
     {
         $this->loaded = [];
         $this->disk = Storage::disk(config('digitallyhappy.assets.disk'));
+
+        $cachebusting = config('digitallyhappy.assets.cachebusting');
+        $this->cachebusting = $cachebusting ? (string) Str::of($cachebusting)->start('?') : '';
     }
 
     /**
@@ -89,7 +93,7 @@ class AssetManager
             $args .= " $key".($value === true || empty($value) ? '' : "=\"$value\"");
         }
 
-        echo '<link href="'.asset($path).'"'.$args.' rel="stylesheet" type="text/css" />'.PHP_EOL;
+        echo '<link href="'.asset($path.$this->cachebusting).'"'.$args.' rel="stylesheet" type="text/css" />'.PHP_EOL;
     }
 
     /**
@@ -105,7 +109,7 @@ class AssetManager
             $args .= " $key".($value === true || empty($value) ? '' : "=\"$value\"");
         }
 
-        echo '<script src="'.asset($path).'"'.$args.'></script>'.PHP_EOL;
+        echo '<script src="'.asset($path.$this->cachebusting).'"'.$args.'></script>'.PHP_EOL;
     }
 
     /**
