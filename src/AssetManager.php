@@ -86,7 +86,7 @@ class AssetManager
      * @param  array  $attributes
      * @return void
      */
-    private function echoCss(string $path, array $attributes = []): void
+    public function echoCss(string $path, array $attributes = []): void
     {
         $args = '';
         foreach ($attributes as $key => $value) {
@@ -102,7 +102,7 @@ class AssetManager
      * @param  string  $path
      * @return void
      */
-    private function echoJs(string $path, array $attributes = []): void
+    public function echoJs(string $path, array $attributes = []): void
     {
         $args = '';
         foreach ($attributes as $key => $value) {
