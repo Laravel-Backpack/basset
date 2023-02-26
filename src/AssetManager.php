@@ -8,10 +8,7 @@ use Illuminate\Support\Str;
 
 class AssetManager
 {
-    const TYPE_STYLE = 'style';
-    const TYPE_SCRIPT = 'script';
-
-    const STATUS_DISABLED = 'Cache CDN is disabled in the configuration.';
+    const STATUS_LOADED = 'Asset was already loaded.';
     const STATUS_INVALID = 'Asset is not in a CDN or local filesystem.';
     const STATUS_IN_CACHE = 'Asset was already in cache.';
     const STATUS_DOWNLOADED = 'Asset downloaded.';
@@ -19,76 +16,15 @@ class AssetManager
 
     private $loaded;
     private $disk;
+    private $cachebusting;
 
     public function __construct()
     {
         $this->loaded = [];
         $this->disk = Storage::disk(config('digitallyhappy.assets.disk'));
-    }
 
-    /**
-     * Outputs a file depending on its type.
-     *
-     * @param  string  $path
-     * @param  array  $attributes
-     * @param  string  $type
-     * @return void
-     */
-    public function echoFile(string $path, array $attributes = [], string $type = null): void
-    {
-        if ($type === self::TYPE_SCRIPT || substr($path, -3) === '.js') {
-            $this->echoJs($path, $attributes);
-        }
-
-        if ($type === self::TYPE_STYLE || substr($path, -4) === '.css') {
-            $this->echoCss($path, $attributes);
-        }
-    }
-
-    /**
-     * Outputs the CSS link tag.
-     *
-     * @param  string  $path
-     * @param  array  $attributes
-     * @param  string  $type
-     * @return void
-     */
-    public function echoCss(string $path, array $attributes = [], $suffix = PHP_EOL): void
-    {
-        if ($this->isLoaded($path)) {
-            return;
-        }
-
-        $this->markAsLoaded($path);
-
-        $args = '';
-        foreach ($attributes as $key => $value) {
-            $args .= " $key".($value === true || empty($value) ? '' : "=\"$value\"");
-        }
-
-        echo '<link href="'.asset($path).'"'.$args.' rel="stylesheet" type="text/css" />'.$suffix;
-    }
-
-    /**
-     * Outputs the JS script tag.
-     *
-     * @param  string  $path
-     * @return void
-     */
-    public function echoJs(string $path, array $attributes = [], $suffix = PHP_EOL): void
-    {
-        if ($this->isLoaded($path)) {
-            return;
-        }
-
-        $this->markAsLoaded($path);
-
-        $args = '';
-        foreach ($attributes as $key => $value) {
-            $args .= " $key".($value === true || empty($value) ? '' : "=\"$value\"");
-        }
-
-        echo '<script src="'.asset($path).'"'.$args.'></script>'.$suffix;
+        $cachebusting = config('digitallyhappy.assets.cachebusting');
+        $this->cachebusting = $cachebusting ? (string) Str::of($cachebusting)->start('?') : '';
     }
 
     /**
@@ -126,114 +62,54 @@ class AssetManager
     }
 
     /**
-     * Internalize a CDN or local asset.
+     * Outputs a file depending on its type.
      *
-     * @param  string  $asset
-     * @param  mixed  $output
+     * @param  string  $path
      * @param  array  $attributes
-     * @param  string  $type
      * @return void
      */
-    public function basset(string $asset, mixed $output = true, array $attributes = [], string $type = null): string
+    public function echoFile(string $path, array $attributes = []): void
     {
-        // Valiate user configuration
-        if (! config('digitallyhappy.assets.cache')) {
-            $output && $this->echoFile($asset, $attributes, $type);
-
-            return self::STATUS_DISABLED;
+        if (substr($path, -3) === '.js') {
+            $this->echoJs($path, $attributes);
         }
 
-        // Validate the asset is an aboslute path or a CDN
-        if (! str_starts_with($asset, base_path()) && ! str_starts_with($asset, 'http')) {
-            $output && $this->echoFile($asset, $attributes, $type);
-
-            return self::STATUS_INVALID;
+        if (substr($path, -4) === '.css') {
+            $this->echoCss($path, $attributes);
         }
-
-        // Override asset in case output is a string
-        $path = is_string($output) ? $output : $asset;
-
-        // Remove absolute path
-        $path = str_replace(base_path(), '', $path);
-
-        // Get asset paths
-        [$path, $url] = $this->getAssetPaths($path);
-
-        // Check if asset exists in bassets folder
-        if ($this->disk->exists($path)) {
-            $output && $this->echoFile($url, $attributes, $type);
-
-            return self::STATUS_IN_CACHE;
-        }
-
-        try {
-            // Download/copy file content
-            $content = file_get_contents($asset);
-
-            // Clean source map
-            $content = preg_replace('/sourceMappingURL=/', '', $content);
-
-            $result = $this->disk->put($path, $content);
-        } catch (Exception $e) {
-            $result = false;
-        }
-
-        if ($result) {
-            $output && $this->echoFile($url, $attributes, $type);
-
-            return self::STATUS_DOWNLOADED;
-        }
-
-        // Fallback to the CDN/path
-        $output && $this->echoFile($asset, $attributes, $type);
-
-        return self::STATUS_NO_ACTION;
     }
 
     /**
-     * Internalize a basset code block.
+     * Outputs the CSS link tag.
      *
-     * @param  string  $asset
-     * @param  string  $code
+     * @param  string  $path
+     * @param  array  $attributes
      * @return void
      */
-    public function bassetBlock(string $asset, string $code)
+    public function echoCss(string $path, array $attributes = []): void
     {
-        // Valiate user configuration
-        if (! config('digitallyhappy.assets.cache')) {
-            echo $code;
-
-            return;
+        $args = '';
+        foreach ($attributes as $key => $value) {
+            $args .= " $key".($value === true || empty($value) ? '' : "=\"$value\"");
         }
 
-        // Get asset paths
-        [$path, $url] = $this->getAssetPaths($asset);
+        echo '<link href="'.asset($path.$this->cachebusting).'"'.$args.' rel="stylesheet" type="text/css" />'.PHP_EOL;
+    }
 
-        // Check if asset exists in bassets folder
-        if ($this->disk->exists($path)) {
-            return $this->echoFile($url);
+    /**
+     * Outputs the JS script tag.
+     *
+     * @param  string  $path
+     * @return void
+     */
+    public function echoJs(string $path, array $attributes = []): void
+    {
+        $args = '';
+        foreach ($attributes as $key => $value) {
+            $args .= " $key".($value === true || empty($value) ? '' : "=\"$value\"");
         }
 
-        // Store the file
-        // clean the tags and empty lines
-        $cleanCode = preg_replace('`\A[ \t]*\r?\n|\r?\n[ \t]*\Z`', '', strip_tags($code));
-
-        // clean the left padding
-        preg_match("/^\s*/", $cleanCode, $matches);
-        $cleanCode = preg_replace('/^'.($matches[0] ?? '').'/m', '', $cleanCode);
-
-        try {
-            $result = $this->disk->put($path, $cleanCode);
-        } catch (Exception $e) {
-            $result = false;
-        }
-
-        if ($result) {
-            return $this->echoFile($url);
-        }
-
-        // Fallback to the code
-        echo $code;
+        echo '<script src="'.asset($path.$this->cachebusting).'"'.$args.'></script>'.PHP_EOL;
     }
 
     /**
@@ -251,5 +127,120 @@ class AssetManager
             $path,
             $url,
         ];
+    }
+
+    /**
+     * Internalize a CDN or local asset.
+     *
+     * @param  string  $asset
+     * @param  mixed  $output
+     * @param  array  $attributes
+     * @return void
+     */
+    public function basset(string $asset, mixed $output = true, array $attributes = []): string
+    {
+        // Validate the asset is an aboslute path or a CDN
+        if (! str_starts_with($asset, base_path()) && ! str_starts_with($asset, 'http')) {
+            $output && $this->echoFile($asset, $attributes);
+
+            return self::STATUS_INVALID;
+        }
+
+        // Override asset in case output is a string
+        $path = is_string($output) ? $output : $asset;
+
+        // Remove absolute path
+        $path = str_replace(base_path(), '', $path);
+
+        // Get asset paths
+        [$path, $url] = $this->getAssetPaths($path);
+
+        if ($this->isLoaded($path)) {
+            return self::STATUS_LOADED;
+        }
+
+        $this->markAsLoaded($path);
+
+        // Check if asset exists in bassets folder
+        if ($this->disk->exists($path)) {
+            $output && $this->echoFile($url, $attributes);
+
+            return self::STATUS_IN_CACHE;
+        }
+
+        try {
+            // Download/copy file content
+            $content = file_get_contents($asset);
+
+            // Clean source map
+            $content = preg_replace('/sourceMappingURL=/', '', $content);
+
+            $result = $this->disk->put($path, $content);
+        } catch (Exception $e) {
+            $result = false;
+        }
+
+        if ($result) {
+            $output && $this->echoFile($url, $attributes);
+
+            return self::STATUS_DOWNLOADED;
+        }
+
+        // Fallback to the CDN/path
+        $output && $this->echoFile($asset, $attributes);
+
+        return self::STATUS_NO_ACTION;
+    }
+
+    /**
+     * Internalize a basset code block.
+     *
+     * @param  string  $asset
+     * @param  string  $code
+     * @return void
+     */
+    public function bassetBlock(string $asset, string $code): void
+    {
+        // Get asset paths
+        [$path, $url] = $this->getAssetPaths($asset);
+
+        if ($this->isLoaded($path)) {
+            return;
+        }
+
+        $this->markAsLoaded($path);
+
+        // Check if asset exists in bassets folder
+        if ($this->disk->exists($path)) {
+            $this->echoFile($url);
+
+            return;
+        }
+
+        // Strip tags
+        $cleanCode = preg_replace('/^\s*\<\/?(script|style).*?\/?\s*?\>/ms', '', $code);
+
+        // Clear empty lines
+        $cleanCode = preg_replace('/^(?:[\t ]*(?:\r?\n|\r))+/', '', $cleanCode);
+
+        // clean the left padding
+        preg_match("/^\s*/", $cleanCode, $matches);
+        $cleanCode = preg_replace('/^'.($matches[0] ?? '').'/m', '', $cleanCode);
+
+        // Store the file
+        try {
+            $result = $this->disk->put($path, $cleanCode);
+        } catch (Exception $e) {
+            $result = false;
+        }
+
+        if ($result) {
+            $this->echoFile($url);
+
+            return;
+        }
+
+        // Fallback to the code
+        echo $code;
     }
 }

@@ -1,12 +1,12 @@
 <?php
 
 return [
-    // cache assets
-    'cache' => true,
-
     // disk and path where to store bassets
     'disk' => 'public',
     'path' => 'bassets',
+
+    // cachebusting string variable that is added to all bassets
+    'cachebusting' => false,
 
     // view paths that may use @basset
     // used to internalize assets in advance with artisan basset:internalize
