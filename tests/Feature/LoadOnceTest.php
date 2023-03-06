@@ -1,22 +1,22 @@
 <?php
 
-it('is not loaded', function ($cdn) {
-    expect(basset()->isLoaded($cdn))->toBe(false);
+it('is not loaded', function ($asset) {
+    expect(basset()->isLoaded($asset))->toBe(false);
 })->with('cdn');
 
-it('gets loaded', function ($cdn) {
-    basset()->markAsLoaded($cdn);
+it('gets loaded', function ($asset) {
+    basset()->markAsLoaded($asset);
 
-    expect(basset()->isLoaded($cdn))->toBe(true);
+    expect(basset()->isLoaded($asset))->toBe(true);
 
     expect(basset()->loaded())->toBeArray()->toHaveCount(1);
 })->with('cdn');
 
-it('does not get loaded twice', function ($cdn) {
-    basset()->markAsLoaded($cdn);
+it('does not get loaded twice', function ($asset) {
+    basset()->markAsLoaded($asset);
 
     // try to load it twice
-    basset()->markAsLoaded($cdn);
+    basset()->markAsLoaded($asset);
 
     expect(basset()->loaded())->toBeArray()->toHaveCount(1);
 })->with('cdn');

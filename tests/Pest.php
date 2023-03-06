@@ -2,6 +2,9 @@
 
 use DigitallyHappy\Assets\Tests\BaseTest;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,10 +22,10 @@ uses(BaseTest::class)
         // clear Storage
         Storage::fake('basset');
 
+        // setup fake links
         Http::fake([
             'https://unpkg.com/vue@3/dist/vue.global.prod.js' => Http::response(getStub('vue.global.prod.js')),
             'https://unpkg.com/react@18/umd/react.production.min.js' => Http::response(getStub('react.production.min.js')),
-            'https://unpkg.com/angular@1.8/angular.min.js' => Http::response(getStub('angular.min.js')),
         ]);
 
         // setup config
@@ -32,21 +35,6 @@ uses(BaseTest::class)
         ]);
     })
     ->in(__DIR__);
-
-/*
-|--------------------------------------------------------------------------
-| Expectations
-|--------------------------------------------------------------------------
-|
-| When you're writing tests, you often need to check that values meet certain conditions. The
-| "expect()" function gives you access to a set of "expectations" methods that you can use
-| to assert different things. Of course, you may extend the Expectation API at any time.
-|
-*/
-
-expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
-});
 
 /*
 |--------------------------------------------------------------------------
@@ -64,14 +52,10 @@ function basset(string $asset = null, bool $output = true, array $attributes = [
     return $asset ? app('assets')->basset(...func_get_args()) : app('assets');
 }
 
-function getStubName(string $asset): string
-{
-    return (string) Str::of($asset)->afterLast('/');
-}
-
 function getStub(string $asset): string
 {
-    $name = getStubName($asset);
+    $name = Str::of($asset)->afterLast('/');
+
     return File::get("tests/Helpers/$name.stub");
 }
 

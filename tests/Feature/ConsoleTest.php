@@ -1,7 +1,6 @@
 <?php
 
 it('internalizes assets via console command', function () {
-    // setup a sample folder
     config(['digitallyhappy.assets.view_paths' => [disk()->path('')]]);
 
     // create a sample resource

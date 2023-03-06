@@ -12,17 +12,15 @@ it('fails on invalid path', function () {
     expect($result)->toBe(AssetManager::STATUS_INVALID);
 });
 
-it('cleans the pathname of an asset', function ($cdn, $path) {
-    config(['digitallyhappy.assets.path', 'bassets']);
-
-    $generatedPath = basset()->getAssetPath($cdn);
+it('cleans the pathname of an asset', function ($asset, $path) {
+    $generatedPath = basset()->getAssetPath($asset);
 
     expect((string) $generatedPath)->toBe("bassets/$path");
 
 })->with('paths');
 
-it('downloads a cdn basset', function ($cdn) {
-    $result = basset($cdn, false);
+it('downloads a cdn basset', function ($asset) {
+    $result = basset($asset, false);
 
     Http::assertSentCount(1);
 
@@ -30,9 +28,9 @@ it('downloads a cdn basset', function ($cdn) {
 
 })->with('cdn');
 
-it('stores a downloaded basset', function ($cdn) {
-    $result = basset($cdn, false);
-    $path = basset()->getAssetPath($cdn);
+it('stores a downloaded basset', function ($asset) {
+    $result = basset($asset, false);
+    $path = basset()->getAssetPath($asset);
 
     disk()->assertExists($path);
 
@@ -40,11 +38,11 @@ it('stores a downloaded basset', function ($cdn) {
 
 })->with('cdn');
 
-it('cleans the content of a downloaded basset', function ($cdn) {
-    basset($cdn, false);
-    $path = basset()->getAssetPath($cdn);
+it('cleans the content of a downloaded basset', function ($asset) {
+    basset($asset, false);
+    $path = basset()->getAssetPath($asset);
 
-    expect(disk()->get($path))->toBe(getStub("$cdn.output"));
+    expect(disk()->get($path))->toBe(getStub("$asset.output"));
 
 })->with('cdn');
 
@@ -91,14 +89,14 @@ it('cleans the content of a local basset', function ($asset) {
 
 })->with('local');
 
-it('does not download twice', function ($cdn) {
+it('does not download twice', function ($asset) {
     // first call should download
-    $result = basset($cdn, false);
+    $result = basset($asset, false);
 
     expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
 
     // second call asset should be already loaded
-    $result = basset($cdn);
+    $result = basset($asset);
 
     expect($result)->toBe(AssetManager::STATUS_LOADED);
 
@@ -107,19 +105,19 @@ it('does not download twice', function ($cdn) {
 
 })->with('cdn');
 
-it('does not output when not required', function ($cdn) {
-    basset($cdn, false);
+it('does not output when not required', function ($asset) {
+    basset($asset, false);
 
     expect($this->getActualOutput())->toBeEmpty();
 })->with('cdn');
 
-it('retreives from cache when available', function ($cdn) {
+it('retreives from cache when available', function ($asset) {
     // store the stub in disk
-    $generatedPath = basset()->getAssetPath($cdn);
-    disk()->put($generatedPath, getStub($cdn));
+    $generatedPath = basset()->getAssetPath($asset);
+    disk()->put($generatedPath, getStub($asset));
 
     // should not download
-    $result = basset($cdn, false);
+    $result = basset($asset, false);
 
     expect($result)->toBe(AssetManager::STATUS_IN_CACHE);
 

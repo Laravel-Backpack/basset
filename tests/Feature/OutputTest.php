@@ -6,8 +6,8 @@ it('echoes the correct html tag', function ($asset, $tag) {
     $this->expectOutputRegex("/$tag/");
 })->with('htmlTags');
 
-it('echoes the attributes', function ($cdn) {
-    basset($cdn, true, [
+it('echoes the attributes', function ($asset) {
+    basset($asset, true, [
         'async' => true,
         'type' => 'module',
     ]);
