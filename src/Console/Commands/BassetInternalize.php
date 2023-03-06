@@ -8,7 +8,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
 /**
- * Basset Internalize command
+ * Basset Internalize command.
  *
  * @property object $output
  */

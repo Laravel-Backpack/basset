@@ -18,7 +18,6 @@ it('cleans the pathname of an asset', function ($cdn, $path) {
     $generatedPath = basset()->getAssetPath($cdn);
 
     expect((string) $generatedPath)->toBe("bassets/$path");
-
 })->with('paths');
 
 it('downloads a cdn basset', function ($cdn) {
@@ -27,7 +26,6 @@ it('downloads a cdn basset', function ($cdn) {
     Http::assertSentCount(1);
 
     expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
-
 })->with('cdn');
 
 it('stores a downloaded basset', function ($cdn) {
@@ -37,7 +35,6 @@ it('stores a downloaded basset', function ($cdn) {
     disk()->assertExists($path);
 
     expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
-
 })->with('cdn');
 
 it('cleans the content of a downloaded basset', function ($cdn) {
@@ -45,7 +42,6 @@ it('cleans the content of a downloaded basset', function ($cdn) {
     $path = basset()->getAssetPath($cdn);
 
     expect(disk()->get($path))->toBe(getStub("$cdn.output"));
-
 })->with('cdn');
 
 it('copies a local basset', function ($asset) {
@@ -58,7 +54,6 @@ it('copies a local basset', function ($asset) {
     Http::assertSentCount(0);
 
     expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
-
 })->with('local');
 
 it('stores a local basset', function ($asset) {
@@ -73,7 +68,6 @@ it('stores a local basset', function ($asset) {
     disk()->assertExists($path);
 
     expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
-
 })->with('local');
 
 it('cleans the content of a local basset', function ($asset) {
@@ -88,7 +82,6 @@ it('cleans the content of a local basset', function ($asset) {
     expect(disk()->get($path))->toBe(getStub("$asset.output"));
 
     expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
-
 })->with('local');
 
 it('does not download twice', function ($cdn) {
@@ -104,7 +97,6 @@ it('does not download twice', function ($cdn) {
 
     // only 1 call could have been made to http
     Http::assertSentCount(1);
-
 })->with('cdn');
 
 it('does not output when not required', function ($cdn) {
@@ -125,5 +117,4 @@ it('retreives from cache when available', function ($cdn) {
 
     // no call could have been made to http
     Http::assertSentCount(0);
-
 })->with('cdn');

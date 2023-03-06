@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * Basset Clear command
+ * Basset Clear command.
  *
  * @property object $output
  */

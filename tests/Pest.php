@@ -72,6 +72,7 @@ function getStubName(string $asset): string
 function getStub(string $asset): string
 {
     $name = getStubName($asset);
+
     return File::get("tests/Helpers/$name.stub");
 }
 
