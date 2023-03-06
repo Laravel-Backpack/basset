@@ -3,6 +3,8 @@
 namespace DigitallyHappy\Assets;
 
 use Exception;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -116,17 +118,15 @@ class AssetManager
      * Returns the asset proper path and url.
      *
      * @param  string  $asset
-     * @return array
+     * @return string
      */
-    private function getAssetPaths(string $asset): array
+    public function getAssetPath(string $asset): string
     {
-        $path = Str::of(config('digitallyhappy.assets.path'))->finish('/')->append(str_replace(['http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $asset));
-        $url = $this->disk->url($path);
+        // Remove absolute path
+        $path = str_replace(base_path(), '', $asset);
 
-        return [
-            $path,
-            $url,
-        ];
+        return Str::of(config('digitallyhappy.assets.path'))->finish('/')
+            ->append(str_replace(['http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $path));
     }
 
     /**
@@ -139,8 +139,8 @@ class AssetManager
      */
     public function basset(string $asset, mixed $output = true, array $attributes = []): string
     {
-        // Validate the asset is an aboslute path or a CDN
-        if (! str_starts_with($asset, base_path()) && ! str_starts_with($asset, 'http')) {
+        // Validate the asset is an absolute path or a CDN
+        if (! str_starts_with($asset, base_path()) && ! str_starts_with($asset, 'http') && ! str_starts_with($asset, '://')) {
             $output && $this->echoFile($asset, $attributes);
 
             return self::STATUS_INVALID;
@@ -149,11 +149,9 @@ class AssetManager
         // Override asset in case output is a string
         $path = is_string($output) ? $output : $asset;
 
-        // Remove absolute path
-        $path = str_replace(base_path(), '', $path);
-
-        // Get asset paths
-        [$path, $url] = $this->getAssetPaths($path);
+        // Get asset path and url
+        $path = $this->getAssetPath($path);
+        $url = $this->disk->url($path);
 
         if ($this->isLoaded($path)) {
             return self::STATUS_LOADED;
@@ -169,8 +167,12 @@ class AssetManager
         }
 
         try {
-            // Download/copy file content
-            $content = file_get_contents($asset);
+            // Download/copy file
+            if (str_starts_with($asset, 'http') || str_starts_with($asset, '://')) {
+                $content = Http::get($asset)->getBody()->getContents();
+            } else {
+                $content = File::get($asset);
+            }
 
             // Clean source map
             $content = preg_replace('/sourceMappingURL=/', '', $content);
@@ -199,10 +201,11 @@ class AssetManager
      * @param  string  $code
      * @return void
      */
-    public function bassetBlock(string $asset, string $code): void
+    public function bassetBlock(string $asset, string $code, bool $output = true): void
     {
-        // Get asset paths
-        [$path, $url] = $this->getAssetPaths($asset);
+        // Get asset path and url
+        $path = $this->getAssetPath($asset);
+        $url = $this->disk->url($path);
 
         if ($this->isLoaded($path)) {
             return;
@@ -212,7 +215,7 @@ class AssetManager
 
         // Check if asset exists in bassets folder
         if ($this->disk->exists($path)) {
-            $this->echoFile($url);
+            $output && $this->echoFile($url);
 
             return;
         }
@@ -235,7 +238,7 @@ class AssetManager
         }
 
         if ($result) {
-            $this->echoFile($url);
+            $output && $this->echoFile($url);
 
             return;
         }

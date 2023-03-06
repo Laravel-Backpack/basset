@@ -7,6 +7,11 @@ use Illuminate\Support\Str;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
+/**
+ * Basset Internalize command
+ *
+ * @property object $output
+ */
 class BassetInternalize extends Command
 {
     /**
@@ -41,7 +46,7 @@ class BassetInternalize extends Command
         $bassets = $directories
             ->map(function (string $directory) use (&$totalFiles) {
                 // Map all blade files
-                $files = $this->getBladeFiles($directory);
+                $files = $this->getBladeFiles(base_path($directory));
                 $count = count($files);
                 $totalFiles += $count;
 

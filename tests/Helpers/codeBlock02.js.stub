@@ -1,0 +1,8 @@
+<script
+    async
+    type="script/javascript">
+    
+    function sample() {
+        console.log('<p>test</p>')
+    }
+    </script>

@@ -1,0 +1,6 @@
+/**
+ * sample code block
+ */
+function sample(element) {
+    var obj = {};
+}
