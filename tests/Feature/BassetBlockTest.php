@@ -8,7 +8,6 @@ it('stores basset block', function ($asset) {
     disk()->assertExists(basset()->getAssetPath($asset));
 
     expect($result)->toBeNull();
-
 })->with('codeBlock');
 
 it('cleans basset block', function ($asset) {
@@ -19,5 +18,4 @@ it('cleans basset block', function ($asset) {
 
     // validate the ouput content
     expect(getStub("$asset.output"))->toBe(disk()->get($path));
-
 })->with('codeBlock');
