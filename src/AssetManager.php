@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * Assets Manager
+ * Assets Manager.
  */
 class AssetManager
 {
@@ -249,10 +249,10 @@ class AssetManager
     }
 
     /**
-     * Internalize an Archive
+     * Internalize an Archive.
      *
-     * @param string $asset
-     * @param string|null $output
+     * @param  string  $asset
+     * @param  string|null  $output
      * @return StatusEnum
      */
     public function bassetArchive(string $asset, string $output): StatusEnum
@@ -306,10 +306,10 @@ class AssetManager
     }
 
     /**
-     * Internalize a Directory
+     * Internalize a Directory.
      *
-     * @param string $asset
-     * @param string|null $output
+     * @param  string  $asset
+     * @param  string|null  $output
      * @return StatusEnum
      */
     public function bassetDirectory(string $asset, string $output): StatusEnum

@@ -62,7 +62,7 @@ class BassetInternalize extends Command
                 $content = file_get_contents($file);
                 preg_match_all('/@(bassetArchive|bassetDirectory)\([\"\'](.+?)[\"\'](?:,\s?[\"\'](.+?)?[\"\'])?/', $content, $matches);
 
-                return collect($matches[2])->map(fn(string $entry, int $i) => [$entry, $matches[1][$i], $matches[3][$i]]);
+                return collect($matches[2])->map(fn (string $entry, int $i) => [$entry, $matches[1][$i], $matches[3][$i]]);
             });
 
         $totalBassets = count($bassets);
