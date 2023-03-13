@@ -1,5 +1,7 @@
 <?php
 
+use DigitallyHappy\Assets\Enums\StatusEnum;
+
 it('stores basset block', function ($asset) {
     $codeBlock = getStub($asset);
 
@@ -7,7 +9,7 @@ it('stores basset block', function ($asset) {
 
     disk()->assertExists(basset()->getAssetPath($asset));
 
-    expect($result)->toBeNull();
+    expect($result)->toBe(StatusEnum::INTERNALIZED);
 })->with('codeBlock');
 
 it('cleans basset block', function ($asset) {

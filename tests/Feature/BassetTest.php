@@ -1,6 +1,6 @@
 <?php
 
-use DigitallyHappy\Assets\AssetManager;
+use DigitallyHappy\Assets\Enums\StatusEnum;
 
 test('confirm environment is set to testing', function () {
     expect(config('app.env'))->toBe('testing');
@@ -9,7 +9,7 @@ test('confirm environment is set to testing', function () {
 it('fails on invalid path', function () {
     $result = basset('invalid path', false);
 
-    expect($result)->toBe(AssetManager::STATUS_INVALID);
+    expect($result)->toBe(StatusEnum::INVALID);
 });
 
 it('cleans the pathname of an asset', function ($asset, $path) {
@@ -23,7 +23,7 @@ it('downloads a cdn basset', function ($asset) {
 
     Http::assertSentCount(1);
 
-    expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
+    expect($result)->toBe(StatusEnum::DOWNLOADED);
 })->with('cdn');
 
 it('stores a downloaded basset', function ($asset) {
@@ -32,7 +32,7 @@ it('stores a downloaded basset', function ($asset) {
 
     disk()->assertExists($path);
 
-    expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
+    expect($result)->toBe(StatusEnum::DOWNLOADED);
 })->with('cdn');
 
 it('cleans the content of a downloaded basset', function ($asset) {
@@ -51,7 +51,7 @@ it('copies a local basset', function ($asset) {
 
     Http::assertSentCount(0);
 
-    expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
+    expect($result)->toBe(StatusEnum::DOWNLOADED);
 })->with('local');
 
 it('stores a local basset', function ($asset) {
@@ -65,7 +65,7 @@ it('stores a local basset', function ($asset) {
 
     disk()->assertExists($path);
 
-    expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
+    expect($result)->toBe(StatusEnum::DOWNLOADED);
 })->with('local');
 
 it('cleans the content of a local basset', function ($asset) {
@@ -79,19 +79,19 @@ it('cleans the content of a local basset', function ($asset) {
 
     expect(disk()->get($path))->toBe(getStub("$asset.output"));
 
-    expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
+    expect($result)->toBe(StatusEnum::DOWNLOADED);
 })->with('local');
 
 it('does not download twice', function ($asset) {
     // first call should download
     $result = basset($asset, false);
 
-    expect($result)->toBe(AssetManager::STATUS_DOWNLOADED);
+    expect($result)->toBe(StatusEnum::DOWNLOADED);
 
     // second call asset should be already loaded
     $result = basset($asset);
 
-    expect($result)->toBe(AssetManager::STATUS_LOADED);
+    expect($result)->toBe(StatusEnum::LOADED);
 
     // only 1 call could have been made to http
     Http::assertSentCount(1);
@@ -111,7 +111,7 @@ it('retreives from cache when available', function ($asset) {
     // should not download
     $result = basset($asset, false);
 
-    expect($result)->toBe(AssetManager::STATUS_IN_CACHE);
+    expect($result)->toBe(StatusEnum::IN_CACHE);
 
     // no call could have been made to http
     Http::assertSentCount(0);

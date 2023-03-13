@@ -2,22 +2,22 @@
 
 namespace DigitallyHappy\Assets;
 
-use Exception;
+use DigitallyHappy\Assets\Enums\StatusEnum;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+/**
+ * Assets Manager
+ */
 class AssetManager
 {
-    const STATUS_LOADED = 'Asset was already loaded.';
-    const STATUS_INVALID = 'Asset is not in a CDN or local filesystem.';
-    const STATUS_IN_CACHE = 'Asset was already in cache.';
-    const STATUS_DOWNLOADED = 'Asset downloaded.';
-    const STATUS_NO_ACTION = 'Asset was not internalized, falling back to provided path.';
+    use Traits\UnarchiveTrait;
 
     private $loaded;
     private $disk;
+    private $basePath;
     private $cachebusting;
 
     public function __construct()
@@ -27,6 +27,7 @@ class AssetManager
 
         $cachebusting = config('digitallyhappy.assets.cachebusting');
         $this->cachebusting = $cachebusting ? (string) Str::of($cachebusting)->start('?') : '';
+        $this->basePath = (string) Str::of(config('digitallyhappy.assets.path'))->finish('/');
     }
 
     /**
@@ -122,11 +123,8 @@ class AssetManager
      */
     public function getAssetPath(string $asset): string
     {
-        // Remove absolute path
-        $path = str_replace(base_path(), '', $asset);
-
-        return Str::of(config('digitallyhappy.assets.path'))->finish('/')
-            ->append(str_replace(['http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $path));
+        return Str::of($this->basePath)
+            ->append(str_replace([base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $asset));
     }
 
     /**
@@ -135,63 +133,68 @@ class AssetManager
      * @param  string  $asset
      * @param  mixed  $output
      * @param  array  $attributes
-     * @return void
+     * @return StatusEnum
      */
-    public function basset(string $asset, mixed $output = true, array $attributes = []): string
+    public function basset(string $asset, mixed $output = true, array $attributes = []): StatusEnum
     {
-        // Validate the asset is an absolute path or a CDN
-        if (! str_starts_with($asset, base_path()) && ! str_starts_with($asset, 'http') && ! str_starts_with($asset, '://')) {
-            $output && $this->echoFile($asset, $attributes);
-
-            return self::STATUS_INVALID;
-        }
-
-        // Override asset in case output is a string
-        $path = is_string($output) ? $output : $asset;
-
-        // Get asset path and url
-        $path = $this->getAssetPath($path);
-        $url = $this->disk->url($path);
+        // Get asset path
+        $path = $this->getAssetPath(is_string($output) ? $output : $asset);
 
         if ($this->isLoaded($path)) {
-            return self::STATUS_LOADED;
+            return StatusEnum::LOADED;
         }
 
         $this->markAsLoaded($path);
+
+        // Validate the asset is an absolute path or a CDN
+        if (! str_starts_with($asset, base_path()) && ! str_starts_with($asset, 'http') && ! str_starts_with($asset, '://')) {
+
+            // may be an internalized asset (folder or zip)
+            if ($this->disk->exists($path)) {
+                $asset = $this->disk->url($path);
+                $output && $this->echoFile($asset, $attributes);
+
+                return StatusEnum::IN_CACHE;
+            }
+
+            // public file (default fallback)
+            $output && $this->echoFile($asset, $attributes);
+
+            return StatusEnum::INVALID;
+        }
+
+        // Get asset url
+        $url = $this->disk->url($path);
 
         // Check if asset exists in bassets folder
         if ($this->disk->exists($path)) {
             $output && $this->echoFile($url, $attributes);
 
-            return self::STATUS_IN_CACHE;
+            return StatusEnum::IN_CACHE;
         }
 
-        try {
-            // Download/copy file
-            if (str_starts_with($asset, 'http') || str_starts_with($asset, '://')) {
-                $content = Http::get($asset)->getBody()->getContents();
-            } else {
-                $content = File::get($asset);
-            }
-
-            // Clean source map
-            $content = preg_replace('/sourceMappingURL=/', '', $content);
-
-            $result = $this->disk->put($path, $content);
-        } catch (Exception $e) {
-            $result = false;
+        // Download/copy file
+        if (str_starts_with($asset, 'http') || str_starts_with($asset, '://')) {
+            $content = Http::get($asset)->getBody();
+        } else {
+            $content = File::get($asset);
         }
+
+        // Clean source map
+        $content = preg_replace('/sourceMappingURL=/', '', $content);
+
+        $result = $this->disk->put($path, $content);
 
         if ($result) {
             $output && $this->echoFile($url, $attributes);
 
-            return self::STATUS_DOWNLOADED;
+            return StatusEnum::DOWNLOADED;
         }
 
         // Fallback to the CDN/path
         $output && $this->echoFile($asset, $attributes);
 
-        return self::STATUS_NO_ACTION;
+        return StatusEnum::INVALID;
     }
 
     /**
@@ -199,16 +202,16 @@ class AssetManager
      *
      * @param  string  $asset
      * @param  string  $code
-     * @return void
+     * @return StatusEnum
      */
-    public function bassetBlock(string $asset, string $code, bool $output = true): void
+    public function bassetBlock(string $asset, string $code, bool $output = true): StatusEnum
     {
         // Get asset path and url
         $path = $this->getAssetPath($asset);
         $url = $this->disk->url($path);
 
         if ($this->isLoaded($path)) {
-            return;
+            return StatusEnum::LOADED;
         }
 
         $this->markAsLoaded($path);
@@ -217,7 +220,7 @@ class AssetManager
         if ($this->disk->exists($path)) {
             $output && $this->echoFile($url);
 
-            return;
+            return StatusEnum::IN_CACHE;
         }
 
         // Strip tags
@@ -231,19 +234,111 @@ class AssetManager
         $cleanCode = preg_replace('/^'.($matches[0] ?? '').'/m', '', $cleanCode);
 
         // Store the file
-        try {
-            $result = $this->disk->put($path, $cleanCode);
-        } catch (Exception $e) {
-            $result = false;
-        }
+        $result = $this->disk->put($path, $cleanCode);
 
         if ($result) {
             $output && $this->echoFile($url);
 
-            return;
+            return StatusEnum::INTERNALIZED;
         }
 
         // Fallback to the code
         echo $code;
+
+        return StatusEnum::INVALID;
+    }
+
+    /**
+     * Internalize an Archive
+     *
+     * @param string $asset
+     * @param string|null $output
+     * @return StatusEnum
+     */
+    public function bassetArchive(string $asset, string $output): StatusEnum
+    {
+        // get local output path
+        $path = $this->getAssetPath($output);
+        $output = $this->disk->path($path);
+
+        // Check if asset is loaded
+        if ($this->isLoaded($path)) {
+            return StatusEnum::LOADED;
+        }
+
+        $this->markAsLoaded($path);
+
+        // check if directory exists
+        if ($this->disk->exists($path)) {
+            return StatusEnum::IN_CACHE;
+        }
+
+        // local zip file
+        if (File::isFile($asset)) {
+            $file = $asset;
+        }
+
+        // online zip
+        if (str_starts_with($asset, 'http') || str_starts_with($asset, '://')) {
+            // temporary file
+            $file = $this->getTemporaryFilePath();
+
+            // download file to temporary location
+            $content = Http::get($asset)->getBody();
+            File::put($file, $content);
+        }
+
+        if (! isset($file)) {
+            return StatusEnum::INVALID;
+        }
+
+        $tempDir = $this->getTemporaryDirectoryPath();
+        $this->unarchiveFile($file, $tempDir);
+
+        // internalize all files in the folder
+        foreach (File::allFiles($tempDir) as $file) {
+            $this->disk->put("$path/{$file->getRelativePathName()}", File::get($file));
+        }
+
+        File::delete($tempDir);
+
+        return StatusEnum::INTERNALIZED;
+    }
+
+    /**
+     * Internalize a Directory
+     *
+     * @param string $asset
+     * @param string|null $output
+     * @return StatusEnum
+     */
+    public function bassetDirectory(string $asset, string $output): StatusEnum
+    {
+        // get local output path
+        $path = $this->getAssetPath($output);
+
+        // Check if asset is loaded
+        if ($this->isLoaded($path)) {
+            return StatusEnum::LOADED;
+        }
+
+        $this->markAsLoaded($path);
+
+        // check if directory exists
+        if ($this->disk->exists($path)) {
+            return StatusEnum::IN_CACHE;
+        }
+
+        // check if folder exists in filesystem
+        if (! File::exists($asset)) {
+            return StatusEnum::INVALID;
+        }
+
+        // internalize all files in the folder
+        foreach (File::allFiles($asset) as $file) {
+            $this->disk->put("$path/{$file->getRelativePathName()}", File::get($file));
+        }
+
+        return StatusEnum::INTERNALIZED;
     }
 }

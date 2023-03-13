@@ -35,6 +35,8 @@ class BassetInternalize extends Command
      */
     public function handle(): void
     {
+        $starttime = microtime(true);
+
         $this->line('Looking for assets under the following directories:');
         $directories = collect(config('digitallyhappy.assets.view_paths'))
             ->map(function ($dir) {
@@ -55,14 +57,13 @@ class BassetInternalize extends Command
                 return $files;
             })
             ->flatten()
-            ->map(function (string $file) {
+            ->flatMap(function (string $file) {
                 // Map all bassets
                 $content = file_get_contents($file);
-                preg_match_all('/@basset\([\"\'](.+)[\"\']\)/', $content, $matches);
+                preg_match_all('/@(bassetArchive|bassetDirectory)\([\"\'](.+?)[\"\'](?:,\s?[\"\'](.+?)?[\"\'])?/', $content, $matches);
 
-                return $matches[1] ?? [];
-            })
-            ->flatten();
+                return collect($matches[2])->map(fn(string $entry, int $i) => [$entry, $matches[1][$i], $matches[3][$i]]);
+            });
 
         $totalBassets = count($bassets);
         if (! $totalBassets) {
@@ -78,11 +79,17 @@ class BassetInternalize extends Command
         $bar->start();
 
         // Cache the bassets
-        $bassets->each(function ($basset, $i) use ($bar) {
-            $result = app('assets')->basset($basset, false);
+        $bassets->eachSpread(function (string $basset, string $type, string $arg, int $i) use ($bar) {
+
+            // Force output of basset to be false
+            if ($type === 'basset') {
+                $arg = false;
+            }
+
+            $result = app('assets')->{$type}($basset, $arg)->value;
 
             if ($this->getOutput()->isVerbose()) {
-                $this->line(str_pad($i, 3, ' ', STR_PAD_LEFT)." $basset");
+                $this->line(str_pad($i + 1, 3, ' ', STR_PAD_LEFT)." $basset");
                 $this->line("    $result");
                 $this->newLine();
             } else {
@@ -91,8 +98,8 @@ class BassetInternalize extends Command
         });
 
         $bar->finish();
-        $this->newLine();
-        $this->info('Done');
+        $this->newLine(2);
+        $this->info(sprintf('Done in %.2fs', microtime(true) - $starttime));
     }
 
     /**
