@@ -9,11 +9,11 @@ use ZipArchive;
 trait UnarchiveTrait
 {
     /**
-     * Unarchive files
+     * Unarchive files.
      *
-     * @param string $file source file
-     * @param string $output output destination
-     * @return boolean result
+     * @param  string  $file  source file
+     * @param  string  $output  output destination
+     * @return bool result
      */
     public function unarchiveFile(string $file, string $output): bool
     {
@@ -41,11 +41,11 @@ trait UnarchiveTrait
     }
 
     /**
-     * Unarchive zip files
+     * Unarchive zip files.
      *
-     * @param string $file source file
-     * @param string $output output destination
-     * @return boolean result
+     * @param  string  $file  source file
+     * @param  string  $output  output destination
+     * @return bool result
      */
     private function unarchiveZip(string $file, string $output): bool
     {
@@ -58,11 +58,11 @@ trait UnarchiveTrait
     }
 
     /**
-     * Unarchive gz files
+     * Unarchive gz files.
      *
-     * @param string $file source file
-     * @param string $output output destination
-     * @return boolean result
+     * @param  string  $file  source file
+     * @param  string  $output  output destination
+     * @return bool result
      */
     private function unarchiveGz(string $file, string $output): bool
     {
@@ -76,20 +76,21 @@ trait UnarchiveTrait
     }
 
     /**
-     * Unarchive tar files
+     * Unarchive tar files.
      *
-     * @param string $file source file
-     * @param string $output output destination
-     * @return boolean result
+     * @param  string  $file  source file
+     * @param  string  $output  output destination
+     * @return bool result
      */
     private function unarchiveTar(string $file, string $output): bool
     {
         $phar = new PharData($file);
+
         return $phar->extractTo($output);
     }
 
     /**
-     * Returns a temporary file path
+     * Returns a temporary file path.
      *
      * @return string
      */
@@ -99,7 +100,7 @@ trait UnarchiveTrait
     }
 
     /**
-     * Returns a temporary directory path
+     * Returns a temporary directory path.
      *
      * @return string
      */

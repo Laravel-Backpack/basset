@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 
 /**
- * Assets Service Provider
+ * Assets Service Provider.
  *
  * @property object $app
  */
