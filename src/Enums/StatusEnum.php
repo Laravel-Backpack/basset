@@ -2,7 +2,7 @@
 
 namespace DigitallyHappy\Assets\Enums;
 
-enum StatusEnum:string
+enum StatusEnum: string
 {
     case LOADED = 'Already loaded';
     case IN_CACHE = 'Already in cache';
