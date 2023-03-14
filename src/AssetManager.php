@@ -135,7 +135,7 @@ class AssetManager
      * @param  array  $attributes
      * @return StatusEnum
      */
-    public function basset(string $asset, mixed $output = true, array $attributes = []): StatusEnum
+    public function basset(string $asset, bool | string $output = true, array $attributes = []): StatusEnum
     {
         // Get asset path
         $path = $this->getAssetPath(is_string($output) ? $output : $asset);
@@ -188,7 +188,7 @@ class AssetManager
         if ($result) {
             $output && $this->echoFile($url, $attributes);
 
-            return StatusEnum::DOWNLOADED;
+            return StatusEnum::INTERNALIZED;
         }
 
         // Fallback to the CDN/path
