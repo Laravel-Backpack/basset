@@ -2,6 +2,7 @@
 
 namespace DigitallyHappy\Assets\Console\Commands;
 
+use DigitallyHappy\Assets\Enums\StatusEnum;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
