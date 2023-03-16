@@ -6,6 +6,11 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+/**
+ * Basset Clear command.
+ *
+ * @property object $output
+ */
 class BassetClear extends Command
 {
     /**

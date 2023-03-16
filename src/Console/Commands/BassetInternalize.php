@@ -2,11 +2,19 @@
 
 namespace DigitallyHappy\Assets\Console\Commands;
 
+use DigitallyHappy\Assets\Enums\StatusEnum;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Throwable;
 
+/**
+ * Basset Internalize command.
+ *
+ * @property object $output
+ */
 class BassetInternalize extends Command
 {
     /**
@@ -30,6 +38,8 @@ class BassetInternalize extends Command
      */
     public function handle(): void
     {
+        $starttime = microtime(true);
+
         $this->line('Looking for assets under the following directories:');
         $directories = collect(config('digitallyhappy.assets.view_paths'))
             ->map(function ($dir) {
@@ -41,7 +51,7 @@ class BassetInternalize extends Command
         $bassets = $directories
             ->map(function (string $directory) use (&$totalFiles) {
                 // Map all blade files
-                $files = $this->getBladeFiles($directory);
+                $files = $this->getBladeFiles(base_path($directory));
                 $count = count($files);
                 $totalFiles += $count;
 
@@ -50,14 +60,25 @@ class BassetInternalize extends Command
                 return $files;
             })
             ->flatten()
-            ->map(function (string $file) {
+            ->flatMap(function (string $file) {
                 // Map all bassets
-                $content = file_get_contents($file);
-                preg_match_all('/@basset\([\"\'](.+)[\"\']\)/', $content, $matches);
+                $content = File::get($file);
+                preg_match_all('/@(basset|bassetArchive|bassetDirectory)\((.+)\)/', $content, $matches);
 
-                return $matches[1] ?? [];
-            })
-            ->flatten();
+                $matches[2] = collect($matches[2])
+                    ->map(fn ($match) => collect(explode(',', $match))
+                            ->map(function ($arg) {
+                                try {
+                                    return eval("return $arg;");
+                                } catch (Throwable $th) {
+                                    return false;
+                                }
+                            })
+                            ->toArray()
+                    );
+
+                return collect($matches[1])->map(fn (string $type, int $i) => [$type, $matches[2][$i]]);
+            });
 
         $totalBassets = count($bassets);
         if (! $totalBassets) {
@@ -73,11 +94,20 @@ class BassetInternalize extends Command
         $bar->start();
 
         // Cache the bassets
-        $bassets->each(function ($basset, $i) use ($bar) {
-            $result = app('assets')->basset($basset, false);
+        $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar) {
+            // Force output of basset to be false
+            if ($type === 'basset') {
+                $args[1] = false;
+            }
+
+            try {
+                $result = app('assets')->{$type}(...$args)->value;
+            } catch (Throwable $th) {
+                $result = StatusEnum::INVALID->value;
+            }
 
             if ($this->getOutput()->isVerbose()) {
-                $this->line(str_pad($i, 3, ' ', STR_PAD_LEFT)." $basset");
+                $this->line(str_pad($i + 1, 3, ' ', STR_PAD_LEFT).' '.$args[0]);
                 $this->line("    $result");
                 $this->newLine();
             } else {
@@ -86,8 +116,8 @@ class BassetInternalize extends Command
         });
 
         $bar->finish();
-        $this->newLine();
-        $this->info('Done');
+        $this->newLine(2);
+        $this->info(sprintf('Done in %.2fs', microtime(true) - $starttime));
     }
 
     /**

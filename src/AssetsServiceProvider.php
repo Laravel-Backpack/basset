@@ -6,6 +6,11 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 
+/**
+ * Assets Service Provider.
+ *
+ * @property object $app
+ */
 class AssetsServiceProvider extends ServiceProvider
 {
     protected $commands = [
@@ -74,23 +79,35 @@ class AssetsServiceProvider extends ServiceProvider
     protected function registerBladeDirectives()
     {
         $this->callAfterResolving('blade.compiler', function (BladeCompiler $bladeCompiler) {
-            $bladeCompiler->directive('loadStyleOnce', function (string $parameter): string {
-                return "<?php Assets::echoCss({$parameter}); ?>";
+            // Basset
+            $bladeCompiler->directive('basset', function (string $parameter): string {
+                return "<?php Assets::basset({$parameter}); ?>";
             });
 
-            $bladeCompiler->directive('loadScriptOnce', function (string $parameter): string {
-                return "<?php Assets::echoJs({$parameter}); ?>";
+            // Basset Directory
+            $bladeCompiler->directive('bassetDirectory', function (string $parameter): string {
+                return "<?php Assets::bassetDirectory({$parameter}); ?>";
             });
 
+            // Basset Archive
+            $bladeCompiler->directive('bassetArchive', function (string $parameter): string {
+                return "<?php Assets::bassetArchive({$parameter}); ?>";
+            });
+
+            // Basset Code Block
+            $bladeCompiler->directive('bassetBlock', function (string $parameter): string {
+                return "<?php \$bassetBlock = {$parameter}; ob_start(); ?>";
+            });
+
+            $bladeCompiler->directive('endBassetBlock', function (): string {
+                return '<?php Assets::bassetBlock($bassetBlock, ob_get_clean()); ?>';
+            });
+
+            // Load Once
             $bladeCompiler->directive('loadOnce', function (string $parameter): string {
                 // determine if it's a CSS or JS file
                 $cleanParameter = Str::of($parameter)->trim("'")->trim('"')->trim('`');
                 $filePath = Str::of($cleanParameter)->before('?')->before('#');
-
-                // mey be useful to get the second parameter
-                // if (Str::contains($parameter, ',')) {
-                //     $secondParameter = Str::of($parameter)->after(',')->trim(' ');
-                // }
 
                 if (substr($filePath, -3) === '.js') {
                     return "<?php Assets::echoJs({$parameter}); ?>";
@@ -108,18 +125,12 @@ class AssetsServiceProvider extends ServiceProvider
                 return '<?php } ?>';
             });
 
-            $bladeCompiler->directive('basset', function (string $parameter): string {
-                return "<?php Assets::basset({$parameter}); ?>";
+            $bladeCompiler->directive('loadStyleOnce', function (string $parameter): string {
+                return "<?php Assets::echoCss({$parameter}); ?>";
             });
 
-            $bladeCompiler->directive('bassetBlock', function (string $parameter): string {
-                $filePath = Str::of($parameter)->trim("'")->trim('"')->trim('`')->before('?')->before('#');
-
-                return "<?php \$bassetBlock = '{$filePath}'; ob_start(); ?>";
-            });
-
-            $bladeCompiler->directive('endBassetBlock', function (): string {
-                return '<?php Assets::bassetBlock($bassetBlock, ob_get_clean()); ?>';
+            $bladeCompiler->directive('loadScriptOnce', function (string $parameter): string {
+                return "<?php Assets::echoJs({$parameter}); ?>";
             });
         });
     }
