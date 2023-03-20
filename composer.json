@@ -15,7 +15,7 @@
         "test": "./vendor/bin/pest"
     },
     "require": {
-        "laravel/framework": "^10.1",
+        "laravel/framework": "^10.1|^9.0",
         "guzzlehttp/guzzle": "^7.5"
     },
     "require-dev": {
