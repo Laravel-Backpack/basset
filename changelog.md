@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `Assets` will be documented in this file.
+All notable changes to `Basset` will be documented in this file.
 
 ## Version 1.0
 

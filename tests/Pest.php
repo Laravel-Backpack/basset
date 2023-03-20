@@ -1,6 +1,6 @@
 <?php
 
-use DigitallyHappy\Assets\Tests\BaseTest;
+use Backpack\Basset\Tests\BaseTest;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -30,8 +30,8 @@ uses(BaseTest::class)
 
         // setup config
         config([
-            'digitallyhappy.assets.disk' => 'basset',
-            'digitallyhappy.assets.path', 'bassets',
+            'backpack.basset.disk' => 'basset',
+            'backpack.basset.path', 'basset',
         ]);
     })
     ->in(__DIR__);
@@ -49,7 +49,7 @@ uses(BaseTest::class)
 
 function basset(string $asset = null, bool $output = true, array $attributes = [])
 {
-    return $asset ? app('assets')->basset(...func_get_args()) : app('assets');
+    return $asset ? app('basset')->basset(...func_get_args()) : app('basset');
 }
 
 function getStub(string $asset): string

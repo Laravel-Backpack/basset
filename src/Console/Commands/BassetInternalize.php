@@ -1,8 +1,8 @@
 <?php
 
-namespace DigitallyHappy\Assets\Console\Commands;
+namespace Backpack\Basset\Console\Commands;
 
-use DigitallyHappy\Assets\Enums\StatusEnum;
+use Backpack\Basset\Enums\StatusEnum;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -29,7 +29,7 @@ class BassetInternalize extends Command
      *
      * @var string
      */
-    protected $description = 'Cache all the assets under the bassets blade directive';
+    protected $description = 'Cache all the assets under the basset blade directive';
 
     /**
      * Execute the console command.
@@ -40,8 +40,8 @@ class BassetInternalize extends Command
     {
         $starttime = microtime(true);
 
-        $this->line('Looking for assets under the following directories:');
-        $directories = collect(config('digitallyhappy.assets.view_paths'))
+        $this->line('Looking for bassets under the following directories:');
+        $directories = collect(config('backpack.basset.view_paths'))
             ->map(function ($dir) {
                 return (string) Str::of($dir)->after(base_path())->trim('\\/');
             });
@@ -66,7 +66,8 @@ class BassetInternalize extends Command
                 preg_match_all('/@(basset|bassetArchive|bassetDirectory)\((.+)\)/', $content, $matches);
 
                 $matches[2] = collect($matches[2])
-                    ->map(fn ($match) => collect(explode(',', $match))
+                    ->map(fn($match) =>
+                        collect(explode(',', $match))
                             ->map(function ($arg) {
                                 try {
                                     return eval("return $arg;");
@@ -77,7 +78,7 @@ class BassetInternalize extends Command
                             ->toArray()
                     );
 
-                return collect($matches[1])->map(fn (string $type, int $i) => [$type, $matches[2][$i]]);
+                return collect($matches[1])->map(fn(string $type, int $i) => [$type, $matches[2][$i]]);
             });
 
         $totalBassets = count($bassets);
@@ -88,20 +89,21 @@ class BassetInternalize extends Command
         }
 
         $this->newLine();
-        $this->line("Found $totalBassets assets in $totalFiles blade files. Internalizing:");
+        $this->line("Found $totalBassets bassets in $totalFiles blade files. Internalizing:");
 
         $bar = $this->output->createProgressBar($totalBassets);
         $bar->start();
 
         // Cache the bassets
         $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar) {
+
             // Force output of basset to be false
             if ($type === 'basset') {
                 $args[1] = false;
             }
 
             try {
-                $result = app('assets')->{$type}(...$args)->value;
+                $result = app('basset')->{$type}(...$args)->value;
             } catch (Throwable $th) {
                 $result = StatusEnum::INVALID->value;
             }

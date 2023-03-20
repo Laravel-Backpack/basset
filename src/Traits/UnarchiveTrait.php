@@ -1,6 +1,6 @@
 <?php
 
-namespace DigitallyHappy\Assets\Traits;
+namespace Backpack\Basset\Traits;
 
 use Illuminate\Support\Facades\File;
 use PharData;

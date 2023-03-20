@@ -1,6 +1,6 @@
 {
-    "name": "digitallyhappy/assets",
-    "description": "Dead-simple way to load CSS or JS assets only once per page, when using Laravel 8+.",
+    "name": "backpack/basset",
+    "description": "Dead-simple way to load CSS or JS assets only once per page, when using Laravel 10+.",
     "license": "MIT",
     "authors": [
         {
@@ -9,36 +9,39 @@
             "homepage": "https://tabacitu.ro"
         }
     ],
-    "homepage": "https://github.com/digitallyhappy/assets",
-    "keywords": ["Laravel", "Assets", "Load CSS once", "Load JS once"],
+    "homepage": "https://github.com/laravel-backpack/basset",
+    "keywords": ["Laravel", "Basset", "Assets", "Load CSS once", "Load JS once"],
+    "scripts": {
+        "test": "./vendor/bin/pest"
+    },
     "require": {
         "laravel/framework": "^10.1",
         "guzzlehttp/guzzle": "^7.5"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.6",
-        "nunomaduro/collision": "^6.1",
+        "phpunit/phpunit": "~9.0|~10.0",
+        "nunomaduro/collision": "^6.0|^7.2",
         "pestphp/pest": "^1.22",
         "pestphp/pest-plugin-laravel": "^1.4",
         "orchestra/testbench": "^8.0"
     },
     "autoload": {
         "psr-4": {
-            "DigitallyHappy\\Assets\\": "src/"
+            "Backpack\\Basset\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "DigitallyHappy\\Assets\\Tests\\": "tests"
+            "Backpack\\Basset\\Tests\\": "tests"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "DigitallyHappy\\Assets\\AssetsServiceProvider"
+                "Backpack\\Basset\\BassetServiceProvider"
             ],
             "aliases": {
-                "Assets": "DigitallyHappy\\Assets\\Facades\\Assets"
+                "Basset": "Backpack\\Basset\\Facades\\Basset"
             }
         }
     },

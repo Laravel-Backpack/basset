@@ -1,6 +1,6 @@
 <?php
 
-use DigitallyHappy\Assets\Enums\StatusEnum;
+use Backpack\Basset\Enums\StatusEnum;
 
 it('stores basset block', function ($asset) {
     $codeBlock = getStub($asset);

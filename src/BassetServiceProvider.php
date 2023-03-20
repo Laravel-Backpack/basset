@@ -1,21 +1,21 @@
 <?php
 
-namespace DigitallyHappy\Assets;
+namespace Backpack\Basset;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 
 /**
- * Assets Service Provider.
+ * Basset Service Provider.
  *
  * @property object $app
  */
-class AssetsServiceProvider extends ServiceProvider
+class BassetServiceProvider extends ServiceProvider
 {
     protected $commands = [
-        \DigitallyHappy\Assets\Console\Commands\BassetInternalize::class,
-        \DigitallyHappy\Assets\Console\Commands\BassetClear::class,
+        \Backpack\Basset\Console\Commands\BassetInternalize::class,
+        \Backpack\Basset\Console\Commands\BassetClear::class,
     ];
 
     /**
@@ -40,7 +40,7 @@ class AssetsServiceProvider extends ServiceProvider
     {
         // Publishing the configuration file.
         $this->publishes([
-            __DIR__.'/config/digitallyhappy/assets.php' => config_path('digitallyhappy/assets.php'),
+            __DIR__.'/config/backpack/basset.php' => config_path('backpack/basset.php'),
         ], 'config');
 
         // Registering package commands.
@@ -57,16 +57,12 @@ class AssetsServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Register the service the package provides.
-        $this->app->singleton('assets', function ($app) {
-            return new AssetManager();
+        $this->app->singleton('basset', function ($app) {
+            return new BassetManager();
         });
 
         // Merge the configuration file.
-        $this->mergeConfigFrom(__DIR__.'/config/digitallyhappy/assets.php', 'digitallyhappy.assets');
-
-        // We register the Assets Facade so developer could use it in views like: Assets::isAssetLoaded($asset)
-        // $loader = \Illuminate\Foundation\AliasLoader::getInstance();
-        // $loader->alias('Assets', '\DigitallyHappy\Assets\Facade\Assets');
+        $this->mergeConfigFrom(__DIR__.'/config/backpack/basset.php', 'backpack.basset');
 
         $this->registerBladeDirectives();
     }
@@ -79,19 +75,20 @@ class AssetsServiceProvider extends ServiceProvider
     protected function registerBladeDirectives()
     {
         $this->callAfterResolving('blade.compiler', function (BladeCompiler $bladeCompiler) {
+
             // Basset
             $bladeCompiler->directive('basset', function (string $parameter): string {
-                return "<?php Assets::basset({$parameter}); ?>";
+                return "<?php Basset::basset({$parameter}); ?>";
             });
 
             // Basset Directory
             $bladeCompiler->directive('bassetDirectory', function (string $parameter): string {
-                return "<?php Assets::bassetDirectory({$parameter}); ?>";
+                return "<?php Basset::bassetDirectory({$parameter}); ?>";
             });
 
             // Basset Archive
             $bladeCompiler->directive('bassetArchive', function (string $parameter): string {
-                return "<?php Assets::bassetArchive({$parameter}); ?>";
+                return "<?php Basset::bassetArchive({$parameter}); ?>";
             });
 
             // Basset Code Block
@@ -100,7 +97,7 @@ class AssetsServiceProvider extends ServiceProvider
             });
 
             $bladeCompiler->directive('endBassetBlock', function (): string {
-                return '<?php Assets::bassetBlock($bassetBlock, ob_get_clean()); ?>';
+                return '<?php Basset::bassetBlock($bassetBlock, ob_get_clean()); ?>';
             });
 
             // Load Once
@@ -110,15 +107,15 @@ class AssetsServiceProvider extends ServiceProvider
                 $filePath = Str::of($cleanParameter)->before('?')->before('#');
 
                 if (substr($filePath, -3) === '.js') {
-                    return "<?php Assets::echoJs({$parameter}); ?>";
+                    return "<?php Basset::echoJs({$parameter}); ?>";
                 }
 
                 if (substr($filePath, -4) === '.css') {
-                    return "<?php Assets::echoCss({$parameter}); ?>";
+                    return "<?php Basset::echoCss({$parameter}); ?>";
                 }
 
                 // it's a block start
-                return "<?php if(! Assets::isLoaded('{$cleanParameter}')) { Assets::markAsLoaded('{$cleanParameter}'); ?>";
+                return "<?php if(! Basset::isLoaded('{$cleanParameter}')) { Basset::markAsLoaded('{$cleanParameter}'); ?>";
             });
 
             $bladeCompiler->directive('endLoadOnce', function (): string {
@@ -126,11 +123,11 @@ class AssetsServiceProvider extends ServiceProvider
             });
 
             $bladeCompiler->directive('loadStyleOnce', function (string $parameter): string {
-                return "<?php Assets::echoCss({$parameter}); ?>";
+                return "<?php Basset::echoCss({$parameter}); ?>";
             });
 
             $bladeCompiler->directive('loadScriptOnce', function (string $parameter): string {
-                return "<?php Assets::echoJs({$parameter}); ?>";
+                return "<?php Basset::echoJs({$parameter}); ?>";
             });
         });
     }
@@ -142,6 +139,6 @@ class AssetsServiceProvider extends ServiceProvider
      */
     public function provides(): array
     {
-        return ['assets'];
+        return ['basset'];
     }
 }
