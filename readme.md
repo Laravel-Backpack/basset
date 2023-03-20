@@ -5,76 +5,124 @@
 [![Build Status][ico-travis]][link-travis]
 [![StyleCI][ico-styleci]][link-styleci]
 
-Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@loadOnce('file.css')` and `@loadOnce('file.js')` and this package will make sure that CSS or JS will only be loaded one time per page.
+Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@basset('file.js')` and this package will internalize the file and make sure that CSS or JS will only be loaded one time per page.
+
+This package will internalize assets from CDN, local files and code blocks, it may also internalize zip files.
+All the files are store on `public` disk by default (`base_path('\storage\app\public\bassets')`) but you may change this in your configs.
 
 ## Installation
 
-Via Composer
+1) Install the package via Composer
 
-``` bash
-$ composer require backpack/basset
+```bash
+composer require backpack/basset
+```
+
+2) If you are using the default disk, you must create the symbolic link on public to storage.
+
+```bash
+php artisan storage:link
 ```
 
 ## Usage
 
-Replace your standard CSS and JS loading HTML with the `@loadOnce()` Blade directive this package provides:
+Replace your standard CSS and JS loading HTML with the `@basset()` Blade directive this package provides:
 
 ```diff
 -    <script src="{{ asset('path/to/file.js') }}">
-+    @loadOnce('path/to/file.js')
++    @basset(base_path('path/to/file.js'))
 
 -    <link href="{{ asset('path/to/file.css') }}" rel="stylesheet" type="text/css">
-+    @loadOnce('path/to/file.css')
++    @basset(base_path('path/to/file.css'))
+
+-    <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js">
++    @basset('https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js')
 ```
 
-The package provides three Blade directives, in 99% of the cases you'll use `@loadOnce()`:
+The package provides 4 Blade directives, `@basset()`, `@bassetBlock()`, `@bassetArchive()`, `@bassetDirectory()`:
+
+- Local files
 
 ```php
-@loadOnce('path/to/file.css')
-@loadOnce('path/to/file.js')
-// depending of the file extension, the first time it will output
-// <link href="{{ asset('path/to/file.css')" rel="stylesheet" type="text/css">
-// or
-// <script src="{{ asset('path/to/file.js')"></script>
-// then the rest of the times this is called... it'll output nothing
-
-// IN ADDITION, if you have an entire block of HTML that you want to only output once:
-
-@loadOnce('unique_name_for_code_block')
-    <script>
-        <!-- Your JS here -->
-    </script>
-
-    <!-- OR -->
-
-    <style>
-        <!-- Your CSS here -->
-    </style>
-@endLoadOnce
-// will output the contents the first time...
-// then the second time it will just output nothing
+@basset(resource_path('assets/file.css'))
+@basset(resource_path('assets/file.js'))
+```
+```html
+<link href="http://localhost/storage/basset/resources/assets/file.css" rel="stylesheet" type="text/css">
+<script src="http://localhost/storage/basset/resources/assets/file.js"></script>
 ```
 
-However, if you want to pass a _variable_ as the parameter, not a _string_, you'll notice it won't work, because the directive can't tell if it's a CSS, JS or code block. That's why we've created `@loadStyleOnce()` and `@loadScriptOnce()`:
+- CDN
 
 ```php
-@php
-    $pathToCssFile = 'path/to/file.css';
-    $pathToJsFile = 'path/to/file.js';
-@endphp
-
-@loadStyleOnce($pathToCssFile)
-// will output <link href="{{ asset('path/to/file.css')"> the first time
-// then the second time this is called it'll output nothing
-
-@loadScriptOnce($pathToJsFile)
-// will output <script src="{{ asset('path/to/file.js')"></script> the first time
-// then the second time this is called it'll output nothing
+@basset('https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js')
 ```
+```html
+<script src="http://localhost/storage/basset/cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+```
+
+- Code block
+
+```php
+@bassetBlock('example/path/file.js')
+<script>
+  alert('Backpack bassets!');
+</script>
+@endBassetBlock()
+```
+```html
+<script src="http://localhost/storage/basset/example/path/file.js"></script>
+```
+
+- Archives (.zip/.tar.gz)
+
+```php
+@bassetArchive('https://github.com/author/package-dist/archive/refs/tags/1.0.0.zip', 'package-1.0.0')
+@basset('package-1.0.0/plugin.min.js')
+```
+```html
+<script src="http://localhost/storage/basset/package-1.0.0/plugin.min.js"></script>
+```
+
+- Local directories
+
+```php
+@bassetDirectory(resource_path('package-1.0.0/'), 'package-1.0.0')
+@basset('package-1.0.0/plugin.min.js')
+```
+```html
+<script src="http://localhost/storage/basset/package-1.0.0/plugin.min.js"></script>
+```
+
+Note that for the first page load with one or many new bassets it will take some time to internalize all the files, specially if they come from a CDN.
+
+For that reason, once all your styles and scripts are under the basset directory, you may use `basset:internalize` to internalize all those files. If you ever need it, `basset:clear` will delete all the files.
+
+```bash
+# internalizes all the @basset 
+php artisan basset:internalize
+```
+```bash
+# clears the basset directory
+php artisan basset:clear
+```
+
+In order to speed up the first page load on production, we recommend you to add `basset:internalize` command to the deploy script.
 
 ## Why does this package exist?
 
-In Laravel 10+, if your CSS or JS assets are loaded inside a blade file:
+1) Keep a copy of the CDN dependencies on your side.
+
+For many reasons you may want to avoid CDNs, CDNs may fail sometimes, the uptime is not 100%, or your app may need to work offline.
+
+2) Forget about compiling your assets.
+
+Most of the times backend developers end up messing around with npm and compiling dependencies. Backpack has been there, at some point we had almost 100Mb of assets on our main repo.
+Basset will keep all that mess away from backend developers.
+
+3) Avoid multiple loads of the same assets.
+
+In Laravel, if your CSS or JS assets are loaded inside a blade file:
 
 ```php
 // card.blade.php
