@@ -11,6 +11,9 @@
     ],
     "homepage": "https://github.com/laravel-backpack/basset",
     "keywords": ["Laravel", "Basset", "Assets", "Load CSS once", "Load JS once"],
+    "scripts": {
+        "test": "./vendor/bin/pest"
+    },
     "require": {
         "laravel/framework": "^10.1",
         "guzzlehttp/guzzle": "^7.5"
