@@ -1,6 +1,6 @@
 <?php
 
-use DigitallyHappy\Assets\Enums\StatusEnum;
+use Backpack\Basset\Enums\StatusEnum;
 
 test('confirm environment is set to testing', function () {
     expect(config('app.env'))->toBe('testing');
@@ -15,7 +15,7 @@ it('fails on invalid path', function () {
 it('cleans the pathname of an asset', function ($asset, $path) {
     $generatedPath = basset()->getAssetPath($asset);
 
-    expect((string) $generatedPath)->toBe("bassets/$path");
+    expect((string) $generatedPath)->toBe("basset/$path");
 })->with('paths');
 
 it('downloads a cdn basset', function ($asset) {

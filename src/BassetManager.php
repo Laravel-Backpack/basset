@@ -1,17 +1,17 @@
 <?php
 
-namespace DigitallyHappy\Assets;
+namespace Backpack\Basset;
 
-use DigitallyHappy\Assets\Enums\StatusEnum;
+use Backpack\Basset\Enums\StatusEnum;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * Assets Manager.
+ * Basset Manager.
  */
-class AssetManager
+class BassetManager
 {
     use Traits\UnarchiveTrait;
 
@@ -23,15 +23,15 @@ class AssetManager
     public function __construct()
     {
         $this->loaded = [];
-        $this->disk = Storage::disk(config('digitallyhappy.assets.disk'));
+        $this->disk = Storage::disk(config('backpack.basset.disk'));
 
-        $cachebusting = config('digitallyhappy.assets.cachebusting');
+        $cachebusting = config('backpack.basset.cachebusting');
         $this->cachebusting = $cachebusting ? (string) Str::of($cachebusting)->start('?') : '';
-        $this->basePath = (string) Str::of(config('digitallyhappy.assets.path'))->finish('/');
+        $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
     }
 
     /**
-     * Adds the asset to the current loaded assets.
+     * Adds the basset to the current loaded basset list.
      *
      * @param  string  $asset
      * @return void
@@ -55,7 +55,7 @@ class AssetManager
     }
 
     /**
-     * Returns the current loaded assets on app lifecycle.
+     * Returns the current loaded basset list on app lifecycle.
      *
      * @return array
      */
@@ -135,7 +135,7 @@ class AssetManager
      * @param  array  $attributes
      * @return StatusEnum
      */
-    public function basset(string $asset, bool|string $output = true, array $attributes = []): StatusEnum
+    public function basset(string $asset, bool | string $output = true, array $attributes = []): StatusEnum
     {
         // Get asset path
         $path = $this->getAssetPath(is_string($output) ? $output : $asset);
@@ -148,6 +148,7 @@ class AssetManager
 
         // Validate the asset is an absolute path or a CDN
         if (! str_starts_with($asset, base_path()) && ! str_starts_with($asset, 'http') && ! str_starts_with($asset, '://')) {
+
             // may be an internalized asset (folder or zip)
             if ($this->disk->exists($path)) {
                 $asset = $this->disk->url($path);
@@ -165,7 +166,7 @@ class AssetManager
         // Get asset url
         $url = $this->disk->url($path);
 
-        // Check if asset exists in bassets folder
+        // Check if asset exists in basset folder
         if ($this->disk->exists($path)) {
             $output && $this->echoFile($url, $attributes);
 
@@ -215,7 +216,7 @@ class AssetManager
 
         $this->markAsLoaded($path);
 
-        // Check if asset exists in bassets folder
+        // Check if asset exists in basset folder
         if ($this->disk->exists($path)) {
             $output && $this->echoFile($url);
 

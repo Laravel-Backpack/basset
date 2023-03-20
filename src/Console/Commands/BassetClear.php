@@ -1,6 +1,6 @@
 <?php
 
-namespace DigitallyHappy\Assets\Console\Commands;
+namespace Backpack\Basset\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
@@ -25,7 +25,7 @@ class BassetClear extends Command
      *
      * @var string
      */
-    protected $description = 'Clear the bassets cache';
+    protected $description = 'Clear the basset cache';
 
     /**
      * Execute the console command.
@@ -34,11 +34,11 @@ class BassetClear extends Command
      */
     public function handle(): void
     {
-        $disk = Storage::disk(config('digitallyhappy.assets.disk'));
-        $path = config('digitallyhappy.assets.path');
+        $disk = Storage::disk(config('backpack.basset.disk'));
+        $path = config('backpack.basset.path');
         $pathRelative = Str::of($disk->path($path))->replace(base_path(), '')->replace('\\', '/');
 
-        $this->line("Clearing bassets '$pathRelative'");
+        $this->line("Clearing basset '$pathRelative'");
 
         $disk->deleteDirectory($path);
         $disk->makeDirectory($path);

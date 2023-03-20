@@ -3,7 +3,7 @@
 return [
     // disk and path where to store bassets
     'disk' => 'public',
-    'path' => 'bassets',
+    'path' => 'basset',
 
     // cachebusting string variable that is added to all bassets
     'cachebusting' => false,

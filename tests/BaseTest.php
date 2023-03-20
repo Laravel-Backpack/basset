@@ -1,8 +1,8 @@
 <?php
 
-namespace DigitallyHappy\Assets\Tests;
+namespace Backpack\Basset\Tests;
 
-use DigitallyHappy\Assets\AssetsServiceProvider;
+use Backpack\Basset\BassetServiceProvider;
 use Orchestra\Testbench\TestCase;
 
 abstract class BaseTest extends TestCase
@@ -10,7 +10,7 @@ abstract class BaseTest extends TestCase
     protected function getPackageProviders($app)
     {
         return [
-            AssetsServiceProvider::class,
+            BassetServiceProvider::class,
         ];
     }
 }

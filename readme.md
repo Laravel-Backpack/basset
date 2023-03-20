@@ -1,4 +1,4 @@
-# Assets
+# Basset
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Total Downloads][ico-downloads]][link-downloads]
@@ -12,7 +12,7 @@ Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@l
 Via Composer
 
 ``` bash
-$ composer require digitallyhappy/assets
+$ composer require backpack/basset
 ```
 
 ## Usage
@@ -74,7 +74,7 @@ However, if you want to pass a _variable_ as the parameter, not a _string_, you'
 
 ## Why does this package exist?
 
-In Laravel 8+, if your CSS or JS assets are loaded inside a blade file:
+In Laravel 10+, if your CSS or JS assets are loaded inside a blade file:
 
 ```php
 // card.blade.php
@@ -131,14 +131,14 @@ If you discover any security related issues, please email hello@tabacitu.ro inst
 
 MIT. Please see the [license file](license.md) for more information.
 
-[ico-version]: https://img.shields.io/packagist/v/digitallyhappy/assets.svg?style=flat-square
-[ico-downloads]: https://img.shields.io/packagist/dt/digitallyhappy/assets.svg?style=flat-square
-[ico-travis]: https://img.shields.io/travis/digitallyhappy/assets/master.svg?style=flat-square
+[ico-version]: https://img.shields.io/packagist/v/backpack/basset.svg?style=flat-square
+[ico-downloads]: https://img.shields.io/packagist/dt/backpack/basset.svg?style=flat-square
+[ico-travis]: https://img.shields.io/travis/backpack/basset/master.svg?style=flat-square
 [ico-styleci]: https://styleci.io/repos/421785142/shield
 
-[link-packagist]: https://packagist.org/packages/digitallyhappy/assets
-[link-downloads]: https://packagist.org/packages/digitallyhappy/assets
-[link-travis]: https://travis-ci.org/digitallyhappy/assets
+[link-packagist]: https://packagist.org/packages/backpack/basset
+[link-downloads]: https://packagist.org/packages/backpack/basset
+[link-travis]: https://travis-ci.org/backpack/basset
 [link-styleci]: https://styleci.io/repos/421785142
-[link-author]: https://github.com/digitallyhappy
+[link-author]: https://github.com/Laravel-Backpack
 [link-contributors]: ../../contributors

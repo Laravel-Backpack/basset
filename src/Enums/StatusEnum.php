@@ -1,6 +1,6 @@
 <?php
 
-namespace DigitallyHappy\Assets\Enums;
+namespace Backpack\Basset\Enums;
 
 enum StatusEnum: string
 {
