@@ -100,7 +100,7 @@ it('does not download twice', function ($asset) {
 it('does not output when not required', function ($asset) {
     basset($asset, false);
 
-    expect($this->getActualOutput())->toBeEmpty();
+    $this->expectOutputString('');
 })->with('cdn');
 
 it('retreives from cache when available', function ($asset) {
