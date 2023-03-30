@@ -116,7 +116,7 @@ class BassetManager
     }
 
     /**
-     * Returns the asset proper path and url.
+     * Returns the asset path.
      *
      * @param  string  $asset
      * @return string
@@ -124,7 +124,19 @@ class BassetManager
     public function getAssetPath(string $asset): string
     {
         return Str::of($this->basePath)
-            ->append(str_replace([base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $asset));
+            ->append(str_replace([base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $asset))
+            ->replace('/\\', '/');
+    }
+
+    /**
+     * Returns the asset url.
+     *
+     * @param  string  $asset
+     * @return string
+     */
+    public function getAssetUrl(string $asset): string
+    {
+        return $this->disk->url($this->getAssetPath($asset));
     }
 
     /**
