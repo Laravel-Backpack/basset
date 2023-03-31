@@ -121,7 +121,7 @@ class BassetManager
      * @param  string  $asset
      * @return string
      */
-    public function getAssetPath(string $asset): string
+    public function getPath(string $asset): string
     {
         return Str::of($this->basePath)
             ->append(str_replace([base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $asset))
@@ -134,9 +134,9 @@ class BassetManager
      * @param  string  $asset
      * @return string
      */
-    public function getAssetUrl(string $asset): string
+    public function getUrl(string $asset): string
     {
-        return $this->disk->url($this->getAssetPath($asset));
+        return $this->disk->url($this->getPath($asset));
     }
 
     /**
@@ -150,7 +150,7 @@ class BassetManager
     public function basset(string $asset, bool | string $output = true, array $attributes = []): StatusEnum
     {
         // Get asset path
-        $path = $this->getAssetPath(is_string($output) ? $output : $asset);
+        $path = $this->getPath(is_string($output) ? $output : $asset);
 
         if ($this->isLoaded($path)) {
             return StatusEnum::LOADED;
@@ -219,7 +219,7 @@ class BassetManager
     public function bassetBlock(string $asset, string $code, bool $output = true): StatusEnum
     {
         // Get asset path and url
-        $path = $this->getAssetPath($asset);
+        $path = $this->getPath($asset);
         $url = $this->disk->url($path);
 
         if ($this->isLoaded($path)) {
@@ -270,7 +270,7 @@ class BassetManager
     public function bassetArchive(string $asset, string $output): StatusEnum
     {
         // get local output path
-        $path = $this->getAssetPath($output);
+        $path = $this->getPath($output);
         $output = $this->disk->path($path);
 
         // Check if asset is loaded
@@ -327,7 +327,7 @@ class BassetManager
     public function bassetDirectory(string $asset, string $output): StatusEnum
     {
         // get local output path
-        $path = $this->getAssetPath($output);
+        $path = $this->getPath($output);
 
         // Check if asset is loaded
         if ($this->isLoaded($path)) {

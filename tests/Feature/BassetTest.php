@@ -13,7 +13,7 @@ it('fails on invalid path', function () {
 });
 
 it('cleans the pathname of an asset', function ($asset, $path) {
-    $generatedPath = basset()->getAssetPath($asset);
+    $generatedPath = basset()->getPath($asset);
 
     expect((string) $generatedPath)->toBe("basset/$path");
 })->with('paths');
@@ -28,7 +28,7 @@ it('downloads a cdn basset', function ($asset) {
 
 it('stores a downloaded basset', function ($asset) {
     $result = basset($asset, false);
-    $path = basset()->getAssetPath($asset);
+    $path = basset()->getPath($asset);
 
     disk()->assertExists($path);
 
@@ -37,7 +37,7 @@ it('stores a downloaded basset', function ($asset) {
 
 it('cleans the content of a downloaded basset', function ($asset) {
     basset($asset, false);
-    $path = basset()->getAssetPath($asset);
+    $path = basset()->getPath($asset);
 
     expect(disk()->get($path))->toBe(getStub("$asset.output"));
 })->with('cdn');
@@ -61,7 +61,7 @@ it('stores a local basset', function ($asset) {
 
     // internalize the file
     $result = basset($path, false);
-    $path = basset()->getAssetPath($path);
+    $path = basset()->getPath($path);
 
     disk()->assertExists($path);
 
@@ -75,7 +75,7 @@ it('cleans the content of a local basset', function ($asset) {
 
     // internalize the file
     $result = basset($path, false);
-    $path = basset()->getAssetPath($path);
+    $path = basset()->getPath($path);
 
     expect(disk()->get($path))->toBe(getStub("$asset.output"));
 
@@ -105,7 +105,7 @@ it('does not output when not required', function ($asset) {
 
 it('retreives from cache when available', function ($asset) {
     // store the stub in disk
-    $generatedPath = basset()->getAssetPath($asset);
+    $generatedPath = basset()->getPath($asset);
     disk()->put($generatedPath, getStub($asset));
 
     // should not download
