@@ -19,6 +19,7 @@ class BassetManager
     private $disk;
     private $basePath;
     private $cachebusting;
+    private $dev = false;
 
     public function __construct()
     {
@@ -28,6 +29,7 @@ class BassetManager
         $cachebusting = config('backpack.basset.cachebusting');
         $this->cachebusting = $cachebusting ? (string) Str::of($cachebusting)->start('?') : '';
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
+        $this->dev = config('backpack.basset.dev_mode', false);
     }
 
     /**
@@ -129,6 +131,22 @@ class BassetManager
     }
 
     /**
+     * Gets the name of the file with the hash corresponding to the code block
+     *
+     * @param string $code
+     * @param string $asset
+     * @return string
+     */
+    public function getPathHashed(string $asset, string $content): string
+    {
+        $path = $this->getPath($asset);
+
+        // get the hash for the content
+        $hash = substr(md5($content), 0, 8);
+        return preg_replace('/\.(css|js)$/i', "-{$hash}.$1", $path);
+    }
+
+    /**
      * Returns the asset url.
      *
      * @param  string  $asset
@@ -179,7 +197,8 @@ class BassetManager
         $url = $this->disk->url($path);
 
         // Check if asset exists in basset folder
-        if ($this->disk->exists($path)) {
+        // (ignores cache if in dev mode)
+        if ($this->disk->exists($path) && ! $this->dev) {
             $output && $this->echoFile($url, $attributes);
 
             return StatusEnum::IN_CACHE;
@@ -187,6 +206,13 @@ class BassetManager
 
         // Download/copy file
         if (str_starts_with($asset, 'http') || str_starts_with($asset, '://')) {
+            // when in dev mode, cdn should be rendered
+            if ($this->dev) {
+                $output && $this->echoFile($asset, $attributes);
+
+                return StatusEnum::DISABLED;
+            }
+
             $content = Http::get($asset)->getBody();
         } else {
             $content = File::get($asset);
@@ -218,8 +244,14 @@ class BassetManager
      */
     public function bassetBlock(string $asset, string $code, bool $output = true): StatusEnum
     {
+        // fallback to code on dev mode
+        if ($this->dev) {
+            echo $code;
+            return StatusEnum::DISABLED;
+        }
+
         // Get asset path and url
-        $path = $this->getPath($asset);
+        $path = $this->getPathHashed($asset, $code);
         $url = $this->disk->url($path);
 
         if ($this->isLoaded($path)) {
@@ -280,24 +312,29 @@ class BassetManager
 
         $this->markAsLoaded($path);
 
-        // check if directory exists
-        if ($this->disk->exists($path)) {
-            return StatusEnum::IN_CACHE;
-        }
-
-        // local zip file
-        if (File::isFile($asset)) {
-            $file = $asset;
-        }
-
         // online zip
         if (str_starts_with($asset, 'http') || str_starts_with($asset, '://')) {
+            // check if directory exists
+            if ($this->disk->exists($path)) {
+                return StatusEnum::IN_CACHE;
+            }
+
             // temporary file
             $file = $this->getTemporaryFilePath();
 
             // download file to temporary location
             $content = Http::get($asset)->getBody();
             File::put($file, $content);
+        }
+
+        // local zip file
+        if (File::isFile($asset)) {
+            // check if directory exists
+            if ($this->disk->exists($path) && ! $this->dev) {
+                return StatusEnum::IN_CACHE;
+            }
+
+            $file = $asset;
         }
 
         if (! isset($file)) {
@@ -337,7 +374,8 @@ class BassetManager
         $this->markAsLoaded($path);
 
         // check if directory exists
-        if ($this->disk->exists($path)) {
+        // if dev mode is active it should ignore the cache
+        if ($this->disk->exists($path) && ! $this->dev) {
             return StatusEnum::IN_CACHE;
         }
 
