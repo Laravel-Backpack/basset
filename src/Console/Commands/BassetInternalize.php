@@ -3,6 +3,7 @@
 namespace Backpack\Basset\Console\Commands;
 
 use Backpack\Basset\Enums\StatusEnum;
+use Backpack\Basset\Facades\Basset;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -40,22 +41,22 @@ class BassetInternalize extends Command
     {
         $starttime = microtime(true);
 
+        $viewPaths = Basset::getViewPaths();
+
         $this->line('Looking for bassets under the following directories:');
-        $directories = collect(config('backpack.basset.view_paths'))
-            ->map(function ($dir) {
-                return (string) Str::of($dir)->after(base_path())->trim('\\/');
-            });
 
         // Find bassets
         $totalFiles = 0;
-        $bassets = $directories
-            ->map(function (string $directory) use (&$totalFiles) {
+        $bassets = collect($viewPaths)
+            ->map(function (string $path) use (&$totalFiles) {
                 // Map all blade files
-                $files = $this->getBladeFiles(base_path($directory));
+                $files = $this->getBladeFiles($path);
                 $count = count($files);
                 $totalFiles += $count;
 
-                $this->line(" - $directory ($count blade files)");
+                $relativePath = Str::of($path)->after(base_path())->trim('\\/');
+
+                $this->line(" - $relativePath ($count blade files)");
 
                 return $files;
             })

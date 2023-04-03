@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
  */
 class BassetManager
 {
+    use Traits\ViewPathsTrait;
     use Traits\UnarchiveTrait;
 
     private $loaded;
@@ -28,6 +29,9 @@ class BassetManager
         $cachebusting = config('backpack.basset.cachebusting');
         $this->cachebusting = $cachebusting ? (string) Str::of($cachebusting)->start('?') : '';
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
+
+        // initialize static view path methods
+        $this->initViewPaths();
     }
 
     /**
