@@ -151,7 +151,7 @@ class BassetManager
      * @param  array  $attributes
      * @return StatusEnum
      */
-    public function basset(string $asset, bool | string $output = true, array $attributes = []): StatusEnum
+    public function basset(string $asset, bool|string $output = true, array $attributes = []): StatusEnum
     {
         // Get asset path
         $path = $this->getPath(is_string($output) ? $output : $asset);
@@ -164,7 +164,6 @@ class BassetManager
 
         // Validate the asset is an absolute path or a CDN
         if (! str_starts_with($asset, base_path()) && ! str_starts_with($asset, 'http') && ! str_starts_with($asset, '://')) {
-
             // may be an internalized asset (folder or zip)
             if ($this->disk->exists($path)) {
                 $asset = $this->disk->url($path);

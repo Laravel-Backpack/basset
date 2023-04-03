@@ -2,14 +2,12 @@
 
 namespace Backpack\Basset\Traits;
 
-use Illuminate\Support\Facades\File;
-
 trait ViewPathsTrait
 {
     private static $viewPaths = [];
 
     /**
-     * Initialize view paths
+     * Initialize view paths.
      *
      * @return void
      */
@@ -21,9 +19,9 @@ trait ViewPathsTrait
     /**
      * Add a view path that may use @basset directive
      * This is used to internalize assets in advance
-     * with the command artisan basset:internalize
+     * with the command artisan basset:internalize.
      *
-     * @param string $path
+     * @param  string  $path
      * @return void
      */
     public static function addViewPath(string $path): void
@@ -34,7 +32,7 @@ trait ViewPathsTrait
     }
 
     /**
-     * Gets the current view paths
+     * Gets the current view paths.
      *
      * @return array
      */
