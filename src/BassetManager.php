@@ -135,10 +135,10 @@ class BassetManager
     }
 
     /**
-     * Gets the name of the file with the hash corresponding to the code block
+     * Gets the name of the file with the hash corresponding to the code block.
      *
-     * @param string $code
-     * @param string $asset
+     * @param  string  $code
+     * @param  string  $asset
      * @return string
      */
     public function getPathHashed(string $asset, string $content): string
@@ -147,6 +147,7 @@ class BassetManager
 
         // get the hash for the content
         $hash = substr(md5($content), 0, 8);
+
         return preg_replace('/\.(css|js)$/i', "-{$hash}.$1", $path);
     }
 
@@ -250,6 +251,7 @@ class BassetManager
         // fallback to code on dev mode
         if ($this->dev) {
             echo $code;
+
             return StatusEnum::DISABLED;
         }
 
