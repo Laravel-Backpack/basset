@@ -75,7 +75,6 @@ class BassetServiceProvider extends ServiceProvider
     protected function registerBladeDirectives()
     {
         $this->callAfterResolving('blade.compiler', function (BladeCompiler $bladeCompiler) {
-
             // Basset
             $bladeCompiler->directive('basset', function (string $parameter): string {
                 return "<?php Basset::basset({$parameter}); ?>";

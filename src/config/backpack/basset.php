@@ -15,7 +15,5 @@ return [
     // used to internalize assets in advance with artisan basset:internalize
     'view_paths' => [
         resource_path('views'),
-        base_path('vendor/backpack/crud/src/resources'),
-        base_path('vendor/backpack/pro/resources'),
     ],
 ];
