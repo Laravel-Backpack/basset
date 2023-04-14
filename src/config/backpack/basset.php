@@ -2,7 +2,7 @@
 
 return [
     // development mode, assets will not be internalized
-    'dev_mode' => false,
+    'dev_mode' => env('BASSET_DEV_MODE', false),
 
     // disk and path where to store bassets
     'disk' => 'public',
