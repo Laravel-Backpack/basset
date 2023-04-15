@@ -190,7 +190,7 @@ class BassetManager
 
         // Download/copy file
         if (str_starts_with($asset, 'http') || str_starts_with($asset, '://')) {
-            $content = Http::get($asset)->getBody();
+            $content = Http::withoutVerifying()->get($asset)->getBody();
         } else {
             $content = File::get($asset);
         }
@@ -299,7 +299,7 @@ class BassetManager
             $file = $this->getTemporaryFilePath();
 
             // download file to temporary location
-            $content = Http::get($asset)->getBody();
+            $content = Http::withoutVerifying()->get($asset)->getBody();
             File::put($file, $content);
         }
 
