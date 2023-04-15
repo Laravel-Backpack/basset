@@ -11,7 +11,7 @@ trait TimeMeasureTrait
     private $calls = 0;
 
     /**
-     * Start a measuring
+     * Start a measuring.
      *
      * @return void
      */
@@ -21,7 +21,7 @@ trait TimeMeasureTrait
     }
 
     /**
-     * Stop a measuring
+     * Stop a measuring.
      *
      * @return StatusEnum
      */
@@ -34,9 +34,9 @@ trait TimeMeasureTrait
     }
 
     /**
-     * Get total time measured
+     * Get total time measured.
      *
-     * @return integer
+     * @return int
      */
     public function getLoadingTime(): float
     {
@@ -44,9 +44,9 @@ trait TimeMeasureTrait
     }
 
     /**
-     * Get total runs
+     * Get total runs.
      *
-     * @return integer
+     * @return int
      */
     public function getTotalCalls(): float
     {

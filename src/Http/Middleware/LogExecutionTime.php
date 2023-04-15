@@ -22,7 +22,7 @@ class LogExecutionTime
     }
 
     /**
-     * Logs the Basset execution time
+     * Logs the Basset execution time.
      *
      * @return void
      */
