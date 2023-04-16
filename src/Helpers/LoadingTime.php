@@ -11,7 +11,7 @@ class LoadingTime
     private $calls = 0;
 
     /**
-     * Start a measuring
+     * Start a measuring.
      *
      * @return void
      */
@@ -21,7 +21,7 @@ class LoadingTime
     }
 
     /**
-     * Stop a measuring
+     * Stop a measuring.
      *
      * @return StatusEnum
      */
@@ -34,7 +34,7 @@ class LoadingTime
     }
 
     /**
-     * Get total time measured in miliseconds
+     * Get total time measured in miliseconds.
      *
      * @return float
      */
@@ -44,9 +44,9 @@ class LoadingTime
     }
 
     /**
-     * Get total runs
+     * Get total runs.
      *
-     * @return integer
+     * @return int
      */
     public function getTotalCalls(): int
     {

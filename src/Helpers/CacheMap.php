@@ -26,7 +26,7 @@ class CacheMap
     }
 
     /**
-     * Saves the cache map to the .basset file
+     * Saves the cache map to the .basset file.
      *
      * @return void
      */
@@ -41,13 +41,13 @@ class CacheMap
     }
 
     /**
-     * Adds an asset to the cache map
+     * Adds an asset to the cache map.
      *
-     * @param string $asset
-     * @param string $path
+     * @param  string  $asset
+     * @param  string  $path
      * @return void
      */
-    public function add(string $asset, string | bool $path = true): void
+    public function add(string $asset, string|bool $path = true): void
     {
         if (! $this->active) {
             return;
@@ -58,12 +58,12 @@ class CacheMap
     }
 
     /**
-     * Gets the asset url from map
+     * Gets the asset url from map.
      *
-     * @param string $asset
+     * @param  string  $asset
      * @return string | false
      */
-    public function get(string $asset): string | false
+    public function get(string $asset): string|false
     {
         if (! $this->active) {
             return false;

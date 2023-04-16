@@ -3,7 +3,6 @@
 namespace Backpack\Basset;
 
 use Backpack\Basset\Facades\Basset;
-use Backpack\Basset\Helpers\CacheMap;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -34,7 +33,7 @@ class BassetServiceProvider extends ServiceProvider
         }
 
         // Run the terminate commands
-        $this->app->terminating(fn() => $this->terminate());
+        $this->app->terminating(fn () => $this->terminate());
     }
 
     /**
@@ -63,7 +62,7 @@ class BassetServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Register the service the package provides.
-        $this->app->singleton('basset', fn() => new BassetManager());
+        $this->app->singleton('basset', fn () => new BassetManager());
 
         // Merge the configuration file.
         $this->mergeConfigFrom(__DIR__.'/config/backpack/basset.php', 'backpack.basset');
@@ -137,7 +136,7 @@ class BassetServiceProvider extends ServiceProvider
     }
 
     /**
-     * On terminate callback
+     * On terminate callback.
      *
      * @return void
      */
