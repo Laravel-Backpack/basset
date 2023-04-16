@@ -5,6 +5,9 @@ return [
     'disk' => 'public',
     'path' => 'basset',
 
+    // use cache map file (.basset)
+    'cache_map' => true,
+
     // cachebusting string variable that is added to all bassets
     'cachebusting' => false,
 

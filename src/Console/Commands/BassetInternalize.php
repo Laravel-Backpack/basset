@@ -116,6 +116,9 @@ class BassetInternalize extends Command
             }
         });
 
+        // Save the cache map
+        app('basset')->cacheMap->save();
+
         $bar->finish();
         $this->newLine(2);
         $this->info(sprintf('Done in %.2fs', microtime(true) - $starttime));

@@ -42,6 +42,7 @@ class BassetClear extends Command
 
         $disk->deleteDirectory($path);
         $disk->makeDirectory($path);
+        $disk->delete('.basset');
 
         $this->info('Done');
     }

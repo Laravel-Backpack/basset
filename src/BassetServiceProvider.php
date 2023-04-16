@@ -2,6 +2,9 @@
 
 namespace Backpack\Basset;
 
+use Backpack\Basset\Facades\Basset;
+use Backpack\Basset\Helpers\CacheMap;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
@@ -29,6 +32,9 @@ class BassetServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
         }
+
+        // Run the terminate commands
+        $this->app->terminating(fn() => $this->terminate());
     }
 
     /**
@@ -57,13 +63,12 @@ class BassetServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Register the service the package provides.
-        $this->app->singleton('basset', function ($app) {
-            return new BassetManager();
-        });
+        $this->app->singleton('basset', fn() => new BassetManager());
 
         // Merge the configuration file.
         $this->mergeConfigFrom(__DIR__.'/config/backpack/basset.php', 'backpack.basset');
 
+        // Register blade directives
         $this->registerBladeDirectives();
     }
 
@@ -129,6 +134,27 @@ class BassetServiceProvider extends ServiceProvider
                 return "<?php Basset::echoJs({$parameter}); ?>";
             });
         });
+    }
+
+    /**
+     * On terminate callback
+     *
+     * @return void
+     */
+    public function terminate(): void
+    {
+        $basset = app('basset');
+
+        // Log execution time
+        if (config('backpack.basset.log_execution_time', false)) {
+            $totalCalls = $basset->loading->getTotalCalls();
+            $loadingTime = $basset->loading->getLoadingTime();
+
+            Log::info("Basset run $totalCalls times, with an exeuction time of $loadingTime");
+        }
+
+        // Save the cache map
+        $basset->cacheMap->save();
     }
 
     /**
