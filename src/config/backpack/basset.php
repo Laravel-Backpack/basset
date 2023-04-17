@@ -5,9 +5,6 @@ return [
     'disk' => 'public',
     'path' => 'basset',
 
-    // cachebusting string variable that is added to all bassets
-    'cachebusting' => false,
-
     // view paths that may use @basset
     // used to internalize assets in advance with artisan basset:internalize
     'view_paths' => [

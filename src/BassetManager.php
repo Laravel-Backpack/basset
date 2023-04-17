@@ -26,8 +26,7 @@ class BassetManager
         $this->loaded = [];
         $this->disk = Storage::disk(config('backpack.basset.disk'));
 
-        $cachebusting = config('backpack.basset.cachebusting');
-        $this->cachebusting = $cachebusting ? (string) Str::of($cachebusting)->start('?') : '';
+        $this->cachebusting = '?'.substr(md5(base_path('composer.lock')), 0, 12);
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
 
         // initialize static view path methods
