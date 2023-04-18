@@ -7,7 +7,9 @@ it('stores basset block', function ($asset) {
 
     $result = basset()->bassetBlock($asset, $codeBlock, false);
 
-    disk()->assertExists(basset()->getPath($asset));
+    $path = basset()->getPathHashed($asset, $codeBlock);
+
+    disk()->assertExists($path);
 
     expect($result)->toBe(StatusEnum::INTERNALIZED);
 })->with('codeBlock');
@@ -16,7 +18,8 @@ it('cleans basset block', function ($asset) {
     $codeBlock = getStub($asset);
 
     basset()->bassetBlock($asset, $codeBlock, false);
-    $path = basset()->getPath($asset);
+
+    $path = basset()->getPathHashed($asset, $codeBlock);
 
     // validate the ouput content
     expect(getStub("$asset.output"))->toBe(disk()->get($path));

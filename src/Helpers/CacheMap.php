@@ -2,6 +2,7 @@
 
 namespace Backpack\Basset\Helpers;
 
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
@@ -15,11 +16,13 @@ class CacheMap
     public function __construct()
     {
         $this->isActive = config('backpack.basset.cache_map', false);
-        $this->path = Storage::disk(config('backpack.basset.disk'))->path('.basset');
-
         if (! $this->isActive) {
             return;
         }
+
+        /** @var FilesystemAdapter */
+        $disk = Storage::disk(config('backpack.basset.disk'));
+        $this->path = $disk->path('.basset');
 
         // Load map
         $this->map = File::exists($this->path) ? json_decode(File::get($this->path), true) : [];

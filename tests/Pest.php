@@ -1,7 +1,8 @@
 <?php
 
 use Backpack\Basset\Tests\BaseTest;
-use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -59,7 +60,10 @@ function getStub(string $asset): string
     return File::get("tests/Helpers/$name.stub");
 }
 
-function disk(): Filesystem
+function disk(): FilesystemAdapter
 {
-    return Storage::disk('basset');
+    /** @var FilesystemAdapter */
+    $disk = Storage::disk('basset');
+
+    return $disk;
 }

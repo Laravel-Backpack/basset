@@ -3,6 +3,7 @@
 namespace Backpack\Basset\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -30,10 +31,11 @@ class BassetClear extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
     public function handle(): void
     {
+        /** @var FilesystemAdapter */
         $disk = Storage::disk(config('backpack.basset.disk'));
         $path = config('backpack.basset.path');
         $pathRelative = Str::of($disk->path($path))->replace(base_path(), '')->replace('\\', '/');
