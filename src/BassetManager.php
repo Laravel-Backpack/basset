@@ -179,7 +179,7 @@ class BassetManager
      * @param  array  $attributes
      * @return StatusEnum
      */
-    public function basset(string $asset, bool | string $output = true, array $attributes = []): StatusEnum
+    public function basset(string $asset, bool|string $output = true, array $attributes = []): StatusEnum
     {
         $this->loader->start();
 

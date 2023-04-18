@@ -50,7 +50,7 @@ class CacheMap
      * @param  string  $path
      * @return void
      */
-    public function addAsset(string $asset, string | bool $path = true): void
+    public function addAsset(string $asset, string|bool $path = true): void
     {
         if (! $this->isActive) {
             return;
@@ -66,7 +66,7 @@ class CacheMap
      * @param  string  $asset
      * @return string | false
      */
-    public function getAsset(string $asset): string | false
+    public function getAsset(string $asset): string|false
     {
         if (! $this->isActive) {
             return false;
