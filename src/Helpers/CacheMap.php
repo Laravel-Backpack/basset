@@ -9,15 +9,15 @@ class CacheMap
 {
     private $map = [];
     private $path;
-    private $active = false;
-    private $dirty = false;
+    private $isActive = false;
+    private $isDirty = false;
 
     public function __construct()
     {
-        $this->active = config('backpack.basset.cache_map', false);
+        $this->isActive = config('backpack.basset.cache_map', false);
         $this->path = Storage::disk(config('backpack.basset.disk'))->path('.basset');
 
-        if (! $this->active) {
+        if (! $this->isActive) {
             return;
         }
 
@@ -32,7 +32,7 @@ class CacheMap
      */
     public function save(): void
     {
-        if (! $this->dirty || ! $this->active) {
+        if (! $this->isDirty || ! $this->isActive) {
             return;
         }
 
@@ -47,14 +47,14 @@ class CacheMap
      * @param  string  $path
      * @return void
      */
-    public function add(string $asset, string|bool $path = true): void
+    public function addAsset(string $asset, string | bool $path = true): void
     {
-        if (! $this->active) {
+        if (! $this->isActive) {
             return;
         }
 
         $this->map[$asset] = $path;
-        $this->dirty = true;
+        $this->isDirty = true;
     }
 
     /**
@@ -63,9 +63,9 @@ class CacheMap
      * @param  string  $asset
      * @return string | false
      */
-    public function get(string $asset): string|false
+    public function getAsset(string $asset): string | false
     {
-        if (! $this->active) {
+        if (! $this->isActive) {
             return false;
         }
 

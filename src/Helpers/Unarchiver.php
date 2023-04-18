@@ -24,19 +24,42 @@ class Unarchiver
             case 'application/zip':
                 return $this->unarchiveZip($file, $output);
 
-                // tar.gz
+            // tar.gz
             case 'application/gzip':
             case 'application/x-gzip':
             case 'application/bzip2':
             case 'application/x-bzip2':
                 return $this->unarchiveGz($file, $output);
 
-                // tar
+            // tar
             case 'application/x-tar':
                 return $this->unarchiveTar($file, $output);
         }
 
         return false;
+    }
+
+    /**
+     * Returns a temporary file path.
+     *
+     * @return string
+     */
+    public function getTemporaryFilePath(): string
+    {
+        return tempnam(sys_get_temp_dir(), '');
+    }
+
+    /**
+     * Returns a temporary directory path.
+     *
+     * @return string
+     */
+    public function getTemporaryDirectoryPath(): string
+    {
+        $dir = storage_path('app/tmp/'.mt_rand().'/');
+        File::ensureDirectoryExists($dir);
+
+        return $dir;
     }
 
     /**
@@ -86,28 +109,5 @@ class Unarchiver
         $phar = new PharData($file);
 
         return $phar->extractTo($output);
-    }
-
-    /**
-     * Returns a temporary file path.
-     *
-     * @return string
-     */
-    public function getTemporaryFilePath(): string
-    {
-        return tempnam(sys_get_temp_dir(), '');
-    }
-
-    /**
-     * Returns a temporary directory path.
-     *
-     * @return string
-     */
-    public function getTemporaryDirectoryPath(): string
-    {
-        $dir = storage_path('app/tmp/'.mt_rand().'/');
-        File::ensureDirectoryExists($dir);
-
-        return $dir;
     }
 }
