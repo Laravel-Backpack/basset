@@ -288,7 +288,7 @@ class BassetManager
         $this->markAsLoaded($path);
 
         // Retrieve from map
-        $mapped = $this->cacheMap->getAsset($asset);
+        $mapped = $this->cacheMap->getAsset($path);
         if ($mapped) {
             $output && $this->echoFile($mapped);
 
@@ -301,7 +301,7 @@ class BassetManager
         // Check if asset exists in basset folder
         if ($this->disk->exists($path)) {
             $output && $this->echoFile($url);
-            $this->cacheMap->addAsset($asset, $url);
+            $this->cacheMap->addAsset($path, $url);
 
             return $this->loader->finish(StatusEnum::IN_CACHE);
         }
@@ -319,9 +319,18 @@ class BassetManager
         // Store the file
         $result = $this->disk->put($path, $cleanCode);
 
+        // Delete old hashed files
+        $dir = Str::beforeLast($path, '/');
+        $pattern = '\/'.Str::afterLast(preg_replace('/\w{8}\.(css|js)$/i', '\w{8}.$1', $path), '/');
+
+        collect($this->disk->files($dir))
+            ->filter(fn ($file) => $file !== $path && preg_match("/$pattern/", $file))
+            ->each(fn ($file) => $this->disk->delete($file));
+
+        // Output result
         if ($result) {
             $output && $this->echoFile($url);
-            $this->cacheMap->addAsset($asset, $url);
+            $this->cacheMap->addAsset($path, $url);
 
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
