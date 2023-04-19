@@ -68,7 +68,7 @@ class BassetInternalize extends Command
                 preg_match_all('/@(basset|bassetArchive|bassetDirectory)\((.+)\)/', $content, $matches);
 
                 $matches[2] = collect($matches[2])
-                    ->map(fn($match) => collect(explode(',', $match))
+                    ->map(fn ($match) => collect(explode(',', $match))
                             ->map(function ($arg) {
                                 try {
                                     return eval("return $arg;");
@@ -79,7 +79,7 @@ class BassetInternalize extends Command
                             ->toArray()
                     );
 
-                return collect($matches[1])->map(fn(string $type, int $i) => [$type, $matches[2][$i]]);
+                return collect($matches[1])->map(fn (string $type, int $i) => [$type, $matches[2][$i]]);
             });
 
         $totalBassets = count($bassets);
