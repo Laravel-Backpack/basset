@@ -1,0 +1,46 @@
+name: PHP Stan and Tests
+
+on: [push]
+
+jobs:
+  stan-and-tests:
+    strategy:
+      matrix:
+        php: [8.1, 8.2]
+        laravel: [^9.0, ^10.0]
+
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, zip
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/.composer/cache/files
+          key: dependencies-laravel-${{ matrix.laravel }}-php-${{ matrix.php }}-composer-${{ hashFiles(composer.json) }}
+
+      - name: Install dependencies
+        run: |
+          composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
+          composer install --no-interaction --no-progress
+
+      - name: PHP Stan Analyse
+        run: composer analyse
+
+      - name: PHP Tests
+        run: composer test
+
+
+
