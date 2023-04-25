@@ -5,6 +5,7 @@ namespace Backpack\Basset\Helpers;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class CacheMap
 {
@@ -56,7 +57,7 @@ class CacheMap
             return;
         }
 
-        $this->map[$asset] = $path;
+        $this->map[$asset] = Str::of($path)->after(url(''))->start('/');
         $this->isDirty = true;
     }
 
@@ -68,10 +69,10 @@ class CacheMap
      */
     public function getAsset(string $asset): string|false
     {
-        if (! $this->isActive) {
+        if (! $this->isActive || ! ($this->map[$asset] ?? false)) {
             return false;
         }
 
-        return $this->map[$asset] ?? false;
+        return url($this->map[$asset]);
     }
 }
