@@ -27,8 +27,6 @@ Using Basset, you easily internalize and use:
 
 ## Installation
 
-
-
 ```bash
 # install the package via Composer:
 composer require backpack/basset
@@ -36,6 +34,10 @@ composer require backpack/basset
 # if you haven't already, create the symbolic link from public to storage:
 php artisan storage:link
 ```
+
+> **Note**  
+> By default Basset relies on the public disk, you may change it if you want to, but if you stick to the defaults, make sure your disk is properly setup on `config/filsystems.php`, make sure it [looks like the default one](https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45).
+
 
 ## Usage
 
