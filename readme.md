@@ -76,7 +76,7 @@ Basset will:
 ```
 
 Basset will:
-- copy that file from the vendor directory to your `storage/app/public/basset` directory (aka. internalize the file)
+- copy the file from the provided path to `storage/app/public/basset` directory (aka. internalize the file)
 - use the internalized file on all requests
 - make sure that file is only loaded once per pageload
 
