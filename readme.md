@@ -7,19 +7,33 @@
 
 **The dead-simple way to use CSS and JS assets in your Laravel projects.** 
 
-Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@basset('file.js')` and this package will internalize the file and make sure that CSS or JS will only be loaded one time per page. This package will internalize assets from CDN, local files and code blocks, it may also internalize zip files. All the files are store on `public` disk by default (`base_path('\storage\app\public\bassets')`) but you may change this in your configs.
+```blade
+// instead of
+<script src='https://cdn.com/path/to/file.js'>
+<link href='https://cdn.com/path/to/file.css'>
+
+// you can do
+@basset('https://cdn.com/path/to/file.js')
+@basset('https://cdn.com/path/to/file.css')
+```
+
+That will internalize the file (copy to `storage/app/public/bassets`) and make sure that file is only loaded once per page. 
+
+Using Basset, you easily internalize and use:
+- files from external URLs (like CDNs)
+- files from internal, but non-public URLs (like the vendor directory)
+- entire archives from external URLs (like Github)
+- entire directories from local, non-public paths (like other local projects)
 
 ## Installation
 
-Install the package via Composer
+
 
 ```bash
+# install the package via Composer:
 composer require backpack/basset
-```
 
-If you are using the default disk, and you haven't already, you must create the symbolic link on public to storage:
-
-```bash
+# if you haven't already, create the symbolic link from public to storage:
 php artisan storage:link
 ```
 
