@@ -1,24 +1,23 @@
-# Basset
+# Basset 🐶
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Total Downloads][ico-downloads]][link-downloads]
 [![Build Status][ico-travis]][link-travis]
 [![StyleCI][ico-styleci]][link-styleci]
 
-Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@basset('file.js')` and this package will internalize the file and make sure that CSS or JS will only be loaded one time per page.
+**The dead-simple way to use CSS and JS assets in your Laravel projects.** 
 
-This package will internalize assets from CDN, local files and code blocks, it may also internalize zip files.
-All the files are store on `public` disk by default (`base_path('\storage\app\public\bassets')`) but you may change this in your configs.
+Replace your `<script src='file.js'>` and `<link href='file.css'>` tags with `@basset('file.js')` and this package will internalize the file and make sure that CSS or JS will only be loaded one time per page. This package will internalize assets from CDN, local files and code blocks, it may also internalize zip files. All the files are store on `public` disk by default (`base_path('\storage\app\public\bassets')`) but you may change this in your configs.
 
 ## Installation
 
-1) Install the package via Composer
+Install the package via Composer
 
 ```bash
 composer require backpack/basset
 ```
 
-2) If you are using the default disk, you must create the symbolic link on public to storage.
+If you are using the default disk, and you haven't already, you must create the symbolic link on public to storage:
 
 ```bash
 php artisan storage:link
@@ -26,85 +25,94 @@ php artisan storage:link
 
 ## Usage
 
-Replace your standard CSS and JS loading HTML with the `@basset()` Blade directive this package provides:
+Now you can replace your standard CSS and JS loading HTML with the `@basset()` Blade directive:
 
 ```diff
--    <script src="{{ asset('path/to/file.js') }}">
-+    @basset(base_path('path/to/file.js'))
-
--    <link href="{{ asset('path/to/file.css') }}" rel="stylesheet" type="text/css">
-+    @basset(base_path('path/to/file.css'))
-
+// for files from CDNs
 -    <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js">
 +    @basset('https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js')
 ```
 
-The package provides 4 Blade directives, `@basset()`, `@bassetBlock()`, `@bassetArchive()`, `@bassetDirectory()`:
+Basset will:
+- copy that file from the vendor directory to your `storage` directory (aka. internalize the file)
+- use the internalized file on all requests
+- make sure that file is only loaded once per pageload
 
-- Local files
+## Features
 
-```php
-@basset(resource_path('assets/file.css'))
-@basset(resource_path('assets/file.js'))
-```
-```html
-<link href="http://localhost/storage/basset/resources/assets/file.css" rel="stylesheet" type="text/css">
-<script src="http://localhost/storage/basset/resources/assets/file.js"></script>
-```
+The package provides 4 Blade directives, `@basset()`, `@bassetBlock()`, `@bassetArchive()`, `@bassetDirectory()`, that will allow you to:
 
-- CDN
+### Easily self-host files from CDNs
 
-```php
-@basset('https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js')
-```
-```html
-<script src="http://localhost/storage/basset/cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+```diff
+-   <script src="http://localhost/storage/basset/cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
++   @basset('https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js')
 ```
 
-- Code block
+Basset will:
+- copy that file from the CDN to your `storage/app/public/basset` directory (aka. internalize the file)
+- use the local (internalized) file on all requests
+- make sure that file is only loaded once per pageload
 
-```php
-@bassetBlock('example/path/file.js')
-<script>
-  alert('Backpack bassets!');
-</script>
-@endBassetBlock()
-```
-```html
-<script src="http://localhost/storage/basset/example/path/file.js"></script>
-```
+### Easily use local files from non-public directories
 
-- Archives (.zip/.tar.gz)
-
-```php
-@bassetArchive('https://github.com/author/package-dist/archive/refs/tags/1.0.0.zip', 'package-1.0.0')
-@basset('package-1.0.0/plugin.min.js')
-```
-```html
-<script src="http://localhost/storage/basset/package-1.0.0/plugin.min.js"></script>
+```diff
++ @basset(resource_path('assets/file.css'))
++ @basset(resource_path('assets/file.js'))
 ```
 
-- Local directories
+Basset will:
+- copy that file from the vendor directory to your `storage/app/public/basset` directory (aka. internalize the file)
+- use the internalized file on all requests
+- make sure that file is only loaded once per pageload
 
-```php
-@bassetDirectory(resource_path('package-1.0.0/'), 'package-1.0.0')
-@basset('package-1.0.0/plugin.min.js')
+### Easily move code blocks to files, so they're cached
+
+```diff
++   @bassetBlock('path/or/name-i-choose-to-give-this')
+    <script>
+      alert('Do stuff!');
+    </script>
++   @endBassetBlock()
 ```
-```html
-<script src="http://localhost/storage/basset/package-1.0.0/plugin.min.js"></script>
+
+Basset will:
+- create a file with that JS code in your `storage/app/public/basset` directory (aka. internalize the code)
+- on all requests, use the local file (using `<script src="">`) instead of having the JS inline
+- make sure that file is only loaded once per pageload
+
+### Easily use archived assets (.zip & .tar.gz)
+
+```diff
++    @bassetArchive('https://github.com/author/package-dist/archive/refs/tags/1.0.0.zip', 'package-1.0.0')
++    @basset('package-1.0.0/plugin.min.js')
 ```
 
-Note that for the first page load with one or many new bassets it will take some time to internalize all the files, specially if they come from a CDN.
+Basset will:
+- download the archive to your `storage/app/public/basset` directory (aka. internalize the code)
+- unarchive it
+- on all requests, use the local file (using `<script src="">`)
+- make sure that file is only loaded once per pageload
 
-For that reason, once all your styles and scripts are under the basset directory, you may use `basset:internalize` to internalize all those files. If you ever need it, `basset:clear` will delete all the files.
+### Easily internalize and use entire non-public directories
 
-```bash
-# internalizes all the @basset 
-php artisan basset:internalize
+```diff
++    @bassetDirectory(resource_path('package-1.0.0/'), 'package-1.0.0')
++    @basset('package-1.0.0/plugin.min.js')
 ```
-```bash
-# clears the basset directory
-php artisan basset:clear
+
+Basset will:
+- copy the directory to your `storage/app/public/basset` directory (aka. internalize the code)
+- on all requests, use the internalized file (using `<script src="">`)
+- make sure that file is only loaded once per pageload
+
+### Easily internalize everything from the CLI, using a command
+
+Copying an asset from CDNs to your server could take a bit of time, depending on the asset size. For large pages, that could even take entire seconds. You can easily prevent that from happening, by internalizing all assets in one go. You can use `php artisan basset:internalize` to go through all your blade files, and internalize everything that's possible. If you ever need it, `basset:clear` will delete all the files.
+
+```bash 
+php artisan basset:internalize   # internalizes all @bassets
+php artisan basset:clear         # clears the basset directory
 ```
 
 In order to speed up the first page load on production, we recommend you to add `basset:internalize` command to the deploy script.
@@ -154,7 +162,7 @@ That's where this package comes to the rescue. It will load the asset just ONCE,
 
 ## Change log
 
-Please see the [changelog](changelog.md) for more information on what has changed recently.
+Please see the [releases tab](https://github.com/Laravel-Backpack/basset/releases) for more information on what has changed recently.
 
 ## Testing
 
@@ -168,10 +176,11 @@ Please see [contributing.md](contributing.md) for details and a todolist.
 
 ## Security
 
-If you discover any security related issues, please email hello@tabacitu.ro instead of using the issue tracker.
+If you discover any security related issues, please email hello@backpackforlaravel.com instead of using the issue tracker.
 
 ## Credits
 
+- [Antonio Almeida](https://github.com/promatik)
 - [Cristian Tabacitu][link-author]
 - [All Contributors][link-contributors]
 
