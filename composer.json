@@ -24,7 +24,7 @@
         "nunomaduro/collision": "^6.0|^7.2",
         "pestphp/pest": "^1.22|^2.5",
         "pestphp/pest-plugin-laravel": "^1.4|^2.0",
-        "orchestra/testbench": "^8.0",
+        "orchestra/testbench": "^7.22|^8.5",
         "phpstan/phpstan": "^1.10"
     },
     "autoload": {
