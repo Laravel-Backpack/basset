@@ -1,6 +1,7 @@
 <?php
 
 use Backpack\Basset\Enums\StatusEnum;
+use Illuminate\Support\Facades\Http;
 
 it('ignores cdn basset on dev mode', function ($asset) {
     // set dev mode
@@ -8,9 +9,6 @@ it('ignores cdn basset on dev mode', function ($asset) {
 
     $result = basset($asset, false);
     $path = basset()->getPath($asset);
-
-    // expect the output of the asset
-    $this->expectOutputRegex("/$asset/");
 
     // assert file was not saved
     disk()->assertMissing($path);

@@ -8,6 +8,9 @@ return [
     'disk' => 'public',
     'path' => 'basset',
 
+    // use cache map file (.basset)
+    'cache_map' => true,
+
     // view paths that may use @basset
     // used to internalize assets in advance with artisan basset:internalize
     'view_paths' => [

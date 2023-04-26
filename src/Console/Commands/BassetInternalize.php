@@ -35,13 +35,14 @@ class BassetInternalize extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
     public function handle(): void
     {
         $starttime = microtime(true);
+        $basset = app('basset');
 
-        $viewPaths = Basset::getViewPaths();
+        $viewPaths = $basset->getViewPaths();
 
         $this->line('Looking for bassets under the following directories:');
 
@@ -95,26 +96,29 @@ class BassetInternalize extends Command
         $bar->start();
 
         // Cache the bassets
-        $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar) {
+        $bassets->eachSpread(function (string $type, array $args, int $i) use ($basset, $bar) {
             // Force output of basset to be false
             if ($type === 'basset') {
                 $args[1] = false;
             }
 
             try {
-                $result = app('basset')->{$type}(...$args)->value;
+                $result = $basset->{$type}(...$args)->value;
             } catch (Throwable $th) {
                 $result = StatusEnum::INVALID->value;
             }
 
             if ($this->getOutput()->isVerbose()) {
-                $this->line(str_pad($i + 1, 3, ' ', STR_PAD_LEFT).' '.$args[0]);
+                $this->line(str_pad(strval($i + 1), 3, ' ', STR_PAD_LEFT).' '.$args[0]);
                 $this->line("    $result");
                 $this->newLine();
             } else {
                 $bar->advance();
             }
         });
+
+        // Save the cache map
+        $basset->cacheMap->save();
 
         $bar->finish();
         $this->newLine(2);
