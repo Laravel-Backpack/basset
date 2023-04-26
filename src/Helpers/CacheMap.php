@@ -89,9 +89,9 @@ class CacheMap
     }
 
     /**
-     * Normalize asset path to remove unwanted system paths
+     * Normalize asset path to remove unwanted system paths.
      *
-     * @param string $asset
+     * @param  string  $asset
      * @return string
      */
     private function normalizeAsset(string $asset): string

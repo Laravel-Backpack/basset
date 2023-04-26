@@ -2,7 +2,6 @@
 
 namespace Backpack\Basset;
 
-use Backpack\Basset\BassetManager;
 use Backpack\Basset\Facades\Basset;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;

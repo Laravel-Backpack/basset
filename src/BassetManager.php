@@ -35,7 +35,7 @@ class BassetManager
 
         /** @var FilesystemAdapter */
         $disk = Storage::disk(config('backpack.basset.disk'));
-        
+
         $this->disk = $disk;
         $this->cachebusting = '?'.substr(md5(base_path('composer.lock')), 0, 12);
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
