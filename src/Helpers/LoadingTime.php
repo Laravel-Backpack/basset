@@ -6,9 +6,9 @@ use Backpack\Basset\Enums\StatusEnum;
 
 class LoadingTime
 {
-    private $startTime = 0;
-    private $time = 0;
-    private $calls = 0;
+    private float $startTime = 0;
+    private float $time = 0;
+    private int $calls = 0;
 
     /**
      * Start a measuring.

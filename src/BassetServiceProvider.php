@@ -2,6 +2,7 @@
 
 namespace Backpack\Basset;
 
+use Backpack\Basset\BassetManager;
 use Backpack\Basset\Facades\Basset;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
@@ -142,12 +143,13 @@ class BassetServiceProvider extends ServiceProvider
      */
     public function terminate(): void
     {
+        /** @var BassetManager */
         $basset = app('basset');
 
         // Log execution time
         if (config('backpack.basset.log_execution_time', false)) {
-            $totalCalls = $basset->loading->getTotalCalls();
-            $loadingTime = $basset->loading->getLoadingTime();
+            $totalCalls = $basset->loader->getTotalCalls();
+            $loadingTime = $basset->loader->getLoadingTime();
 
             Log::info("Basset run $totalCalls times, with an exeuction time of $loadingTime");
         }

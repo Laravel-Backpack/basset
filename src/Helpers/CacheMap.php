@@ -4,29 +4,32 @@ namespace Backpack\Basset\Helpers;
 
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class CacheMap
 {
-    private $map = [];
-    private $path;
-    private $isActive = false;
-    private $isDirty = false;
+    private array $map = [];
+    private string $basePath;
+    private string $filePath;
+    private FilesystemAdapter $disk;
+    private bool $isActive = false;
+    private bool $isDirty = false;
 
-    public function __construct()
+    public function __construct(FilesystemAdapter $disk, string $basePath)
     {
         $this->isActive = config('backpack.basset.cache_map', false);
         if (! $this->isActive) {
             return;
         }
 
-        /** @var FilesystemAdapter */
-        $disk = Storage::disk(config('backpack.basset.disk'));
-        $this->path = $disk->path('.basset');
+        $this->disk = $disk;
+        $this->basePath = $basePath;
+        $this->filePath = $this->disk->path($this->basePath.'.basset');
 
         // Load map
-        $this->map = File::exists($this->path) ? json_decode(File::get($this->path), true) : [];
+        if (File::exists($this->filePath)) {
+            $this->map = json_decode(File::get($this->filePath), true);
+        }
     }
 
     /**
@@ -40,8 +43,11 @@ class CacheMap
             return;
         }
 
+        // sort the map file
+        ksort($this->map);
+
         // save file
-        File::put($this->path, json_encode($this->map, JSON_PRETTY_PRINT));
+        File::put($this->filePath, json_encode($this->map, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
     /**
@@ -57,7 +63,10 @@ class CacheMap
             return;
         }
 
-        $this->map[$asset] = Str::of($path)->after(url(''))->start('/');
+        // Clean both asset and path
+        $asset = $this->normalizeAsset($asset);
+
+        $this->map[$asset] = Str::of($path)->after($this->disk->url($this->basePath))->start('/');
         $this->isDirty = true;
     }
 
@@ -69,10 +78,24 @@ class CacheMap
      */
     public function getAsset(string $asset): string|false
     {
+        // Clean asset path
+        $asset = $this->normalizeAsset($asset);
+
         if (! $this->isActive || ! ($this->map[$asset] ?? false)) {
             return false;
         }
 
-        return url($this->map[$asset]);
+        return $this->disk->url($this->basePath.$this->map[$asset]);
+    }
+
+    /**
+     * Normalize asset path to remove unwanted system paths
+     *
+     * @param string $asset
+     * @return string
+     */
+    private function normalizeAsset(string $asset): string
+    {
+        return (string) Str::of($asset)->after(base_path())->trim('/\\');
     }
 }

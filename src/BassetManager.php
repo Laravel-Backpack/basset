@@ -6,6 +6,7 @@ use Backpack\Basset\Enums\StatusEnum;
 use Backpack\Basset\Helpers\CacheMap;
 use Backpack\Basset\Helpers\LoadingTime;
 use Backpack\Basset\Helpers\Unarchiver;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -18,26 +19,29 @@ class BassetManager
 {
     use Traits\ViewPathsTrait;
 
-    private $loaded;
-    private $disk;
-    private $basePath;
-    private $cachebusting;
-    private $dev = false;
+    private FilesystemAdapter $disk;
+    private array $loaded;
+    private string $basePath;
+    private string $cachebusting;
+    private bool $dev = false;
 
-    public $cacheMap;
-    public $loader;
-    public $unarchiver;
+    public CacheMap $cacheMap;
+    public LoadingTime $loader;
+    public Unarchiver $unarchiver;
 
     public function __construct()
     {
         $this->loaded = [];
-        $this->disk = Storage::disk(config('backpack.basset.disk'));
 
+        /** @var FilesystemAdapter */
+        $disk = Storage::disk(config('backpack.basset.disk'));
+        
+        $this->disk = $disk;
         $this->cachebusting = '?'.substr(md5(base_path('composer.lock')), 0, 12);
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
         $this->dev = config('backpack.basset.dev_mode', false);
 
-        $this->cacheMap = new CacheMap();
+        $this->cacheMap = new CacheMap($this->disk, $this->basePath);
         $this->loader = new LoadingTime();
         $this->unarchiver = new Unarchiver();
 
@@ -288,7 +292,7 @@ class BassetManager
         $this->markAsLoaded($path);
 
         // Retrieve from map
-        $mapped = $this->cacheMap->getAsset($path);
+        $mapped = $this->cacheMap->getAsset($asset);
         if ($mapped) {
             $output && $this->echoFile($mapped);
 
@@ -301,7 +305,7 @@ class BassetManager
         // Check if asset exists in basset folder
         if ($this->disk->exists($path)) {
             $output && $this->echoFile($url);
-            $this->cacheMap->addAsset($path, $url);
+            $this->cacheMap->addAsset($asset, $url);
 
             return $this->loader->finish(StatusEnum::IN_CACHE);
         }
@@ -330,7 +334,7 @@ class BassetManager
         // Output result
         if ($result) {
             $output && $this->echoFile($url);
-            $this->cacheMap->addAsset($path, $url);
+            $this->cacheMap->addAsset($asset, $url);
 
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
