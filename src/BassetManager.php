@@ -198,7 +198,7 @@ class BassetManager
 
         // Retrieve from map
         $mapped = $this->cacheMap->getAsset($asset);
-        if ($mapped) {
+        if ($mapped && ! $this->dev) {
             $output && $this->echoFile($mapped, $attributes);
 
             return $this->loader->finish(StatusEnum::IN_CACHE);
