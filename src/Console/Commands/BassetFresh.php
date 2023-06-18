@@ -3,7 +3,6 @@
 namespace Backpack\Basset\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 
 /**
  * Basset Fresh command.
