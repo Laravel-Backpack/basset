@@ -23,6 +23,7 @@ class BassetManager
     private array $loaded;
     private string $basePath;
     private string $cachebusting;
+    private string|null $nonce;
     private bool $dev = false;
 
     public CacheMap $cacheMap;
@@ -40,6 +41,7 @@ class BassetManager
         $this->cachebusting = '?'.substr(md5(base_path('composer.lock')), 0, 12);
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
         $this->dev = config('backpack.basset.dev_mode', false);
+        $this->nonce = config('backpack.basset.nonce', null);
 
         $this->cacheMap = new CacheMap($this->disk, $this->basePath);
         $this->loader = new LoadingTime();
@@ -110,12 +112,10 @@ class BassetManager
      */
     public function echoCss(string $path, array $attributes = []): void
     {
-        $args = '';
-        foreach ($attributes as $key => $value) {
-            $args .= " $key".($value === true || empty($value) ? '' : "=\"$value\"");
-        }
+        $href = asset($path.$this->cachebusting);
+        $args = $this->prepareAttributes($attributes);
 
-        echo '<link href="'.asset($path.$this->cachebusting).'"'.$args.' rel="stylesheet" type="text/css" />'.PHP_EOL;
+        echo '<link href="'.$href.'"'.$args.' rel="stylesheet" type="text/css" />'.PHP_EOL;
     }
 
     /**
@@ -126,12 +126,30 @@ class BassetManager
      */
     public function echoJs(string $path, array $attributes = []): void
     {
+        $src = asset($path.$this->cachebusting);
+        $args = $this->prepareAttributes($attributes);
+
+        echo '<script src="'.$src.'"'.$args.'></script>'.PHP_EOL;
+    }
+
+    /**
+     * Prepares attributes to be added to the script/style dom element
+     *
+     * @param array $attributes
+     * @return string
+     */
+    private function prepareAttributes(array $attributes = []): string
+    {
+        if ($this->nonce) {
+            $attributes['nonce'] ??= $this->nonce;
+        }
+
         $args = '';
         foreach ($attributes as $key => $value) {
             $args .= " $key".($value === true || empty($value) ? '' : "=\"$value\"");
         }
 
-        echo '<script src="'.asset($path.$this->cachebusting).'"'.$args.'></script>'.PHP_EOL;
+        return $args;
     }
 
     /**

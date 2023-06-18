@@ -16,4 +16,7 @@ return [
     'view_paths' => [
         resource_path('views'),
     ],
+
+    // content security policy nonce
+    'nonce' => null,
 ];
