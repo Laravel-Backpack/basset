@@ -133,9 +133,9 @@ class BassetManager
     }
 
     /**
-     * Prepares attributes to be added to the script/style dom element
+     * Prepares attributes to be added to the script/style dom element.
      *
-     * @param array $attributes
+     * @param  array  $attributes
      * @return string
      */
     private function prepareAttributes(array $attributes = []): string
