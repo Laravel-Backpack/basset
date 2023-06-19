@@ -127,7 +127,7 @@ Basset will:
 Copying an asset from CDNs to your server could take a bit of time, depending on the asset size. For large pages, that could even take entire seconds. You can easily prevent that from happening, by internalizing all assets in one go. You can use `php artisan basset:internalize` to go through all your blade files, and internalize everything that's possible. If you ever need it, `basset:clear` will delete all the files.
 
 ```bash 
-php artisan basset:internalize   # internalizes all @bassets
+php artisan basset:cache         # internalizes all @bassets
 php artisan basset:clear         # clears the basset directory
 ```
 
