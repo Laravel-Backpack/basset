@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
  * Basset Internalize command.
  *
  * @property object $output
+ *
  * @deprecated 0.16.0
  */
 class BassetInternalize extends Command
