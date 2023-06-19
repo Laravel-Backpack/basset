@@ -18,6 +18,7 @@ class BassetServiceProvider extends ServiceProvider
     protected $commands = [
         \Backpack\Basset\Console\Commands\BassetCache::class,
         \Backpack\Basset\Console\Commands\BassetClear::class,
+        \Backpack\Basset\Console\Commands\BassetFresh::class,
     ];
 
     /**
