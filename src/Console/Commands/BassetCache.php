@@ -12,18 +12,18 @@ use RecursiveIteratorIterator;
 use Throwable;
 
 /**
- * Basset Internalize command.
+ * Basset Cache command.
  *
  * @property object $output
  */
-class BassetInternalize extends Command
+class BassetCache extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'basset:internalize';
+    protected $signature = 'basset:cache';
 
     /**
      * The console command description.
@@ -90,7 +90,7 @@ class BassetInternalize extends Command
         }
 
         $this->newLine();
-        $this->line("Found $totalBassets bassets in $totalFiles blade files. Internalizing:");
+        $this->line("Found $totalBassets bassets in $totalFiles blade files. Caching:");
 
         $bar = $this->output->createProgressBar($totalBassets);
         $bar->start();
