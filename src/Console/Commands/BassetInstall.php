@@ -3,8 +3,8 @@
 namespace Backpack\Basset\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
+use Symfony\Component\Process\Process;
 
 /**
  * Basset Cache command.
@@ -80,7 +80,8 @@ class BassetInstall extends Command
 
         if ($this->components->confirm('Do you wish to add symlink creation command to composer.json post install script?', true)) {
             $this->components->task($message, function () {
-                Process::run('composer config scripts.post-install-cmd.-1 "php artisan storage:link"');
+                $process = new Process(['composer', 'config', 'scripts.post-install-cmd.-1', 'php artisan storage:link']);
+                $process->run();
             });
         }
     }
