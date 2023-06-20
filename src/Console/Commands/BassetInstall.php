@@ -47,7 +47,7 @@ class BassetInstall extends Command
     }
 
     /**
-     * Create symlink logic
+     * Create symlink logic.
      *
      * @return void
      */
@@ -57,6 +57,7 @@ class BassetInstall extends Command
 
         if (file_exists(public_path('storage'))) {
             $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>SKIPPING</>');
+
             return;
         }
 
@@ -65,7 +66,7 @@ class BassetInstall extends Command
     }
 
     /**
-     * Add storage:link command to composer logic
+     * Add storage:link command to composer logic.
      *
      * @return void
      */
@@ -75,6 +76,7 @@ class BassetInstall extends Command
 
         if (Str::of(file_get_contents('composer.json'))->contains('php artisan storage:link')) {
             $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>SKIPPING</>');
+
             return;
         }
 
