@@ -143,7 +143,8 @@ class BassetManager
     public function getPath(string $asset): string
     {
         return Str::of($this->basePath)
-            ->append(str_replace([base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', '?', "\0", '*', '`', ';', "'", '+'], '', $asset))
+            ->append(str_replace([base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '', $asset))
+            ->before('?')
             ->replace('/\\', '/');
     }
 
@@ -243,6 +244,12 @@ class BassetManager
 
             $content = Http::get($asset)->body();
         } else {
+            // clean local asset
+            $asset = Str::before($asset, '?');
+
+            if (! File::exists($asset)) {
+                return $this->loader->finish(StatusEnum::INVALID);
+            }
             $content = File::get($asset);
         }
 
