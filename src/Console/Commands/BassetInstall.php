@@ -72,15 +72,15 @@ class BassetInstall extends Command
      */
     private function addComposerCommand(): void
     {
-        $message = 'Adding storage:link command to composer';
+        $message = 'Adding storage:link command to composer.json';
 
         if (Str::of(file_get_contents('composer.json'))->contains('php artisan storage:link')) {
-            $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>SKIPPING</>');
+            $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>ALREADY EXISTED</>');
 
             return;
         }
 
-        if ($this->components->confirm('You will need to run `php artisan storage:link` on every server you deploy the app to. Do you wish to add that command to composer.json' post-install-script, to make that automatic?', true)) {
+        if ($this->components->confirm('You will need to run `php artisan storage:link` on every server you deploy the app to. Do you wish to add that command to composer.json\' post-install-script, to make that automatic?', true)) {
             $this->components->task($message, function () {
                 $process = new Process(['composer', 'config', 'scripts.post-install-cmd.-1', 'php artisan storage:link']);
                 $process->run();
