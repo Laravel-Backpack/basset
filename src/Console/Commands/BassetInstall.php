@@ -56,7 +56,7 @@ class BassetInstall extends Command
         $message = 'Creating symlink';
 
         if (file_exists(public_path('storage'))) {
-            $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>SKIPPING</>');
+            $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>ALREADY EXISTED</>');
 
             return;
         }
@@ -80,7 +80,7 @@ class BassetInstall extends Command
             return;
         }
 
-        if ($this->components->confirm('Do you wish to add symlink creation command to composer.json post install script?', true)) {
+        if ($this->components->confirm('You will need to run `php artisan storage:link` on every server you deploy the app to. Do you wish to add that command to composer.json' post-install-script, to make that automatic?', true)) {
             $this->components->task($message, function () {
                 $process = new Process(['composer', 'config', 'scripts.post-install-cmd.-1', 'php artisan storage:link']);
                 $process->run();
