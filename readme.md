@@ -28,11 +28,8 @@ Using Basset, you easily internalize and use:
 ## Installation
 
 ```bash
-# install the package via Composer:
 composer require backpack/basset
-
-# if you haven't already, create the symbolic link from public to storage:
-php artisan storage:link
+php artisan basset:install
 ```
 
 > **Note**  
