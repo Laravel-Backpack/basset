@@ -32,8 +32,11 @@ composer require backpack/basset
 php artisan basset:install
 ```
 
-> **Note**  
-> By default Basset relies on the public disk, you may change it if you want to, but if you stick to the defaults, make sure your disk is properly setup on `config/filsystems.php`, make sure it [looks like the default one](https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45).
+#### Storage Symlink
+The installation command will create the storage symlink in your system and it will also add the command to `composer.json` file, which will most probably make it work on your development/staging/production servers. If that's not the case, make sure you create the links manually wherever you need them, with the command `php artisan storage:link`.
+
+#### Disk
+By default Basset relies on the public disk, you may change it if you want to, but if you stick to the defaults, make sure your disk is properly setup on `config/filsystems.php`, make sure it [looks like the default one](https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45).
 
 
 ## Usage
