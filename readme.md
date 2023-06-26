@@ -51,6 +51,9 @@ Basset will:
 - use the internalized file on all requests
 - make sure that file is only loaded once per pageload
 
+> **Note**  
+> Basset is disabled by default on local environment (`APP_ENV=local`), if you want to change it please set `BASSET_DEV_MODE=false` on the env file.
+
 ## Features
 
 The package provides 4 Blade directives, `@basset()`, `@bassetBlock()`, `@bassetArchive()`, `@bassetDirectory()`, that will allow you to:
