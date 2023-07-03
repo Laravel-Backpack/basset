@@ -1,6 +1,7 @@
 {
     "name": "backpack/basset",
     "description": "Dead-simple way to load CSS or JS assets only once per page, when using Laravel 10+.",
+    "version": "1.0.0",
     "license": "MIT",
     "authors": [
         {
