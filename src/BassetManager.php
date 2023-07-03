@@ -161,7 +161,7 @@ class BassetManager
     public function getPath(string $asset): string
     {
         return Str::of($this->basePath)
-            ->append(str_replace([base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '', $asset))
+            ->append(str_replace([base_path().'/', base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '', $asset))
             ->before('?')
             ->replace('/\\', '/');
     }
@@ -274,7 +274,7 @@ class BassetManager
         // Clean source map
         $content = preg_replace('/sourceMappingURL=/', '', $content);
 
-        $result = $this->disk->put($path, $content);
+        $result = $this->disk->put($path, $content, 'public');
 
         if ($result) {
             $output && $this->echoFile($url, $attributes);
@@ -346,7 +346,7 @@ class BassetManager
         $cleanCode = preg_replace('/^'.($matches[0] ?? '').'/m', '', $cleanCode);
 
         // Store the file
-        $result = $this->disk->put($path, $cleanCode);
+        $result = $this->disk->put($path, $cleanCode, 'public');
 
         // Delete old hashed files
         $dir = Str::beforeLast($path, '/');
@@ -436,7 +436,7 @@ class BassetManager
 
         // internalize all files in the folder
         foreach (File::allFiles($tempDir) as $file) {
-            $this->disk->put("$path/{$file->getRelativePathName()}", File::get($file));
+            $this->disk->put("$path/{$file->getRelativePathName()}", File::get($file), 'public');
         }
 
         File::delete($tempDir);
@@ -486,7 +486,7 @@ class BassetManager
 
         // internalize all files in the folder
         foreach (File::allFiles($asset) as $file) {
-            $this->disk->put("$path/{$file->getRelativePathName()}", File::get($file));
+            $this->disk->put("$path/{$file->getRelativePathName()}", File::get($file), 'public');
         }
 
         $this->cacheMap->addAsset($asset);
