@@ -5,11 +5,11 @@ return [
     'dev_mode' => env('BASSET_DEV_MODE', env('APP_ENV') === 'local'),
 
     // disk and path where to store bassets
-    'disk' => 'public',
+    'disk' => env('BASSET_DISK')??'public',
     'path' => 'basset',
 
     // use cache map file (.basset)
-    'cache_map' => true,
+    'cache_map' => env('BASSET_CACHE_MAP')??true,
 
     // view paths that may use @basset
     // used to internalize assets in advance with artisan basset:internalize
