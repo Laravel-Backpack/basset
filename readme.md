@@ -113,6 +113,8 @@ Basset will:
 - on all requests, use the local file (using `<script src="">`)
 - make sure that file is only loaded once per pageload
 
+*Note:* when referencing `.zip` archives, the [PHP zip extension](https://www.php.net/manual/en/book.zip.php) is required.
+
 ### Easily internalize and use entire non-public directories
 
 ```diff
