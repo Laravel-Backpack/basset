@@ -27,6 +27,9 @@
         "orchestra/testbench": "^7.22|^8.5",
         "phpstan/phpstan": "^1.10"
     },
+    "suggest": {
+        "ext-zip": "Required to use @bassetArchive with .zip archives."
+    },
     "autoload": {
         "psr-4": {
             "Backpack\\Basset\\": "src/"
