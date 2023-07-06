@@ -38,7 +38,6 @@ Basset uses the `public` disk to store cached assets in a directory that is publ
 #### Disk
 By default Basset uses the `public` disk. If you're having trouble with the assets not showing up on page, you might have an old Laravel configuration for it. Please make sure your disk is properly setup on `config/filsystems.php` - it should look like [the default one](https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45).
 
-
 ## Usage
 
 Now you can replace your standard CSS and JS loading HTML with the `@basset()` Blade directive:
@@ -56,6 +55,46 @@ Basset will:
 
 > **Note**  
 > Basset is disabled by default on local environment (`APP_ENV=local`), if you want to change it please set `BASSET_DEV_MODE=false` on the env file.
+
+
+## Configuration
+
+Take a look at [the config file](https://github.com/Laravel-Backpack/basset/blob/main/src/config/backpack/basset.php) for all configuration options. Notice some of those configs also have ENV variables, so you can:
+- enable/disable dev mode using `BASSET_DEV_MODE=false` - this will force Basset to internalize assets even on localhost
+- change the disk where assets get internalized using `BASSET_DISK=yourdiskname`
+- disable the cache map using `BASSET_CACHE_MAP=false` (needed on serverless like Laravel Vapor)
+
+## Deployment
+
+There are a lot of deployment options for Laravel apps, but we'll try to cover the gotchas of the most popular ones here:
+
+### VPS / SSH / Composer available
+
+- it is mandatory to run `php artisan storage:link` in production, for Basset to work; so it's recommended you add that to your `composer.json`'s scripts section, either under `post-composer-install` or `post-composer-update`;
+- it is recommended to run `php artisan basset:fresh` after each deployment; so it's recommended you add that to your `composer.json`'s scripts section, either under `post-composer-update`;
+
+### Laravel Forge
+
+It's just a managed VPS, so please see the above.
+
+### Laravel Vapor
+
+**Step 1.** In your `vapor.yml` include `storage: yourbucketname`
+
+**Step 2.** In your Vapor `.ENV` file make sure you have
+```
+BASSET_DISK=s3
+BASSET_CACHE_MAP=false
+```
+
+(optional) Before you deploy to Vapor, you might want to set up S3 on localhost to test that it's working. If you do, [the steps here](https://github.com/Laravel-Backpack/basset/pull/58#issuecomment-1622125991) might help. If you encounter problems with deployment on Vapor (particularly through Github actions) there are some [tips here](https://github.com/Laravel-Backpack/basset/pull/58#issuecomment-1622125991).
+
+### FTP / SFTP / ZIP
+
+If you deploy your project by uploading it from localhost (either manually or automatically), you should:
+- make sure the alias exists that would have been created by `php artisan storage:link`; otherwise your alias might point to an inexisting localhost path; alternatively you can change the disk that Basset is using, in its config;
+- before each deployment, make sure to disable dev mode (`do BASSET_DEV_MODE=false` in your `.ENV` file) then run `php artisan basset:fresh`; that will make sure your localhost downloads all assets, then you upload them in your zip;
+
 
 ## Features
 
