@@ -54,7 +54,7 @@ class Unarchiver
         $path = Str::finish(sys_get_temp_dir(), DIRECTORY_SEPARATOR);
 
         do {
-            $filename = Str::finish(Str::random(), '.tmp');
+            $filename = Str::finish(uniqid(), '.tmp');
         } while (File::exists($path . $filename));
 
         return $path . $filename;
