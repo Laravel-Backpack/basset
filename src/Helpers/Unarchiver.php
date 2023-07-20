@@ -3,6 +3,7 @@
 namespace Backpack\Basset\Helpers;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use PharData;
 use ZipArchive;
 
@@ -24,14 +25,14 @@ class Unarchiver
             case 'application/zip':
                 return $this->unarchiveZip($file, $output);
 
-                // tar.gz
+            // tar.gz
             case 'application/gzip':
             case 'application/x-gzip':
             case 'application/bzip2':
             case 'application/x-bzip2':
                 return $this->unarchiveGz($file, $output);
 
-                // tar
+            // tar
             case 'application/x-tar':
                 return $this->unarchiveTar($file, $output);
         }
@@ -42,11 +43,21 @@ class Unarchiver
     /**
      * Returns a temporary file path.
      *
+     * We cannot use the built-in methods for generating temporary files because
+     * in some OS, the temporary file is created without any extension and the
+     * PharData class cannot detect the file type.
+     *
      * @return string
      */
     public function getTemporaryFilePath(): string
     {
-        return tempnam(sys_get_temp_dir(), '');
+        $path = Str::finish(sys_get_temp_dir(), DIRECTORY_SEPARATOR);
+
+        do {
+            $filename = Str::finish(uniqid(), '.tmp');
+        } while (File::exists($path . $filename));
+
+        return $path . $filename;
     }
 
     /**
