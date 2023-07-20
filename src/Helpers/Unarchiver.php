@@ -25,14 +25,14 @@ class Unarchiver
             case 'application/zip':
                 return $this->unarchiveZip($file, $output);
 
-            // tar.gz
+                // tar.gz
             case 'application/gzip':
             case 'application/x-gzip':
             case 'application/bzip2':
             case 'application/x-bzip2':
                 return $this->unarchiveGz($file, $output);
 
-            // tar
+                // tar
             case 'application/x-tar':
                 return $this->unarchiveTar($file, $output);
         }
@@ -55,9 +55,9 @@ class Unarchiver
 
         do {
             $filename = Str::finish(uniqid(), '.tmp');
-        } while (File::exists($path . $filename));
+        } while (File::exists($path.$filename));
 
-        return $path . $filename;
+        return $path.$filename;
     }
 
     /**
