@@ -410,7 +410,7 @@ class BassetManager
             }
 
             // temporary file
-            $file = $this->unarchiver->getTemporaryFilePath($asset);
+            $file = $this->unarchiver->getTemporaryFilePath();
 
             // download file to temporary location
             $content = Http::get($asset)->body();

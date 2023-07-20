@@ -43,17 +43,21 @@ class Unarchiver
     /**
      * Returns a temporary file path.
      *
-     * The original file extension is preserved so that the file can be
-     * correctly read by the PharData class in unarchiveTar() and
-     * unarchiveGz() methods.
+     * We cannot use the built-in methods for generating temporary files because
+     * in some OS, the temporary file is created without any extension and the
+     * PharData class cannot detect the file type.
      *
      * @return string
      */
-    public function getTemporaryFilePath(string $asset): string
+    public function getTemporaryFilePath(): string
     {
-        $filename = Str::random() . Str::afterLast($asset, '/');
+        $path = Str::finish(sys_get_temp_dir(), DIRECTORY_SEPARATOR);
 
-        return sys_get_temp_dir() . $filename;
+        do {
+            $filename = Str::finish(Str::random(), '.tmp');
+        } while (File::exists($path . $filename));
+
+        return $path . $filename;
     }
 
     /**
