@@ -21,5 +21,5 @@ return [
     'nonce' => null,
 
     // use relative path
-    'relative_paths' => false,
+    'relative_paths' => env('BASSET_RELATIVE_PATHS', true),
 ];
