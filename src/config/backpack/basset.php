@@ -19,4 +19,7 @@ return [
 
     // content security policy nonce
     'nonce' => null,
+
+    // use relative path
+    'relative_paths' => false,
 ];
