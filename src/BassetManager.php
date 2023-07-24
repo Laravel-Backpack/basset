@@ -148,7 +148,7 @@ class BassetManager
             $asset = $asset->after('//')->after('/')->start('/');
         }
 
-        return $asset->value;
+        return $asset->value();
     }
 
     /**
