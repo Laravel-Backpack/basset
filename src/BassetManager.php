@@ -25,6 +25,7 @@ class BassetManager
     private string $cachebusting;
     private string|null $nonce;
     private bool $dev = false;
+    private bool $useRelativePaths = true;
 
     public CacheMap $cacheMap;
     public LoadingTime $loader;
@@ -42,6 +43,7 @@ class BassetManager
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
         $this->dev = config('backpack.basset.dev_mode', false);
         $this->nonce = config('backpack.basset.nonce', null);
+        $this->useRelativePaths = config('backpack.basset.relative_paths', true);
 
         $this->cacheMap = new CacheMap($this->disk, $this->basePath);
         $this->loader = new LoadingTime();
@@ -112,7 +114,7 @@ class BassetManager
      */
     public function echoCss(string $path, array $attributes = []): void
     {
-        $href = asset($path.$this->cachebusting);
+        $href = $this->assetPath($path);
         $args = $this->prepareAttributes($attributes);
 
         echo '<link href="'.$href.'"'.$args.' rel="stylesheet" type="text/css" />'.PHP_EOL;
@@ -126,10 +128,27 @@ class BassetManager
      */
     public function echoJs(string $path, array $attributes = []): void
     {
-        $src = asset($path.$this->cachebusting);
+        $src = $this->assetPath($path);
         $args = $this->prepareAttributes($attributes);
 
         echo '<script src="'.$src.'"'.$args.'></script>'.PHP_EOL;
+    }
+
+    /**
+     * Generates the asset path.
+     *
+     * @param  string  $path
+     * @return string
+     */
+    public function assetPath(string $path): string
+    {
+        $asset = Str::of(asset($path.$this->cachebusting));
+
+        if ($this->useRelativePaths && $asset->startsWith(url(''))) {
+            $asset = $asset->after('//')->after('/')->start('/');
+        }
+
+        return $asset->value();
     }
 
     /**

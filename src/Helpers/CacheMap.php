@@ -85,7 +85,7 @@ class CacheMap
             return false;
         }
 
-        return $this->disk->url($this->basePath.$this->map[$asset]);
+        return $this->disk->url(rtrim($this->basePath, '/').$this->map[$asset]);
     }
 
     /**
