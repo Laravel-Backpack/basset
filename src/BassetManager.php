@@ -142,13 +142,13 @@ class BassetManager
      */
     public function assetPath(string $path): string
     {
-        $asset = asset($path.$this->cachebusting);
+        $asset = Str::of(asset($path.$this->cachebusting));
 
-        if ($this->useRelativePaths) {
-            $asset = str_replace(url(''), '', $asset);
+        if ($this->useRelativePaths && $asset->startsWith(url(''))) {
+            $asset = $asset->after('//')->after('/')->start('/');
         }
 
-        return $asset;
+        return $asset->value;
     }
 
     /**
