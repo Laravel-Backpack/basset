@@ -43,7 +43,7 @@ class BassetManager
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
         $this->dev = config('backpack.basset.dev_mode', false);
         $this->nonce = config('backpack.basset.nonce', null);
-        $this->useRelativePaths = config('backpack.basset.relative_paths', false);
+        $this->useRelativePaths = config('backpack.basset.relative_paths', true);
 
         $this->cacheMap = new CacheMap($this->disk, $this->basePath);
         $this->loader = new LoadingTime();
