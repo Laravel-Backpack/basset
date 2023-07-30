@@ -65,7 +65,6 @@ class BassetCheck extends Command
 
             // clear temporary file
             File::delete($this->filepath);
-
         } catch (Exception $e) {
             $this->components->twoColumnDetail($message, '<fg=red;options=bold>ERROR</>');
             $this->newLine();
@@ -87,11 +86,10 @@ class BassetCheck extends Command
         if (! $this->option('installing')) {
             $this->newLine();
         }
-
     }
 
     /**
-     * Initialize the test
+     * Initialize the test.
      *
      * @return void
      */
@@ -113,7 +111,7 @@ class BassetCheck extends Command
     }
 
     /**
-     * Test cache the asset
+     * Test cache the asset.
      *
      * @return void
      */
@@ -128,7 +126,7 @@ class BassetCheck extends Command
     }
 
     /**
-     * Test fetch the asset with Http
+     * Test fetch the asset with Http.
      *
      * @return void
      */

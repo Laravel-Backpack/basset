@@ -70,7 +70,7 @@ class BassetInstall extends Command
     }
 
     /**
-     * Check if basset works
+     * Check if basset works.
      *
      * @return void
      */
