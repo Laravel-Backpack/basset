@@ -71,8 +71,8 @@ class BassetCheck extends Command
             $this->line('  <fg=gray>│ This may be due to multiple issues. Please ensure:</>');
             $this->line('  <fg=gray>│  1) APP_URL is correctly set in the <fg=white>.env</> file.</>');
             $this->line('  <fg=gray>│  2) Your server is running and accessible at <fg=white>'.url('').'</>.</>');
-            $this->line('  <fg=gray>│  3) Your disk is properly configured in <fg=white>config/filesystems.php</>.</>');
-            $this->line('  <fg=gray>│  4) The storage symlink exists and is valid (public/storage).</>');
+            $this->line('  <fg=gray>│  3) The <fg=white>'.config('backpack.basset.disk').'</> disk is properly configured in <fg=white>config/filesystems.php</>.</>');
+            $this->line('  <fg=gray>│  4) The storage symlink exists and is valid (by default: public/storage).</>');
             $this->line('  <fg=gray>│</>');
             $this->line('  <fg=gray>│ For more information and solutions, please visit the Backpack Basset FAQ at:</>');
             $this->line('  <fg=gray>│ https://github.com/laravel-backpack/basset#faq</>');
