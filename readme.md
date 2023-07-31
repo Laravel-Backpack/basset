@@ -232,7 +232,7 @@ The most common reasons for Basset to fail are:
 Ensure that APP_URL in your `.env` matches your server configuration, including the hostname, protocol, and port number. Incorrect settings can lead to asset loading issues.
 
 2) **Improperly configured disk.**  
-By default, Basset uses the public disk since its files must be public. For new Laravel projects, the configuration is usually correct. If you're upgrading from an older version, check `config/backpack/basset.php`. Make sure your `config/filesystems.php` public disk looks like: https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45.  
+By default, Basset uses the public disk since its files must be public. For new Laravel projects, the configuration is usually correct. If you're upgrading from an older version, check `config/backpack/basset.php`. Make sure your `config/filesystems.php` public disk looks like: https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45.
 
 3) **Missing or broken storage symlink.**  
 If you use the default disk, Basset requires the `php artisan storage:link` command to work properly. During installation, Basset attempts to create the symlink. If it fails, manually create it with `php artisan storage:link`. If you encounter issues (e.g., after moving the project), recreating the symlink should resolve them.
