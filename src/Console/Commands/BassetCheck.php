@@ -62,8 +62,6 @@ class BassetCheck extends Command
             $this->testFetch();
             $this->components->twoColumnDetail($message, '<fg=green;options=bold>DONE</>');
 
-            // clear temporary file
-            File::delete($this->filepath);
         } catch (Exception $e) {
             $this->components->twoColumnDetail($message, '<fg=red;options=bold>ERROR</>');
             $this->newLine();
@@ -96,13 +94,8 @@ class BassetCheck extends Command
     {
         $this->basset = app('basset');
 
-        // create a local temporary file
-        $path = storage_path('app/tmp/');
-        $file = 'backpack-test.js';
-        $this->filepath = $path.$file;
-
-        File::ensureDirectoryExists($path);
-        File::put($this->filepath, 'test');
+        // set a local file to run the tests
+        $this->filepath = base_path('vendor/backpack/basset/tests/Helpers/basset-test.js');
 
         if (! File::exists($this->filepath)) {
             throw new Exception('Error accessing the filesystem, the check can not run.');
