@@ -232,10 +232,14 @@ The most common reasons for Basset to fail are:
 Ensure that APP_URL in your `.env` matches your server configuration, including the hostname, protocol, and port number. Incorrect settings can lead to asset loading issues.
 
 2) **Improperly configured disk.**  
-By default, Basset uses the public disk since its files must be public. For new Laravel projects, the configuration is usually correct. If you're upgrading from an older version, check `config/backpack/basset.php`. Make sure your `config/filesystems.php` public disk looks like: https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45.
+By default, Basset uses the Laravel `public` disk. 
+For new Laravel projects, the configuration is usually correct. 
+If you're upgrading a project and/or changed the `public` disk configuration, it's advised that you change the basset disk in `config/backpack/basset.php` to `basset`. The `basset` disk is a copy of the original Laravel `public` with working configurations.
 
 3) **Missing or broken storage symlink.**  
-If you use the default disk, Basset requires the `php artisan storage:link` command to work properly. During installation, Basset attempts to create the symlink. If it fails, manually create it with `php artisan storage:link`. If you encounter issues (e.g., after moving the project), recreating the symlink should resolve them.
+If you use the default `public` disk, Basset requires that the symlink between the storage and the public accessible folder to be created with `php artisan storage:link` command. During installation, Basset attempts to create the symlink. If it fails, you will need to manually create it with `php artisan storage:link`. If you encounter issues (e.g., after moving the project), recreating the symlink should resolve them.
+
+Note for Homestead users: the symlink can't be created inside the virtual machine. You should stop your instance with: `vagrant down`, create the symlink in your local application folder and then `vagrant up` to bring the system back up. 
 
 ## Change log
 
