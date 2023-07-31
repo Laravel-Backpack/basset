@@ -135,13 +135,13 @@ class BassetCheck extends Command
         // cache it with basset
         $url = $this->basset->getUrl($this->filepath);
 
-        if (! Str::isUrl($url)) {
+        if (! str_contains($url, '://')) {
             $url = url($url);
         }
 
         $result = Http::get($url);
 
-        if ($result->getBody()->getContents() !== 'test') {
+        if (((string) $result->getBody()) !== 'test') {
             throw new Exception('Error fetching the file.');
         }
     }
