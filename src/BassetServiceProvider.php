@@ -165,7 +165,7 @@ class BassetServiceProvider extends ServiceProvider
     }
 
     /**
-     * Loads needed basset disks
+     * Loads needed basset disks.
      *
      * @return void
      */
