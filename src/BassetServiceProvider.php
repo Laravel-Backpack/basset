@@ -36,6 +36,9 @@ class BassetServiceProvider extends ServiceProvider
             $this->bootForConsole();
         }
 
+        // Load basset disk
+        $this->loadDisks();
+
         // Run the terminate commands
         $this->app->terminating(fn () => $this->terminate());
     }
@@ -159,6 +162,23 @@ class BassetServiceProvider extends ServiceProvider
 
         // Save the cache map
         $basset->cacheMap->save();
+    }
+
+    /**
+     * Loads needed basset disks
+     *
+     * @return void
+     */
+    public function loadDisks(): void
+    {
+        // add the basset disk to filesystem configuration
+        app()->config['filesystems.disks.basset'] = [
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            'url' => '/storage',
+            'visibility' => 'public',
+            'throw' => false,
+        ];
     }
 
     /**
