@@ -8,7 +8,6 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 
 /**
  * Basset Cache command.
