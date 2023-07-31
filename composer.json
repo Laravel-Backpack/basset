@@ -16,7 +16,7 @@
         "analyse": "./vendor/bin/phpstan analyse --level 5 src"
     },
     "require": {
-        "laravel/framework": "^10.1",
+        "laravel/framework": "^10.7",
         "guzzlehttp/guzzle": "^7.5"
     },
     "require-dev": {
