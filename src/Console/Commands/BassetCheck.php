@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Basset Cache command.
@@ -61,9 +62,6 @@ class BassetCheck extends Command
             $message = 'Fetching a basset';
             $this->testFetch();
             $this->components->twoColumnDetail($message, '<fg=green;options=bold>DONE</>');
-
-            // clear temporary file
-            File::delete($this->filepath);
         } catch (Exception $e) {
             $this->components->twoColumnDetail($message, '<fg=red;options=bold>ERROR</>');
             $this->newLine();
@@ -73,9 +71,9 @@ class BassetCheck extends Command
             $this->line('  <fg=gray>│ This may be due to multiple issues. Please ensure:</>');
             $this->line('  <fg=gray>│  1) APP_URL is correctly set in the <fg=white>.env</> file.</>');
             $this->line('  <fg=gray>│  2) Your server is running and accessible at <fg=white>'.url('').'</>.</>');
-            $this->line('  <fg=gray>│  3) Your disk is properly configured in <fg=white>config/filesystems.php</>.</>');
+            $this->line('  <fg=gray>│  3) The <fg=white>'.config('backpack.basset.disk').'</> disk is properly configured in <fg=white>config/filesystems.php</>.</>');
             $this->line('  <fg=gray>│     Optionally, basset provides a disk named "basset", you can use it instead.</>');
-            $this->line('  <fg=gray>│  4) The storage symlink exists and is valid (public/storage).</>');
+            $this->line('  <fg=gray>│  4) The storage symlink exists and is valid (by default: public/storage).</>');
             $this->line('  <fg=gray>│</>');
             $this->line('  <fg=gray>│ For more information and solutions, please visit the Backpack Basset FAQ at:</>');
             $this->line('  <fg=gray>│ https://github.com/laravel-backpack/basset#faq</>');
@@ -97,13 +95,8 @@ class BassetCheck extends Command
     {
         $this->basset = app('basset');
 
-        // create a local temporary file
-        $path = storage_path('app/tmp/');
-        $file = 'backpack-test.js';
-        $this->filepath = $path.$file;
-
-        File::ensureDirectoryExists($path);
-        File::put($this->filepath, 'test');
+        // set a local file to run the tests
+        $this->filepath = base_path('vendor/backpack/basset/tests/Helpers/basset-test.js');
 
         if (! File::exists($this->filepath)) {
             throw new Exception('Error accessing the filesystem, the check can not run.');
@@ -135,7 +128,7 @@ class BassetCheck extends Command
         // cache it with basset
         $url = $this->basset->getUrl($this->filepath);
 
-        if (! str_contains($url, '://')) {
+        if (! Str::isUrl($url)) {
             $url = url($url);
         }
 

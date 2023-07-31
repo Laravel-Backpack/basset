@@ -243,7 +243,7 @@ class BassetManager
         }
 
         // Validate the asset is an absolute path or a CDN
-        if (! str_starts_with($asset, base_path()) && ! str_starts_with($asset, 'http') && ! str_starts_with($asset, '://')) {
+        if (! str_starts_with($asset, base_path()) && ! Str::isUrl($asset)) {
             // may be an internalized asset (folder or zip)
             if ($this->disk->exists($path)) {
                 $asset = $this->disk->url($path);
@@ -271,7 +271,7 @@ class BassetManager
         }
 
         // Download/copy file
-        if (str_starts_with($asset, 'http') || str_starts_with($asset, '://')) {
+        if (Str::isUrl($asset)) {
             // when in dev mode, cdn should be rendered
             if ($this->dev) {
                 $output && $this->echoFile($asset, $attributes);
@@ -422,7 +422,7 @@ class BassetManager
         }
 
         // online zip
-        if (str_starts_with($asset, 'http') || str_starts_with($asset, '://')) {
+        if (Str::isUrl($asset)) {
             // check if directory exists
             if ($this->disk->exists($path)) {
                 return $this->loader->finish(StatusEnum::IN_CACHE);
