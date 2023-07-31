@@ -3,6 +3,7 @@
 namespace Backpack\Basset\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Process;
 
 /**
  * Basset Fresh command.
@@ -32,7 +33,9 @@ class BassetFresh extends Command
      */
     public function handle(): void
     {
-        $this->call('basset:clear');
-        $this->call('basset:cache');
+        Process::pipe([
+            'php artisan basset:clear',
+            'php artisan basset:cache',
+        ]);
     }
 }
