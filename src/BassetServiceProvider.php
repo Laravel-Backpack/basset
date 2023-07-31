@@ -171,11 +171,17 @@ class BassetServiceProvider extends ServiceProvider
      */
     public function loadDisk(): void
     {
+        // ignore if the disk exists
+        if (app()->config['filesystems.disks.basset']) {
+            return;
+        }
+
         // add the basset disk to filesystem configuration
+        // should be kept up to date with https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45
         app()->config['filesystems.disks.basset'] = [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => '/storage',
+            'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
             'throw' => false,
         ];
