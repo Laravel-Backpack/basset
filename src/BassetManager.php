@@ -214,7 +214,7 @@ class BassetManager
     }
 
     /**
-     * Internalize a CDN or local asset.
+     * Caches a CDN or local asset.
      *
      * @param  string  $asset
      * @param  bool | string  $output
@@ -244,7 +244,7 @@ class BassetManager
 
         // Validate the asset is an absolute path or a CDN
         if (! str_starts_with($asset, base_path()) && ! str_starts_with($asset, 'http') && ! str_starts_with($asset, '://')) {
-            // may be an internalized asset (folder or zip)
+            // may be a cached asset (folder or zip)
             if ($this->disk->exists($path)) {
                 $asset = $this->disk->url($path);
                 $output && $this->echoFile($asset, $attributes);
@@ -299,7 +299,7 @@ class BassetManager
             $output && $this->echoFile($url, $attributes);
             $this->cacheMap->addAsset($asset, $url);
 
-            return $this->loader->finish(StatusEnum::INTERNALIZED);
+            return $this->loader->finish(StatusEnum::CACHED);
         }
 
         // Fallback to the CDN/path
@@ -309,7 +309,7 @@ class BassetManager
     }
 
     /**
-     * Internalize a basset code block.
+     * Cache a basset code block.
      *
      * @param  string  $asset
      * @param  string  $code
@@ -380,7 +380,7 @@ class BassetManager
             $output && $this->echoFile($url);
             $this->cacheMap->addAsset($asset, $url);
 
-            return $this->loader->finish(StatusEnum::INTERNALIZED);
+            return $this->loader->finish(StatusEnum::CACHED);
         }
 
         // Fallback to the code
@@ -390,7 +390,7 @@ class BassetManager
     }
 
     /**
-     * Internalize an Archive.
+     * Cache an Archive.
      *
      * @param  string  $asset
      * @param  string  $output
@@ -453,7 +453,7 @@ class BassetManager
         $tempDir = $this->unarchiver->getTemporaryDirectoryPath();
         $this->unarchiver->unarchiveFile($file, $tempDir);
 
-        // internalize all files in the folder
+        // cache all files in the folder
         foreach (File::allFiles($tempDir) as $file) {
             $this->disk->put("$path/{$file->getRelativePathName()}", File::get($file), 'public');
         }
@@ -461,11 +461,11 @@ class BassetManager
         File::delete($tempDir);
         $this->cacheMap->addAsset($asset);
 
-        return $this->loader->finish(StatusEnum::INTERNALIZED);
+        return $this->loader->finish(StatusEnum::CACHED);
     }
 
     /**
-     * Internalize a Directory.
+     * Cache a Directory.
      *
      * @param  string  $asset
      * @param  string  $output
@@ -503,13 +503,13 @@ class BassetManager
             return $this->loader->finish(StatusEnum::INVALID);
         }
 
-        // internalize all files in the folder
+        // cache all files in the folder
         foreach (File::allFiles($asset) as $file) {
             $this->disk->put("$path/{$file->getRelativePathName()}", File::get($file), 'public');
         }
 
         $this->cacheMap->addAsset($asset);
 
-        return $this->loader->finish(StatusEnum::INTERNALIZED);
+        return $this->loader->finish(StatusEnum::CACHED);
     }
 }

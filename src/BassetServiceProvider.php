@@ -20,7 +20,6 @@ class BassetServiceProvider extends ServiceProvider
         \Backpack\Basset\Console\Commands\BassetClear::class,
         \Backpack\Basset\Console\Commands\BassetCheck::class,
         \Backpack\Basset\Console\Commands\BassetInstall::class,
-        \Backpack\Basset\Console\Commands\BassetInternalize::class,
         \Backpack\Basset\Console\Commands\BassetFresh::class,
     ];
 

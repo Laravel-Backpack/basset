@@ -18,8 +18,8 @@ trait ViewPathsTrait
 
     /**
      * Add a view path that may use @basset directive
-     * This is used to internalize assets in advance
-     * with the command artisan basset:internalize.
+     * This is used to cache assets in advance
+     * with the command artisan basset:cache.
      *
      * @param  string  $path
      * @return void

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    // development mode, assets will not be internalized
+    // development mode, assets will not be cached
     'dev_mode' => env('BASSET_DEV_MODE', env('APP_ENV') === 'local'),
 
     // disk and path where to store bassets
@@ -12,7 +12,7 @@ return [
     'cache_map' => env('BASSET_CACHE_MAP', true),
 
     // view paths that may use @basset
-    // used to internalize assets in advance with artisan basset:internalize
+    // used to cache assets in advance with artisan basset:cache
     'view_paths' => [
         resource_path('views'),
     ],

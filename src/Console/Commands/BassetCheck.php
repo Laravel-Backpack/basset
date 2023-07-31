@@ -119,7 +119,7 @@ class BassetCheck extends Command
         // cache it with basset
         $result = $this->basset->basset($this->filepath, false);
 
-        if (! in_array($result, [StatusEnum::INTERNALIZED, StatusEnum::IN_CACHE])) {
+        if (! in_array($result, [StatusEnum::CACHED, StatusEnum::IN_CACHE])) {
             throw new Exception('Error caching the file.');
         }
     }
