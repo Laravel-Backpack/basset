@@ -37,7 +37,7 @@ class BassetServiceProvider extends ServiceProvider
         }
 
         // Load basset disk
-        $this->loadDisks();
+        $this->loadDisk();
 
         // Run the terminate commands
         $this->app->terminating(fn () => $this->terminate());
@@ -169,7 +169,7 @@ class BassetServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function loadDisks(): void
+    public function loadDisk(): void
     {
         // add the basset disk to filesystem configuration
         app()->config['filesystems.disks.basset'] = [
