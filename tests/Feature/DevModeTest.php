@@ -19,7 +19,7 @@ it('ignores cdn basset on dev mode', function ($asset) {
     expect($result)->toBe(StatusEnum::DISABLED);
 })->with('cdn');
 
-it('re-internalizes local basset on dev mode', function ($asset) {
+it('re-caches local basset on dev mode', function ($asset) {
     // set dev mode
     config(['backpack.basset.dev_mode' => true]);
 
@@ -27,14 +27,14 @@ it('re-internalizes local basset on dev mode', function ($asset) {
     disk()->put($asset, getStub($asset));
     $path = disk()->path($asset);
 
-    // internalize the file
+    // cache the file
     $result = basset($path, false);
     $path = basset()->getPath($path);
 
     // assert file was not saved
     disk()->assertExists($path);
 
-    expect($result)->toBe(StatusEnum::INTERNALIZED);
+    expect($result)->toBe(StatusEnum::CACHED);
 })->with('local');
 
 it('ignores basset block on dev mode', function ($asset) {

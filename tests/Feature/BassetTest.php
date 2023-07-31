@@ -24,7 +24,7 @@ it('downloads a cdn basset', function ($asset) {
 
     Http::assertSentCount(1);
 
-    expect($result)->toBe(StatusEnum::INTERNALIZED);
+    expect($result)->toBe(StatusEnum::CACHED);
 })->with('cdn');
 
 it('stores a downloaded basset', function ($asset) {
@@ -33,7 +33,7 @@ it('stores a downloaded basset', function ($asset) {
 
     disk()->assertExists($path);
 
-    expect($result)->toBe(StatusEnum::INTERNALIZED);
+    expect($result)->toBe(StatusEnum::CACHED);
 })->with('cdn');
 
 it('cleans the content of a downloaded basset', function ($asset) {
@@ -52,7 +52,7 @@ it('copies a local basset', function ($asset) {
 
     Http::assertSentCount(0);
 
-    expect($result)->toBe(StatusEnum::INTERNALIZED);
+    expect($result)->toBe(StatusEnum::CACHED);
 })->with('local');
 
 it('stores a local basset', function ($asset) {
@@ -60,13 +60,13 @@ it('stores a local basset', function ($asset) {
     disk()->put($asset, getStub($asset));
     $path = disk()->path($asset);
 
-    // internalize the file
+    // cache the file
     $result = basset($path, false);
     $path = basset()->getPath($path);
 
     disk()->assertExists($path);
 
-    expect($result)->toBe(StatusEnum::INTERNALIZED);
+    expect($result)->toBe(StatusEnum::CACHED);
 })->with('local');
 
 it('cleans the content of a local basset', function ($asset) {
@@ -74,20 +74,20 @@ it('cleans the content of a local basset', function ($asset) {
     disk()->put($asset, getStub($asset));
     $path = disk()->path($asset);
 
-    // internalize the file
+    // cache the file
     $result = basset($path, false);
     $path = basset()->getPath($path);
 
     expect(disk()->get($path))->toBe(getStub("$asset.output"));
 
-    expect($result)->toBe(StatusEnum::INTERNALIZED);
+    expect($result)->toBe(StatusEnum::CACHED);
 })->with('local');
 
 it('does not download twice', function ($asset) {
     // first call should download
     $result = basset($asset, false);
 
-    expect($result)->toBe(StatusEnum::INTERNALIZED);
+    expect($result)->toBe(StatusEnum::CACHED);
 
     // second call asset should be already loaded
     $result = basset($asset);
