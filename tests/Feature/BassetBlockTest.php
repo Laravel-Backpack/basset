@@ -11,7 +11,7 @@ it('stores basset block', function ($asset) {
 
     disk()->assertExists($path);
 
-    expect($result)->toBe(StatusEnum::INTERNALIZED);
+    expect($result)->toBe(StatusEnum::CACHED);
 })->with('codeBlock');
 
 it('cleans basset block', function ($asset) {
