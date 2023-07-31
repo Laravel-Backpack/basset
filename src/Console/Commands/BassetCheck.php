@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Basset Cache command.
@@ -126,7 +127,7 @@ class BassetCheck extends Command
         // cache it with basset
         $url = $this->basset->getUrl($this->filepath);
 
-        if (! str_contains($url, '://')) {
+        if (! Str::isUrl($url)) {
             $url = url($url);
         }
 
