@@ -61,7 +61,6 @@ class BassetCheck extends Command
             $message = 'Fetching a basset';
             $this->testFetch();
             $this->components->twoColumnDetail($message, '<fg=green;options=bold>DONE</>');
-
         } catch (Exception $e) {
             $this->components->twoColumnDetail($message, '<fg=red;options=bold>ERROR</>');
             $this->newLine();
