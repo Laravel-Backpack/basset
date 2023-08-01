@@ -175,10 +175,10 @@ class BassetServiceProvider extends ServiceProvider
         if (app()->config['filesystems.disks.basset']) {
             return;
         }
-        
+
         // if the basset disk isn't being used at all, don't even bother to add it
         if (app()->config['backpack.basset.disk'] !== 'basset') {
-           return;
+            return;
         }
 
         // add the basset disk to filesystem configuration
