@@ -2,6 +2,7 @@
 
 namespace Backpack\Basset\Console\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Symfony\Component\Process\Process;
@@ -39,6 +40,9 @@ class BassetInstall extends Command
         // create symlink
         $this->createSymLink();
 
+        // create symlink
+        $this->checkBasset();
+
         // check if artisan storage:link command exists
         $this->addComposerCommand();
 
@@ -55,14 +59,31 @@ class BassetInstall extends Command
     {
         $message = 'Creating symlink';
 
-        if (file_exists(public_path('storage'))) {
-            $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>ALREADY EXISTED</>');
-
-            return;
+        try {
+            $this->callSilent('storage:link');
+            $this->components->twoColumnDetail($message, '<fg=green;options=bold>DONE</>');
+        } catch (Exception $e) {
+            $this->components->twoColumnDetail($message, '<fg=red;options=bold>ERROR</>');
+            $this->line('  <fg=gray>│ '.$e->getMessage().'</>');
+            $this->newLine();
         }
+    }
 
-        $this->call('storage:link');
-        $this->components->twoColumnDetail($message, '<fg=green;options=bold>DONE</>');
+    /**
+     * Check if basset works.
+     *
+     * @return void
+     */
+    private function checkBasset(): void
+    {
+        $message = 'Check Basset';
+
+        try {
+            $this->call('basset:check', ['--installing' => true]);
+            $this->components->twoColumnDetail($message, '<fg=green;options=bold>DONE</>');
+        } catch (Exception $e) {
+            $this->components->twoColumnDetail($message, '<fg=red;options=bold>ERROR</>');
+        }
     }
 
     /**
@@ -82,7 +103,7 @@ class BassetInstall extends Command
 
         if ($this->components->confirm('You will need to run `php artisan storage:link` on every server you deploy the app to. Do you wish to add that command to composer.json\' post-install-script, to make that automatic?', true)) {
             $this->components->task($message, function () {
-                $process = new Process(['composer', 'config', 'scripts.post-install-cmd.-1', 'php artisan storage:link']);
+                $process = new Process(['composer', 'config', 'scripts.post-install-cmd.-1', 'php artisan storage:link --quiet']);
                 $process->run();
             });
         }

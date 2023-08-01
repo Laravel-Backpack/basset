@@ -220,6 +220,27 @@ But what if your `script.js` file is not only loaded by `card.blade.php`, but al
 
 That's where this package comes to the rescue. It will load the asset just ONCE, even if it's loaded from multiple blade files.
 
+## FAQ
+
+#### Basset is not working, what may be wrong?
+
+Before making any changes, you can run the command `php artisan basset:check`. It will perform a basic test to initialize, write, and read an asset, giving you better insights into any errors.
+
+The most common reasons for Basset to fail are:
+
+1) **Incorrect APP_URL in the `.env` file.**  
+Ensure that APP_URL in your `.env` matches your server configuration, including the hostname, protocol, and port number. Incorrect settings can lead to asset loading issues.
+
+2) **Improperly configured disk.**  
+By default, Basset uses the Laravel `public` disk. 
+For new Laravel projects, the configuration is usually correct. 
+If you're upgrading a project and/or changed the `public` disk configuration, it's advised that you change the basset disk in `config/backpack/basset.php` to `basset`. The `basset` disk is a copy of the original Laravel `public` with working configurations.
+
+3) **Missing or broken storage symlink.**  
+If you use the default `public` disk, Basset requires that the symlink between the storage and the public accessible folder to be created with `php artisan storage:link` command. During installation, Basset attempts to create the symlink. If it fails, you will need to manually create it with `php artisan storage:link`. If you encounter issues (e.g., after moving the project), recreating the symlink should resolve them.
+
+Note for Homestead users: the symlink can't be created inside the virtual machine. You should stop your instance with: `vagrant down`, create the symlink in your local application folder and then `vagrant up` to bring the system back up. 
+
 ## Change log
 
 Please see the [releases tab](https://github.com/Laravel-Backpack/basset/releases) for more information on what has changed recently.
