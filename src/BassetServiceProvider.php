@@ -172,7 +172,7 @@ class BassetServiceProvider extends ServiceProvider
     public function loadDisk(): void
     {
         // ignore if the disk exists
-        if (app()->config['filesystems.disks.basset']) {
+        if (app()->config['filesystems.disks.basset'] || app()->config['backpack.basset.disk'] !== 'basset') {
             return;
         }
 
