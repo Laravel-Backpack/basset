@@ -76,7 +76,7 @@ class BassetCheck extends Command
             $this->line('  <fg=gray>│  4) The storage symlink exists and is valid (by default: public/storage).</>');
             $this->line('  <fg=gray>│</>');
             $this->line('  <fg=gray>│ For more information and solutions, please visit the Backpack Basset FAQ at:</>');
-            $this->line('  <fg=gray>│ https://github.com/laravel-backpack/basset#faq</>');
+            $this->line('  <fg=gray>│ <fg=white>https://github.com/laravel-backpack/basset#faq</></>');
             $this->newLine();
             exit(1);
         }
