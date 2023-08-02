@@ -30,6 +30,9 @@ Using Basset, you easily internalize and use:
 ```bash
 composer require backpack/basset
 php artisan basset:install
+
+#OPTIONAL - publish the config file. 
+php artisan vendor:publish --provider="Backpack\Basset\BassetServiceProvider"
 ```
 
 #### Storage Symlink
