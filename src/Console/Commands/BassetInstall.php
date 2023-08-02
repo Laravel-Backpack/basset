@@ -19,7 +19,7 @@ class BassetInstall extends Command
      *
      * @var string
      */
-    protected $signature = 'basset:install';
+    protected $signature = 'basset:install {--no-check} : As the name says, `basset:check` will not run.';
 
     /**
      * The console command description.
@@ -40,8 +40,9 @@ class BassetInstall extends Command
         // create symlink
         $this->createSymLink();
 
-        // create symlink
-        $this->checkBasset();
+        if(! $this->option('no-check')) {
+            $this->checkBasset();
+        }
 
         // check if artisan storage:link command exists
         $this->addComposerCommand();
