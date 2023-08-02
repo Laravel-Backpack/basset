@@ -65,7 +65,7 @@ class BassetCheck extends Command
             $this->components->twoColumnDetail($message, '<fg=green;options=bold>DONE</>');
         } catch (Exception $e) {
             if ($this->option('installing')) {
-                throw(new Exception($message));
+                throw new Exception($message);
             }
             $this->bassetNotWorkingMessage($message);
         }
