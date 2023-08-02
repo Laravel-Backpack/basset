@@ -14,6 +14,7 @@ use Symfony\Component\Process\Process;
  */
 class BassetInstall extends Command
 {
+    use \Backpack\Basset\Console\Commands\Helpers\BassetNotWorkingMessage;
     /**
      * The name and signature of the console command.
      *
@@ -82,7 +83,7 @@ class BassetInstall extends Command
             $this->call('basset:check', ['--installing' => true]);
             $this->components->twoColumnDetail($message, '<fg=green;options=bold>DONE</>');
         } catch (Exception $e) {
-            $this->components->twoColumnDetail($message, '<fg=red;options=bold>ERROR</>');
+            $this->bassetNotWorkingMessage($e->getMessage());
         }
     }
 
