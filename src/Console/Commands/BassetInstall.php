@@ -40,7 +40,7 @@ class BassetInstall extends Command
         // create symlink
         $this->createSymLink();
 
-        if(! $this->option('no-check')) {
+        if (! $this->option('no-check')) {
             $this->checkBasset();
         }
 
