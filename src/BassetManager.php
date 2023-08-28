@@ -301,6 +301,7 @@ class BassetManager
             $this->cacheMap->addAsset($asset, $url);
 
             BassetCachedEvent::dispatch($asset);
+
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
 
@@ -383,6 +384,7 @@ class BassetManager
             $this->cacheMap->addAsset($asset, $url);
 
             BassetCachedEvent::dispatch($asset);
+
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
 
@@ -465,6 +467,7 @@ class BassetManager
         $this->cacheMap->addAsset($asset);
 
         BassetCachedEvent::dispatch($asset);
+
         return $this->loader->finish(StatusEnum::INTERNALIZED);
     }
 
@@ -515,6 +518,7 @@ class BassetManager
         $this->cacheMap->addAsset($asset);
 
         BassetCachedEvent::dispatch($asset);
+
         return $this->loader->finish(StatusEnum::INTERNALIZED);
     }
 }

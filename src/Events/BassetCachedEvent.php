@@ -13,5 +13,6 @@ class BassetCachedEvent
      */
     public function __construct(
         public string $asset,
-    ) {}
+    ) {
+    }
 }
