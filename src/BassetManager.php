@@ -134,7 +134,7 @@ class BassetManager
      * @param  array  $attributes
      * @return StatusEnum
      */
-    public function basset(string $asset, bool | string $output = true, array $attributes = []): StatusEnum
+    public function basset(string $asset, bool|string $output = true, array $attributes = []): StatusEnum
     {
         $this->loader->start();
 
@@ -285,8 +285,8 @@ class BassetManager
         $pattern = '\/'.Str::afterLast(preg_replace('/\w{8}\.(css|js)$/i', '\w{8}.$1', $path), '/');
 
         collect($this->disk->files($dir))
-            ->filter(fn($file) => $file !== $path && preg_match("/$pattern/", $file))
-            ->each(fn($file) => $this->disk->delete($file));
+            ->filter(fn ($file) => $file !== $path && preg_match("/$pattern/", $file))
+            ->each(fn ($file) => $this->disk->delete($file));
 
         // Output result
         if ($result) {
