@@ -1,1 +1,1 @@
-<link href="{{ $src }}" {{ $args }} rel="stylesheet" type="text/css" />
+<link href="{{ $src }}"{!! $args !!} rel="stylesheet" type="text/css" />

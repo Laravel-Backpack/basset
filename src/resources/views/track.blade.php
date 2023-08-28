@@ -1,1 +1,1 @@
-<track src="{{ $src }}" {{ $args }} />
+<track src="{{ $src }}"{!! $args !!} />

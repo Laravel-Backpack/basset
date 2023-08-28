@@ -1,1 +1,1 @@
-<link rel="icon" type="image/x-icon" href="{{ $src }}" {{ $args }} />
+<link rel="icon" type="image/x-icon" href="{{ $src }}"{!! $args !!} />

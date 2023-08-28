@@ -1,1 +1,1 @@
-<img src="{{ $src }}" {{ $args }} />
+<img src="{{ $src }}"{!! $args !!} />

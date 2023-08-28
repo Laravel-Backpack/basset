@@ -1,1 +1,1 @@
-<script src="{{ $src }}" {{ $args }}></script>
+<script src="{{ $src }}" {!! $args !!}></script>
