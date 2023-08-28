@@ -65,7 +65,7 @@ class BassetCache extends Command
             ->flatMap(function (string $file) {
                 // Map all bassets
                 $content = File::get($file);
-                preg_match_all('/@(basset|bassetArchive|bassetDirectory)\((.+)\)/', $content, $matches);
+                preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\((.+)\)/', $content, $matches);
 
                 $matches[2] = collect($matches[2])
                     ->map(fn ($match) => collect(explode(',', $match))
