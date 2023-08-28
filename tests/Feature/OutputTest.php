@@ -1,13 +1,13 @@
 <?php
 
 it('echoes the correct html tag', function ($asset, $tag) {
-    basset($asset);
+    bassetInstance($asset);
 
     $this->expectOutputRegex("/$tag/");
 })->with('htmlTags');
 
 it('echoes the attributes', function ($asset) {
-    basset($asset, true, [
+    bassetInstance($asset, true, [
         'async' => true,
         'type' => 'module',
     ]);

@@ -1,1 +1,1 @@
-@basset('resources/sample.js')
+@bassetInstance('resources/sample.js')

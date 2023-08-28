@@ -7,8 +7,8 @@ it('ignores cdn basset on dev mode', function ($asset) {
     // set dev mode
     config(['backpack.basset.dev_mode' => true]);
 
-    $result = basset($asset, false);
-    $path = basset()->getPath($asset);
+    $result = bassetInstance($asset, false);
+    $path = bassetInstance()->getPath($asset);
 
     // assert file was not saved
     disk()->assertMissing($path);
@@ -28,8 +28,8 @@ it('re-internalizes local basset on dev mode', function ($asset) {
     $path = disk()->path($asset);
 
     // internalize the file
-    $result = basset($path, false);
-    $path = basset()->getPath($path);
+    $result = bassetInstance($path, false);
+    $path = bassetInstance()->getPath($path);
 
     // assert file was not saved
     disk()->assertExists($path);
@@ -43,9 +43,9 @@ it('ignores basset block on dev mode', function ($asset) {
 
     $codeBlock = getStub($asset);
 
-    $result = basset()->bassetBlock($asset, $codeBlock, false);
+    $result = bassetInstance()->bassetBlock($asset, $codeBlock, false);
 
-    $path = basset()->getPathHashed($asset, $codeBlock);
+    $path = bassetInstance()->getPathHashed($asset, $codeBlock);
 
     // expect the output string
     $this->expectOutputString($codeBlock);

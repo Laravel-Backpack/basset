@@ -1,5 +1,7 @@
 <?php
 
+use Backpack\Basset\BassetManager;
+use Backpack\Basset\Enums\StatusEnum;
 use Backpack\Basset\Tests\BaseTest;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\File;
@@ -48,7 +50,7 @@ uses(BaseTest::class)
 |
 */
 
-function basset(string $asset = null, bool $output = true, array $attributes = [])
+function bassetInstance(string $asset = null, bool $output = true, array $attributes = []): StatusEnum | BassetManager
 {
     return $asset ? app('basset')->basset(...func_get_args()) : app('basset');
 }
