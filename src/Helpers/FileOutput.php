@@ -20,7 +20,7 @@ class FileOutput
         $this->useRelativePaths = config('backpack.basset.relative_paths', true);
 
         // load all templates
-        $templates = File::allFiles(__DIR__.'\..\resources\views');
+        $templates = File::allFiles(realpath(__DIR__.'/../resources/views'));
         foreach ($templates as $template) {
             $extension = str_replace('.blade.php', '', $template->getFilename());
             $this->templates[$extension] = File::get($template);
