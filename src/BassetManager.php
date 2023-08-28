@@ -4,6 +4,7 @@ namespace Backpack\Basset;
 
 use Backpack\Basset\Enums\StatusEnum;
 use Backpack\Basset\Helpers\CacheMap;
+use Backpack\Basset\Helpers\FileOutput;
 use Backpack\Basset\Helpers\LoadingTime;
 use Backpack\Basset\Helpers\Unarchiver;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -22,14 +23,12 @@ class BassetManager
     private FilesystemAdapter $disk;
     private array $loaded;
     private string $basePath;
-    private string $cachebusting;
-    private string|null $nonce;
     private bool $dev = false;
-    private bool $useRelativePaths = true;
 
     public CacheMap $cacheMap;
     public LoadingTime $loader;
     public Unarchiver $unarchiver;
+    public FileOutput $output;
 
     public function __construct()
     {
@@ -39,15 +38,13 @@ class BassetManager
         $disk = Storage::disk(config('backpack.basset.disk'));
 
         $this->disk = $disk;
-        $this->cachebusting = '?'.substr(md5(base_path('composer.lock')), 0, 12);
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
         $this->dev = config('backpack.basset.dev_mode', false);
-        $this->nonce = config('backpack.basset.nonce', null);
-        $this->useRelativePaths = config('backpack.basset.relative_paths', true);
 
         $this->cacheMap = new CacheMap($this->disk, $this->basePath);
         $this->loader = new LoadingTime();
         $this->unarchiver = new Unarchiver();
+        $this->output = new FileOutput();
 
         // initialize static view path methods
         $this->initViewPaths();
@@ -85,90 +82,6 @@ class BassetManager
     public function loaded(): array
     {
         return $this->loaded;
-    }
-
-    /**
-     * Outputs a file depending on its type.
-     *
-     * @param  string  $path
-     * @param  array  $attributes
-     * @return void
-     */
-    public function echoFile(string $path, array $attributes = []): void
-    {
-        if (substr($path, -3) === '.js') {
-            $this->echoJs($path, $attributes);
-        }
-
-        if (substr($path, -4) === '.css') {
-            $this->echoCss($path, $attributes);
-        }
-    }
-
-    /**
-     * Outputs the CSS link tag.
-     *
-     * @param  string  $path
-     * @param  array  $attributes
-     * @return void
-     */
-    public function echoCss(string $path, array $attributes = []): void
-    {
-        $href = $this->assetPath($path);
-        $args = $this->prepareAttributes($attributes);
-
-        echo '<link href="'.$href.'"'.$args.' rel="stylesheet" type="text/css" />'.PHP_EOL;
-    }
-
-    /**
-     * Outputs the JS script tag.
-     *
-     * @param  string  $path
-     * @return void
-     */
-    public function echoJs(string $path, array $attributes = []): void
-    {
-        $src = $this->assetPath($path);
-        $args = $this->prepareAttributes($attributes);
-
-        echo '<script src="'.$src.'"'.$args.'></script>'.PHP_EOL;
-    }
-
-    /**
-     * Generates the asset path.
-     *
-     * @param  string  $path
-     * @return string
-     */
-    public function assetPath(string $path): string
-    {
-        $asset = Str::of(asset($path.$this->cachebusting));
-
-        if ($this->useRelativePaths && $asset->startsWith(url(''))) {
-            $asset = $asset->after('//')->after('/')->start('/');
-        }
-
-        return $asset->value();
-    }
-
-    /**
-     * Prepares attributes to be added to the script/style dom element.
-     *
-     * @param  array  $attributes
-     * @return string
-     */
-    private function prepareAttributes(array $attributes = []): string
-    {
-        if ($this->nonce) {
-            $attributes['nonce'] ??= $this->nonce;
-        }
-
-        $args = '';
-        foreach ($attributes as $key => $value) {
-            $args .= " $key".($value === true || empty($value) ? '' : "=\"$value\"");
-        }
-
-        return $args;
     }
 
     /**
@@ -221,7 +134,7 @@ class BassetManager
      * @param  array  $attributes
      * @return StatusEnum
      */
-    public function basset(string $asset, bool|string $output = true, array $attributes = []): StatusEnum
+    public function basset(string $asset, bool | string $output = true, array $attributes = []): StatusEnum
     {
         $this->loader->start();
 
@@ -237,7 +150,7 @@ class BassetManager
         // Retrieve from map
         $mapped = $this->cacheMap->getAsset($asset);
         if ($mapped && ! $this->dev) {
-            $output && $this->echoFile($mapped, $attributes);
+            $output && $this->output->write($mapped, $attributes);
 
             return $this->loader->finish(StatusEnum::IN_CACHE);
         }
@@ -247,13 +160,13 @@ class BassetManager
             // may be an internalized asset (folder or zip)
             if ($this->disk->exists($path)) {
                 $asset = $this->disk->url($path);
-                $output && $this->echoFile($asset, $attributes);
+                $output && $this->output->write($asset, $attributes);
 
                 return $this->loader->finish(StatusEnum::IN_CACHE);
             }
 
             // public file (default fallback)
-            $output && $this->echoFile($asset, $attributes);
+            $output && $this->output->write($asset, $attributes);
 
             return $this->loader->finish(StatusEnum::INVALID);
         }
@@ -264,7 +177,7 @@ class BassetManager
         // Check if asset exists in basset folder
         // (ignores cache if in dev mode)
         if ($this->disk->exists($path) && ! $this->dev) {
-            $output && $this->echoFile($url, $attributes);
+            $output && $this->output->write($url, $attributes);
             $this->cacheMap->addAsset($asset, $url);
 
             return $this->loader->finish(StatusEnum::IN_CACHE);
@@ -274,7 +187,7 @@ class BassetManager
         if (Str::isUrl($asset)) {
             // when in dev mode, cdn should be rendered
             if ($this->dev) {
-                $output && $this->echoFile($asset, $attributes);
+                $output && $this->output->write($asset, $attributes);
 
                 return $this->loader->finish(StatusEnum::DISABLED);
             }
@@ -296,14 +209,14 @@ class BassetManager
         $result = $this->disk->put($path, $content, 'public');
 
         if ($result) {
-            $output && $this->echoFile($url, $attributes);
+            $output && $this->output->write($url, $attributes);
             $this->cacheMap->addAsset($asset, $url);
 
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
 
         // Fallback to the CDN/path
-        $output && $this->echoFile($asset, $attributes);
+        $output && $this->output->write($asset, $attributes);
 
         return $this->loader->finish(StatusEnum::INVALID);
     }
@@ -338,7 +251,7 @@ class BassetManager
         // Retrieve from map
         $mapped = $this->cacheMap->getAsset($asset);
         if ($mapped) {
-            $output && $this->echoFile($mapped);
+            $output && $this->output->write($mapped);
 
             return $this->loader->finish(StatusEnum::IN_CACHE);
         }
@@ -348,7 +261,7 @@ class BassetManager
 
         // Check if asset exists in basset folder
         if ($this->disk->exists($path)) {
-            $output && $this->echoFile($url);
+            $output && $this->output->write($url);
             $this->cacheMap->addAsset($asset, $url);
 
             return $this->loader->finish(StatusEnum::IN_CACHE);
@@ -372,12 +285,12 @@ class BassetManager
         $pattern = '\/'.Str::afterLast(preg_replace('/\w{8}\.(css|js)$/i', '\w{8}.$1', $path), '/');
 
         collect($this->disk->files($dir))
-            ->filter(fn ($file) => $file !== $path && preg_match("/$pattern/", $file))
-            ->each(fn ($file) => $this->disk->delete($file));
+            ->filter(fn($file) => $file !== $path && preg_match("/$pattern/", $file))
+            ->each(fn($file) => $this->disk->delete($file));
 
         // Output result
         if ($result) {
-            $output && $this->echoFile($url);
+            $output && $this->output->write($url);
             $this->cacheMap->addAsset($asset, $url);
 
             return $this->loader->finish(StatusEnum::INTERNALIZED);
