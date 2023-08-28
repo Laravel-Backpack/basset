@@ -4,25 +4,27 @@
 [![Total Downloads][ico-downloads]][link-downloads]
 [![StyleCI][ico-styleci]][link-styleci]
 
-**The dead-simple way to use CSS and JS assets in your Laravel projects.** 
+**The better `asset()` helper for your Laravel projects.** Easily use your CSS/JS/etc assets from wherever they are, not just your public directory.
 
 ```blade
-// instead of
-<script src='https://cdn.com/path/to/file.js'>
-<link href='https://cdn.com/path/to/file.css'>
+// if you're used to Laravel's asset helper:
+<link href="{{ asset('path/to/public/file.css') }}">
 
-// you can do
-@basset('https://cdn.com/path/to/file.js')
-@basset('https://cdn.com/path/to/file.css')
+// just change asset() to basset() and you can point to non-public files too, for example:
+<script src="{{ basset(storage_path('file.js')) }}">
+<script src="{{ basset(base_path('vendor/org/package/assets/file.js')) }}">
+<script src="{{ basset('https://cdn.com/path/to/file.js') }}">
 ```
 
-That will internalize the file (copy to `storage/app/public/bassets`) and make sure that file is only loaded once per page. 
+That's all you need to do. **Basset will download the file to `storage/app/public/bassets` from wherever it is, then output the now-public path to your asset.**
 
 Using Basset, you easily internalize and use:
 - files from external URLs (like CDNs)
 - files from internal, but non-public URLs (like the vendor directory)
 - entire archives from external URLs (like Github)
 - entire directories from local, non-public paths (like other local projects)
+
+No more publishing package files. No more using NPM just to download some files. It's a simple yet effective solution in the age of `HTTP/2` and `HTTP/3`.
 
 ## Installation
 
@@ -34,6 +36,9 @@ php artisan basset:install
 php artisan vendor:publish --provider="Backpack\Basset\BassetServiceProvider"
 ```
 
+> **Note**  
+> Basset is disabled by default on local environment. If you want to change it, please set `BASSET_DEV_MODE=false` in your env file.
+
 #### Storage Symlink
 Basset uses the `public` disk to store cached assets in a directory that is publicly-accesible. So it needs you to run `php artisan storage:link` to create the symlink. The installation command will create ask to run that, and to add that command to your `composer.json`. That will most likely make it work on your development/staging/production servers. If that's not the case, make sure you create the links manually wherever you need them, with the command `php artisan storage:link`.
 
@@ -42,12 +47,38 @@ By default Basset uses the `public` disk. If you're having trouble with the asse
 
 ## Usage
 
-Now you can replace your standard CSS and JS loading HTML with the `@basset()` Blade directive:
+### The `basset()` Helper
 
-```diff
-// for files from CDNs
--    <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js">
-+    @basset('https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js')
+You can just use the `basset()` helper instead of Laravel's `asset()` helper, and point to CDNs and non-public files too. Use [Laravel's path helpers](https://laravel.com/docs/10.x/helpers#paths-method-list) to construct the absolute path to your file, then Basset will take care of the rest.
+
+For local from CDNs:
+```blade
+// instead of
+<link href="{{ asset('path/to/public/file.css') }}">
+
+// you can do
+<link href="{{ basset('path/to/public/file.css' }}">
+<link href="{{ basset('https://cdn.com/path/to/file.css') }}">
+<link href="{{ basset(base_path('vendor/org/package/assets/file.css')) }}">
+<link href="{{ basset(storage_path('file.css')) }}">
+```
+
+Basset will:
+- copy that file from the vendor directory to your `storage` directory (aka. internalize the file)
+- use the internalized file on all requests
+
+### The `@basset()` Directive
+
+For known asset types like CSS and JS, Basset makes it even shorter to load assets. No need to write the HTML for your `<link>` or `<style>`, just use the `@basset()` directive and all of the needed HTML will be output for you:
+
+```blade
+// instead of
+<script src="{{ asset('path/to/public/file.js') }}">
+<link href="{{ asset('path/to/public/file.css')">
+
+// you can do
+@basset('https://cdn.com/path/to/file.js')
+@basset('https://cdn.com/path/to/file.css')
 ```
 
 Basset will:
@@ -55,9 +86,64 @@ Basset will:
 - use the internalized file on all requests
 - make sure that file is only loaded once per pageload
 
-> **Note**  
-> Basset is disabled by default on local environment (`APP_ENV=local`), if you want to change it please set `BASSET_DEV_MODE=false` on the env file.
+### The `@bassetBlock()` Directive
 
+Easily move code blocks to files, so they're cached
+
+```diff
++   @bassetBlock('path/or/name-i-choose-to-give-this')
+    <script>
+      alert('Do stuff!');
+    </script>
++   @endBassetBlock()
+```
+
+Basset will:
+- create a file with that JS code in your `storage/app/public/basset` directory (aka. internalize the code)
+- on all requests, use the local file (using `<script src="">`) instead of having the JS inline
+- make sure that file is only loaded once per pageload
+
+### The `@bassetArchive()` Directive
+
+Easily use archived assets (.zip & .tar.gz):
+
+```diff
++    @bassetArchive('https://github.com/author/package-dist/archive/refs/tags/1.0.0.zip', 'package-1.0.0')
++    @basset('package-1.0.0/plugin.min.js')
+```
+
+Basset will:
+- download the archive to your `storage/app/public/basset` directory (aka. internalize the code)
+- unarchive it
+- on all requests, use the local file (using `<script src="">`)
+- make sure that file is only loaded once per pageload
+
+*Note:* when referencing `.zip` archives, the [PHP zip extension](https://www.php.net/manual/en/book.zip.php) is required.
+
+### The `@bassetDirectory()` Directive
+
+Easily internalize and use entire non-public directories:
+
+```diff
++    @bassetDirectory(resource_path('package-1.0.0/'), 'package-1.0.0')
++    @basset('package-1.0.0/plugin.min.js')
+```
+
+Basset will:
+- copy the directory to your `storage/app/public/basset` directory (aka. internalize the code)
+- on all requests, use the internalized file (using `<script src="">`)
+- make sure that file is only loaded once per pageload
+
+### The `basset` Commands
+
+Copying an asset from CDNs to your server could take a bit of time, depending on the asset size. For large pages, that could even take entire seconds. You can easily prevent that from happening, by internalizing all assets in one go. You can use `php artisan basset:cache` to go through all your blade files, and internalize everything that's possible. If you ever need it, `basset:clear` will delete all the files.
+
+```bash 
+php artisan basset:cache         # internalizes all @bassets
+php artisan basset:clear         # clears the basset directory
+```
+
+In order to speed up the first page load on production, we recommend you to add `php artisan basset:cache` command to your deploy script.
 
 ## Configuration
 
@@ -97,87 +183,6 @@ If you deploy your project by uploading it from localhost (either manually or au
 - make sure the alias exists that would have been created by `php artisan storage:link`; otherwise your alias might point to an inexisting localhost path; alternatively you can change the disk that Basset is using, in its config;
 - before each deployment, make sure to disable dev mode (`do BASSET_DEV_MODE=false` in your `.ENV` file) then run `php artisan basset:fresh`; that will make sure your localhost downloads all assets, then you upload them in your zip;
 
-
-## Features
-
-The package provides 4 Blade directives, `@basset()`, `@bassetBlock()`, `@bassetArchive()`, `@bassetDirectory()`, that will allow you to:
-
-### Easily self-host files from CDNs
-
-```diff
--   <script src="http://localhost/storage/basset/cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
-+   @basset('https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js')
-```
-
-Basset will:
-- copy that file from the CDN to your `storage/app/public/basset` directory (aka. internalize the file)
-- use the local (internalized) file on all requests
-- make sure that file is only loaded once per pageload
-
-### Easily use local files from non-public directories
-
-```diff
-+ @basset(resource_path('assets/file.css'))
-+ @basset(resource_path('assets/file.js'))
-```
-
-Basset will:
-- copy the file from the provided path to `storage/app/public/basset` directory (aka. internalize the file)
-- use the internalized file on all requests
-- make sure that file is only loaded once per pageload
-
-### Easily move code blocks to files, so they're cached
-
-```diff
-+   @bassetBlock('path/or/name-i-choose-to-give-this')
-    <script>
-      alert('Do stuff!');
-    </script>
-+   @endBassetBlock()
-```
-
-Basset will:
-- create a file with that JS code in your `storage/app/public/basset` directory (aka. internalize the code)
-- on all requests, use the local file (using `<script src="">`) instead of having the JS inline
-- make sure that file is only loaded once per pageload
-
-### Easily use archived assets (.zip & .tar.gz)
-
-```diff
-+    @bassetArchive('https://github.com/author/package-dist/archive/refs/tags/1.0.0.zip', 'package-1.0.0')
-+    @basset('package-1.0.0/plugin.min.js')
-```
-
-Basset will:
-- download the archive to your `storage/app/public/basset` directory (aka. internalize the code)
-- unarchive it
-- on all requests, use the local file (using `<script src="">`)
-- make sure that file is only loaded once per pageload
-
-*Note:* when referencing `.zip` archives, the [PHP zip extension](https://www.php.net/manual/en/book.zip.php) is required.
-
-### Easily internalize and use entire non-public directories
-
-```diff
-+    @bassetDirectory(resource_path('package-1.0.0/'), 'package-1.0.0')
-+    @basset('package-1.0.0/plugin.min.js')
-```
-
-Basset will:
-- copy the directory to your `storage/app/public/basset` directory (aka. internalize the code)
-- on all requests, use the internalized file (using `<script src="">`)
-- make sure that file is only loaded once per pageload
-
-### Easily internalize everything from the CLI, using a command
-
-Copying an asset from CDNs to your server could take a bit of time, depending on the asset size. For large pages, that could even take entire seconds. You can easily prevent that from happening, by internalizing all assets in one go. You can use `php artisan basset:internalize` to go through all your blade files, and internalize everything that's possible. If you ever need it, `basset:clear` will delete all the files.
-
-```bash 
-php artisan basset:cache         # internalizes all @bassets
-php artisan basset:clear         # clears the basset directory
-```
-
-In order to speed up the first page load on production, we recommend you to add `basset:internalize` command to the deploy script.
 
 ## Why does this package exist?
 
