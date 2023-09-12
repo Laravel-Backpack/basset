@@ -7,10 +7,10 @@
 **The better `asset()` helper for your Laravel projects.** Easily use your CSS/JS/etc assets from wherever they are, not just your public directory.
 
 ```blade
-// if you're used to Laravel's asset helper:
+{{-- if you're used to Laravel's asset helper: --}}
 <link href="{{ asset('path/to/public/file.css') }}">
 
-// just change asset() to basset() and you can point to non-public files too, for example:
+{{-- just change asset() to basset() and you can point to non-public files too, for example: --}}
 <script src="{{ basset(storage_path('file.js')) }}">
 <script src="{{ basset(base_path('vendor/org/package/assets/file.js')) }}">
 <script src="{{ basset('https://cdn.com/path/to/file.js') }}">
@@ -31,8 +31,10 @@ No more publishing package files. No more using NPM just to download some files.
 ```bash
 composer require backpack/basset
 php artisan basset:install
+```
 
-#OPTIONAL - publish the config file. 
+**Optional** publish the config file.
+```bash
 php artisan vendor:publish --provider="Backpack\Basset\BassetServiceProvider"
 ```
 
@@ -53,10 +55,10 @@ You can just use the `basset()` helper instead of Laravel's `asset()` helper, an
 
 For local from CDNs:
 ```blade
-// instead of
+{{-- instead of --}}
 <link href="{{ asset('path/to/public/file.css') }}">
 
-// you can do
+{{-- you can do --}}
 <link href="{{ basset('path/to/public/file.css' }}">
 <link href="{{ basset('https://cdn.com/path/to/file.css') }}">
 <link href="{{ basset(base_path('vendor/org/package/assets/file.css')) }}">
@@ -69,17 +71,34 @@ Basset will:
 
 ### The `@basset()` Directive
 
-For known asset types like CSS and JS, Basset makes it even shorter to load assets. No need to write the HTML for your `<link>` or `<style>`, just use the `@basset()` directive and all of the needed HTML will be output for you:
+For known asset types like CSS, JS, images and videos, among others, Basset makes it even shorter to load assets. No need to write the HTML for your `<script>`, `<link>` or `<img>`, just use the `@basset()` directive and all of the needed HTML will be output for you:
 
 ```blade
-// instead of
+{{-- instead of --}}
 <script src="{{ asset('path/to/public/file.js') }}">
-<link href="{{ asset('path/to/public/file.css')">
+<link href="{{ asset('path/to/public/file.css') }}">
+<img src="{{ asset('path/to/public/file.jpg') }}">
+<object data="{{ asset('path/to/public/file.pdf') }}"></object>
 
-// you can do
+{{-- you can do --}}
 @basset('https://cdn.com/path/to/file.js')
 @basset('https://cdn.com/path/to/file.css')
+@basset(resource_path('/path/to/file.jpg'))
+@basset(resource_path('/path/to/file.pdf'))
 ```
+
+These are the know file types;
+
+| File extension | HTML element |
+| --- | --- |
+| `.js` | `<script>` |
+| `.css` | `<style>` |
+| `.jpg` `.jpeg` `.png` `.webp` `.gif` `.svg` | `<img>` |
+| `.mp4` `.webm` `.avi` `.mp3` `.ogg` `.wav` | `<source>` |
+| `.ico` | `<link>` |
+| `.pdf` | `<object>` |
+| `.vtt` | `<track>` |
+
 
 Basset will:
 - copy that file from the vendor directory to your `storage` directory (aka. internalize the file)

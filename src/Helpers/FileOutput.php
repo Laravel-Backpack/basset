@@ -42,6 +42,7 @@ class FileOutput
         $file = match ($extension) {
             'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg' => 'img',
             'mp3', 'ogg', 'wav', 'mp4', 'webm', 'avi' => 'source',
+            'pdf' => 'object',
             'vtt' => 'track',
             default => $extension
         };
