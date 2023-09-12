@@ -8,19 +8,19 @@ test('confirm environment is set to testing', function () {
 });
 
 it('fails on invalid path', function () {
-    $result = basset('invalid path', false);
+    $result = bassetInstance('invalid path', false);
 
     expect($result)->toBe(StatusEnum::INVALID);
 });
 
 it('cleans the pathname of an asset', function ($asset, $path) {
-    $generatedPath = basset()->getPath($asset);
+    $generatedPath = bassetInstance()->getPath($asset);
 
     expect((string) $generatedPath)->toBe("basset/$path");
 })->with('paths');
 
 it('downloads a cdn basset', function ($asset) {
-    $result = basset($asset, false);
+    $result = bassetInstance($asset, false);
 
     Http::assertSentCount(1);
 
@@ -28,8 +28,8 @@ it('downloads a cdn basset', function ($asset) {
 })->with('cdn');
 
 it('stores a downloaded basset', function ($asset) {
-    $result = basset($asset, false);
-    $path = basset()->getPath($asset);
+    $result = bassetInstance($asset, false);
+    $path = bassetInstance()->getPath($asset);
 
     disk()->assertExists($path);
 
@@ -37,8 +37,8 @@ it('stores a downloaded basset', function ($asset) {
 })->with('cdn');
 
 it('cleans the content of a downloaded basset', function ($asset) {
-    basset($asset, false);
-    $path = basset()->getPath($asset);
+    bassetInstance($asset, false);
+    $path = bassetInstance()->getPath($asset);
 
     expect(disk()->get($path))->toBe(getStub("$asset.output"));
 })->with('cdn');
@@ -48,7 +48,7 @@ it('copies a local basset', function ($asset) {
     disk()->put($asset, getStub($asset));
     $path = disk()->path($asset);
 
-    $result = basset($path, false);
+    $result = bassetInstance($path, false);
 
     Http::assertSentCount(0);
 
@@ -61,8 +61,8 @@ it('stores a local basset', function ($asset) {
     $path = disk()->path($asset);
 
     // internalize the file
-    $result = basset($path, false);
-    $path = basset()->getPath($path);
+    $result = bassetInstance($path, false);
+    $path = bassetInstance()->getPath($path);
 
     disk()->assertExists($path);
 
@@ -75,8 +75,8 @@ it('cleans the content of a local basset', function ($asset) {
     $path = disk()->path($asset);
 
     // internalize the file
-    $result = basset($path, false);
-    $path = basset()->getPath($path);
+    $result = bassetInstance($path, false);
+    $path = bassetInstance()->getPath($path);
 
     expect(disk()->get($path))->toBe(getStub("$asset.output"));
 
@@ -85,12 +85,12 @@ it('cleans the content of a local basset', function ($asset) {
 
 it('does not download twice', function ($asset) {
     // first call should download
-    $result = basset($asset, false);
+    $result = bassetInstance($asset, false);
 
     expect($result)->toBe(StatusEnum::INTERNALIZED);
 
     // second call asset should be already loaded
-    $result = basset($asset);
+    $result = bassetInstance($asset);
 
     expect($result)->toBe(StatusEnum::LOADED);
 
@@ -99,21 +99,28 @@ it('does not download twice', function ($asset) {
 })->with('cdn');
 
 it('does not output when not required', function ($asset) {
-    basset($asset, false);
+    bassetInstance($asset, false);
 
     $this->expectOutputString('');
 })->with('cdn');
 
 it('retreives from cache when available', function ($asset) {
     // store the stub in disk
-    $generatedPath = basset()->getPath($asset);
+    $generatedPath = bassetInstance()->getPath($asset);
     disk()->put($generatedPath, getStub($asset));
 
     // should not download
-    $result = basset($asset, false);
+    $result = bassetInstance($asset, false);
 
     expect($result)->toBe(StatusEnum::IN_CACHE);
 
     // no call could have been made to http
     Http::assertSentCount(0);
+})->with('cdn');
+
+it('works with the basset helper method', function ($asset) {
+    $result = basset($asset);
+    $path = bassetInstance()->getPath($asset);
+
+    expect($result)->toBe(disk()->url($path));
 })->with('cdn');
