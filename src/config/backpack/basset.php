@@ -4,6 +4,9 @@ return [
     // development mode, assets will not be internalized
     'dev_mode' => env('BASSET_DEV_MODE', env('APP_ENV') === 'local'),
 
+    // verify ssl certificate while fetching assets
+    'verify_ssl_certificate' => true,
+
     // disk and path where to store bassets
     'disk' => env('BASSET_DISK', 'public'),
     'path' => 'basset',

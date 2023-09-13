@@ -521,7 +521,7 @@ class BassetManager
      */
     public function fetchContent(string $url): string
     {
-        return Http::withOptions(['verify' => ! config('backpack.basset.dev_mode')])
+        return Http::withOptions(['verify' => config('backpack.basset.verify_ssl_certificate', true)])
             ->get($url)
             ->body();
     }
