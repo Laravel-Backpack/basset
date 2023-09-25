@@ -319,13 +319,6 @@ class BassetManager
     {
         $this->loader->start();
 
-        // fallback to code on dev mode
-        if ($this->dev) {
-            echo $code;
-
-            return $this->loader->finish(StatusEnum::DISABLED);
-        }
-
         // Get asset path and url
         $path = $this->getPathHashed($asset, $code);
 
@@ -334,6 +327,13 @@ class BassetManager
         }
 
         $this->markAsLoaded($path);
+
+        // fallback to code on dev mode
+        if ($this->dev) {
+            echo $code;
+
+            return $this->loader->finish(StatusEnum::DISABLED);
+        }
 
         // Retrieve from map
         $mapped = $this->cacheMap->getAsset($asset);
