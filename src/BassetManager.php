@@ -279,7 +279,7 @@ class BassetManager
                 return $this->loader->finish(StatusEnum::DISABLED);
             }
 
-            $content = Http::get($asset)->body();
+            $content = $this->fetchContent($asset);
         } else {
             // clean local asset
             $asset = Str::before($asset, '?');
@@ -432,7 +432,7 @@ class BassetManager
             $file = $this->unarchiver->getTemporaryFilePath();
 
             // download file to temporary location
-            $content = Http::get($asset)->body();
+            $content = $this->fetchContent($asset);
             File::put($file, $content);
         }
 
@@ -511,5 +511,15 @@ class BassetManager
         $this->cacheMap->addAsset($asset);
 
         return $this->loader->finish(StatusEnum::INTERNALIZED);
+    }
+
+    /**
+     * Fetch the content body of an url.
+     */
+    public function fetchContent(string $url): string
+    {
+        return Http::withOptions(['verify' => config('backpack.basset.verify_ssl_certificate', true)])
+            ->get($url)
+            ->body();
     }
 }

@@ -132,9 +132,9 @@ class BassetCheck extends Command
             $url = url($url);
         }
 
-        $result = Http::get($url);
+        $result = $this->basset->fetchContent($url);
 
-        if ($result->body() !== 'test') {
+        if ($result !== 'test') {
             throw new Exception('Error fetching the file.');
         }
     }
