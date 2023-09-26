@@ -515,9 +515,6 @@ class BassetManager
 
     /**
      * Fetch the content body of an url.
-     *
-     * @param  string  $url
-     * @return string
      */
     public function fetchContent(string $url): string
     {
