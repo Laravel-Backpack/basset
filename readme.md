@@ -1,4 +1,4 @@
-# Basset 🐶 - the better `asset()` helper for your Laravel projects
+# Basset 🐶 - the better `asset()` helper for Laravel
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Total Downloads][ico-downloads]][link-downloads]
