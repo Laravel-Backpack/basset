@@ -1,10 +1,10 @@
-# Basset 🐶
+# Basset 🐶 - the better `asset()` helper for your Laravel projects
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Total Downloads][ico-downloads]][link-downloads]
 [![StyleCI][ico-styleci]][link-styleci]
 
-**The better `asset()` helper for your Laravel projects.** Easily use your CSS/JS/etc assets from wherever they are, not just your public directory.
+**Easily use your CSS/JS/etc assets from wherever they are, not just your public directory:**
 
 ```blade
 // if you're used to Laravel's asset helper:
