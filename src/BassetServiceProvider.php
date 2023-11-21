@@ -69,7 +69,7 @@ class BassetServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Register the service the package provides.
-        $this->app->singleton('basset', fn () => new BassetManager());
+        $this->app->scoped('basset', fn () => new BassetManager());
 
         // Merge the configuration file.
         $this->mergeConfigFrom(__DIR__.'/config/backpack/basset.php', 'backpack.basset');
