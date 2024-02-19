@@ -456,16 +456,16 @@ class BassetManager
         // first copy the file to the temporary folder, that way we are sure that the folder is writable
         File::copy($file, $tempDir.$fileName);
         $this->unarchiver->unarchiveFile($tempDir.$fileName, $tempDir);
-        
+
         // internalize all files in the folder except the zip file itself
         foreach (File::allFiles($tempDir) as $file) {
-            if($file->getRelativePathName() !== $fileName) {
+            if ($file->getRelativePathName() !== $fileName) {
                 $this->disk->put("$path/{$file->getRelativePathName()}", File::get($file), 'public');
             }
         }
         // delete the whole temporary folder
         File::delete($tempDir);
-        
+
         $this->cacheMap->addAsset($asset);
 
         return $this->loader->finish(StatusEnum::INTERNALIZED);
