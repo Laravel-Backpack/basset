@@ -104,7 +104,7 @@ class BassetInstall extends Command
 
         if ($this->components->confirm('You will need to run `php artisan storage:link` on every server you deploy the app to. Do you wish to add that command to composer.json\' post-install-script, to make that automatic?', true)) {
             $this->components->task($message, function () {
-                $process = new Process(['composer', 'config', 'scripts.post-install-cmd.-1', 'php artisan storage:link --quiet']);
+                $process = new Process(['composer', 'config', 'scripts.post-install-cmd.-1', '@php artisan storage:link --quiet']);
                 $process->run();
             });
         }
