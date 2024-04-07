@@ -34,9 +34,9 @@ class FileOutput
      * @param  array  $attributes
      * @return void
      */
-    public function write(string $path, array $attributes = []): void
+    public function write(string $path, array $attributes = [], string $extension = null): void
     {
-        $extension = (string) Str::of($path)->afterLast('.');
+        $extension ??= (string) Str::of($path)->afterLast('.');
 
         // map extensions
         $file = match ($extension) {
