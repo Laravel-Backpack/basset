@@ -3,6 +3,7 @@
 namespace Backpack\Basset;
 
 use Backpack\Basset\Enums\StatusEnum;
+use Backpack\Basset\Events\BassetCachedEvent;
 use Backpack\Basset\Helpers\CacheMap;
 use Backpack\Basset\Helpers\LoadingTime;
 use Backpack\Basset\Helpers\Unarchiver;
@@ -299,6 +300,8 @@ class BassetManager
             $output && $this->echoFile($url, $attributes);
             $this->cacheMap->addAsset($asset, $url);
 
+            BassetCachedEvent::dispatch($asset);
+
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
 
@@ -379,6 +382,8 @@ class BassetManager
         if ($result) {
             $output && $this->echoFile($url);
             $this->cacheMap->addAsset($asset, $url);
+
+            BassetCachedEvent::dispatch($asset);
 
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
@@ -468,6 +473,8 @@ class BassetManager
 
         $this->cacheMap->addAsset($asset);
 
+        BassetCachedEvent::dispatch($asset);
+
         return $this->loader->finish(StatusEnum::INTERNALIZED);
     }
 
@@ -516,6 +523,8 @@ class BassetManager
         }
 
         $this->cacheMap->addAsset($asset);
+
+        BassetCachedEvent::dispatch($asset);
 
         return $this->loader->finish(StatusEnum::INTERNALIZED);
     }

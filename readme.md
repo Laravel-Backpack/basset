@@ -145,6 +145,10 @@ php artisan basset:clear         # clears the basset directory
 
 In order to speed up the first page load on production, we recommend you to add `php artisan basset:cache` command to your deploy script.
 
+### Basset Cached Event
+
+If you require customized behavior after each asset is cached, you can set up a listener for the `BassetCachedEvent` in your `EventServiceProvider`. This event will be triggered each time an asset is cached.
+
 ## Configuration
 
 Take a look at [the config file](https://github.com/Laravel-Backpack/basset/blob/main/src/config/backpack/basset.php) for all configuration options. Notice some of those configs also have ENV variables, so you can:
