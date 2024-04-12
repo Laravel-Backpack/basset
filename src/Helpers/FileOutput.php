@@ -9,8 +9,11 @@ use Illuminate\Support\Str;
 class FileOutput
 {
     private string|null $nonce;
+
     private string $cachebusting;
+
     private bool $useRelativePaths = true;
+
     private array $templates = [];
 
     public function __construct()
@@ -42,8 +45,8 @@ class FileOutput
         $file = match ($extension) {
             'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg' => 'img',
             'mp3', 'ogg', 'wav', 'mp4', 'webm', 'avi' => 'source',
-            'pdf' => 'object',
-            'vtt' => 'track',
+            'pdf'   => 'object',
+            'vtt'   => 'track',
             default => $extension
         };
 
@@ -54,7 +57,7 @@ class FileOutput
         }
 
         echo Blade::render($template, [
-            'src' => $this->assetPath($path),
+            'src'  => $this->assetPath($path),
             'args' => $this->prepareAttributes($attributes),
         ]);
     }
@@ -67,7 +70,12 @@ class FileOutput
      */
     public function assetPath(string $path): string
     {
-        $asset = Str::of(asset($path.$this->cachebusting));
+        // if path is not a url or it's local url, we will append the cachebusting
+        if (! Str::startsWith($path, ['http://', 'https://']) || Str::startsWith($path, url(''))) {
+            return $path.$this->cachebusting;
+        }
+
+        $asset = Str::of(asset($path));
 
         if ($this->useRelativePaths && $asset->startsWith(url(''))) {
             $asset = $asset->after('//')->after('/')->start('/');
