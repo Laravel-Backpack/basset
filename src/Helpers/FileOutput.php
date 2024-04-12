@@ -72,7 +72,7 @@ class FileOutput
     {
         // if path is not a url or it's local url, we will append the cachebusting
         if (! Str::startsWith($path, ['http://', 'https://', '://']) || Str::startsWith($path, url(''))) {
-            return $path.$this->cachebusting;
+            $path .= $this->cachebusting;
         }
 
         $asset = Str::of(asset($path));
