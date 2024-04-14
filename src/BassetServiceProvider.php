@@ -16,12 +16,12 @@ use Illuminate\View\Compilers\BladeCompiler;
 class BassetServiceProvider extends ServiceProvider
 {
     protected $commands = [
-        \Backpack\Basset\Console\Commands\BassetCache::class,
-        \Backpack\Basset\Console\Commands\BassetClear::class,
-        \Backpack\Basset\Console\Commands\BassetCheck::class,
-        \Backpack\Basset\Console\Commands\BassetInstall::class,
-        \Backpack\Basset\Console\Commands\BassetInternalize::class,
-        \Backpack\Basset\Console\Commands\BassetFresh::class,
+        Console\Commands\BassetCache::class,
+        Console\Commands\BassetClear::class,
+        Console\Commands\BassetCheck::class,
+        Console\Commands\BassetInstall::class,
+        Console\Commands\BassetInternalize::class,
+        Console\Commands\BassetFresh::class,
     ];
 
     /**
@@ -110,34 +110,30 @@ class BassetServiceProvider extends ServiceProvider
                 return '<?php Basset::bassetBlock($bassetBlock, ob_get_clean()); ?>';
             });
 
-            // Load Once
+            // DEPRECATED - Please use `@basset`. Will be completely removed in Backpack v7.
             $bladeCompiler->directive('loadOnce', function (string $parameter): string {
                 // determine if it's a CSS or JS file
                 $cleanParameter = Str::of($parameter)->trim("'")->trim('"')->trim('`');
                 $filePath = Str::of($cleanParameter)->before('?')->before('#');
 
-                if (substr($filePath, -3) === '.js') {
-                    return "<?php Basset::echoJs({$parameter}); ?>";
+                if (Str::endsWith($filePath, ['.js', '.css'])) {
+                    return "<?php Basset::basset({$parameter}); ?>";
                 }
 
-                if (substr($filePath, -4) === '.css') {
-                    return "<?php Basset::echoCss({$parameter}); ?>";
-                }
-
-                // it's a block start
-                return "<?php if(! Basset::isLoaded('{$cleanParameter}')) { Basset::markAsLoaded('{$cleanParameter}'); ?>";
+                // in case it's not js or css, we assume it's a block of code.
+                return "<?php \$bassetBlock = {$parameter}; ob_start(); ?>";
             });
 
             $bladeCompiler->directive('endLoadOnce', function (): string {
-                return '<?php } ?>';
+                return '<?php Basset::bassetBlock($bassetBlock, ob_get_clean()); ?>';
             });
 
             $bladeCompiler->directive('loadStyleOnce', function (string $parameter): string {
-                return "<?php Basset::echoCss({$parameter}); ?>";
+                return "<?php Basset::basset({$parameter}); ?>";
             });
 
             $bladeCompiler->directive('loadScriptOnce', function (string $parameter): string {
-                return "<?php Basset::echoJs({$parameter}); ?>";
+                return "<?php Basset::basset({$parameter}); ?>";
             });
         });
     }
