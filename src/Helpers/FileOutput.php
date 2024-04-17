@@ -70,12 +70,7 @@ class FileOutput
      */
     public function assetPath(string $path): string
     {
-        // if path is not a url or it's local url, we will append the cachebusting
-        if (! Str::startsWith($path, ['http://', 'https://', '://']) || Str::startsWith($path, url(''))) {
-            $path .= $this->cachebusting;
-        }
-
-        $asset = Str::of(asset($path));
+        $asset = Str::of(asset($path.$this->cachebusting));
 
         if ($this->useRelativePaths && $asset->startsWith(url(''))) {
             $asset = $asset->after('//')->after('/')->start('/');
