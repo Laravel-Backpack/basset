@@ -25,4 +25,6 @@ return [
 
     // use relative path
     'relative_paths' => env('BASSET_RELATIVE_PATHS', true),
+
+    'cache_buster' => Backpack\Basset\Helpers\CacheBuster::class,
 ];
