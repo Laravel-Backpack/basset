@@ -5,7 +5,7 @@ namespace Backpack\Basset\Helpers;
 class CacheBuster implements CacheBusterInterface
 {
     /**
-     * Get the cache buster string
+     * Get the cache buster string.
      */
     public static function getCacheBusterString(): string
     {
