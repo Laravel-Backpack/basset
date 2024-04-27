@@ -34,7 +34,7 @@ class LoadingTime
     }
 
     /**
-     * Get total time measured in miliseconds.
+     * Get total time measured in milliseconds.
      *
      * @return float
      */
