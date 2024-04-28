@@ -21,6 +21,6 @@ it('cleans basset block', function ($asset) {
 
     $path = bassetInstance()->getPathHashed($asset, $codeBlock);
 
-    // validate the ouput content
+    // validate the output content
     expect(getStub("$asset.output"))->toBe(disk()->get($path));
 })->with('codeBlock');

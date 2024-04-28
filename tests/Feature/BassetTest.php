@@ -104,7 +104,7 @@ it('does not output when not required', function ($asset) {
     $this->expectOutputString('');
 })->with('cdn');
 
-it('retreives from cache when available', function ($asset) {
+it('retrieves from cache when available', function ($asset) {
     // store the stub in disk
     $generatedPath = bassetInstance()->getPath($asset);
     disk()->put($generatedPath, getStub($asset));

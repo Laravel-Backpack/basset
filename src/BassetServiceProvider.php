@@ -153,7 +153,7 @@ class BassetServiceProvider extends ServiceProvider
             $totalCalls = $basset->loader->getTotalCalls();
             $loadingTime = $basset->loader->getLoadingTime();
 
-            Log::info("Basset run $totalCalls times, with an exeuction time of $loadingTime");
+            Log::info("Basset run $totalCalls times, with an execution time of $loadingTime");
         }
 
         // Save the cache map

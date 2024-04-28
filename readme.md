@@ -21,7 +21,7 @@ That's all you need to do. **Basset will download the file to `storage/app/publi
 Using Basset, you easily internalize and use:
 - files from external URLs (like CDNs)
 - files from internal, but non-public URLs (like the vendor directory)
-- entire archives from external URLs (like Github)
+- entire archives from external URLs (like GitHub)
 - entire directories from local, non-public paths (like other local projects)
 
 No more publishing package files. No more using NPM just to download some files. It's a simple yet effective solution in the age of `HTTP/2` and `HTTP/3`.
@@ -42,7 +42,7 @@ php artisan vendor:publish --provider="Backpack\Basset\BassetServiceProvider"
 > Basset is disabled by default on local environment. If you want to change it, please set `BASSET_DEV_MODE=false` in your env file.
 
 #### Storage Symlink
-Basset uses the `public` disk to store cached assets in a directory that is publicly-accesible. So it needs you to run `php artisan storage:link` to create the symlink. The installation command will create ask to run that, and to add that command to your `composer.json`. That will most likely make it work on your development/staging/production servers. If that's not the case, make sure you create the links manually wherever you need them, with the command `php artisan storage:link`.
+Basset uses the `public` disk to store cached assets in a directory that is publicly-accessible. So it needs you to run `php artisan storage:link` to create the symlink. The installation command will create ask to run that, and to add that command to your `composer.json`. That will most likely make it work on your development/staging/production servers. If that's not the case, make sure you create the links manually wherever you need them, with the command `php artisan storage:link`.
 
 #### Disk
 By default Basset uses the `public` disk. If you're having trouble with the assets not showing up on page, you might have an old Laravel configuration for it. Please make sure your disk is properly setup on `config/filsystems.php` - it should look like [the default one](https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45).
@@ -198,7 +198,7 @@ BASSET_DISK=s3
 BASSET_CACHE_MAP=false
 ```
 
-(optional) Before you deploy to Vapor, you might want to set up S3 on localhost to test that it's working. If you do, [the steps here](https://github.com/Laravel-Backpack/basset/pull/58#issuecomment-1622125991) might help. If you encounter problems with deployment on Vapor (particularly through Github actions) there are some [tips here](https://github.com/Laravel-Backpack/basset/pull/58#issuecomment-1622125991).
+(optional) Before you deploy to Vapor, you might want to set up S3 on localhost to test that it's working. If you do, [the steps here](https://github.com/Laravel-Backpack/basset/pull/58#issuecomment-1622125991) might help. If you encounter problems with deployment on Vapor (particularly through GitHub actions) there are some [tips here](https://github.com/Laravel-Backpack/basset/pull/58#issuecomment-1622125991).
 
 ### FTP / SFTP / ZIP
 
