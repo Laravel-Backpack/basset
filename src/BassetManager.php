@@ -90,12 +90,13 @@ class BassetManager
      * @param  string  $asset
      * @return string
      */
-    public function getPath(string $asset): string
+    public function getPath(string $asset, string $extension = null): string
     {
         return Str::of($this->basePath)
             ->append(str_replace([base_path().'/', base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '', $asset))
             ->before('?')
-            ->replace('/\\', '/');
+            ->replace('/\\', '/')
+            ->finish($extension ?? '');
     }
 
     /**
@@ -138,8 +139,12 @@ class BassetManager
     {
         $this->loader->start();
 
+        if ($extension) {
+            $extension = Str::start($extension, '.');
+        }
+
         // Get asset path
-        $path = $this->getPath(is_string($output) ? $output : $asset);
+        $path = $this->getPath(is_string($output) ? $output : $asset, $extension);
 
         if ($this->isLoaded($path)) {
             return $this->loader->finish(StatusEnum::LOADED);

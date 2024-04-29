@@ -53,6 +53,7 @@ class FileOutput
             return;
         }
 
+        $path = (string) Str::of($path)->finish('.'.$extension);
         echo Blade::render($template, [
             'src' => $this->assetPath($path),
             'args' => $this->prepareAttributes($attributes),
