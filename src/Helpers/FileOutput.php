@@ -36,8 +36,8 @@ class FileOutput
      */
     public function write(string $path, array $attributes = [], string $extension = null): void
     {
-        $extension ??= (string) Str::of($path)->afterLast('.');
-        $extension = Str::afterLast($extension, '.');
+        $extension ??= (string) Str::afterLast($extension, '.');
+
         // map extensions
         $file = match ($extension) {
             'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg' => 'img',
@@ -53,7 +53,7 @@ class FileOutput
             return;
         }
 
-        $path = Str::of($path)->finish('.'.$extension);
+        $path = (string) Str::finish($path, '.'.$extension);
         echo Blade::render($template, [
             'src' => $this->assetPath($path),
             'args' => $this->prepareAttributes($attributes),

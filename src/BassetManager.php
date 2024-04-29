@@ -21,19 +21,13 @@ class BassetManager
     use Traits\ViewPathsTrait;
 
     private FilesystemAdapter $disk;
-
     private array $loaded;
-
     private string $basePath;
-
     private bool $dev = false;
 
     public CacheMap $cacheMap;
-
     public LoadingTime $loader;
-
     public Unarchiver $unarchiver;
-
     public FileOutput $output;
 
     public function __construct()
@@ -145,7 +139,9 @@ class BassetManager
     {
         $this->loader->start();
 
-        $extension = empty($extension) ? $extension : Str::start($extension, '.');
+        if ($extension) {
+            $extension = Str::start($extension, '.');
+        }
 
         // Get asset path
         $path = $this->getPath(is_string($output) ? $output : $asset, $extension);
