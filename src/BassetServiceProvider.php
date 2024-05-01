@@ -110,7 +110,7 @@ class BassetServiceProvider extends ServiceProvider
                 return '<?php Basset::bassetBlock($bassetBlock, ob_get_clean()); ?>';
             });
 
-            // DEPRECATED - Please use `@basset`. Will be completely removed in Backpack v7.
+            // DEPRECATED - Please use `@basset` or `@bassetBlock`. @loadOnce Will be completely removed in Backpack v7.
             $bladeCompiler->directive('loadOnce', function (string $parameter): string {
                 // determine if it's a CSS or JS file
                 $cleanParameter = Str::of($parameter)->trim("'")->trim('"')->trim('`');
@@ -119,9 +119,13 @@ class BassetServiceProvider extends ServiceProvider
                 if (Str::endsWith($filePath, ['.js', '.css'])) {
                     return "<?php Basset::basset({$parameter}); ?>";
                 }
-
-                // in case it's not js or css, we assume it's a block of code.
-                return "<?php \$bassetBlock = {$parameter}; ob_start(); ?>";
+                
+                // in case it's not js or css specifically, we assume it's a block of javascript code.
+                // this is to keep backward compatibility with our previous usage of @loadOnce to load blocks of JS. 
+                // we never used it for css and the recommended way was always to @loadOnce(file.css) or @loadOnce(file.js)
+                // this is a temporary solution until we remove @loadOnce completely.
+                $filePath = Str::of($filePath)->finish('.js')->value();
+                return "<?php \$bassetBlock = '{$filePath}'; ob_start(); ?>";
             });
 
             $bladeCompiler->directive('endLoadOnce', function (): string {

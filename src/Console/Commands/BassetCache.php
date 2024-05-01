@@ -40,6 +40,9 @@ class BassetCache extends Command
     public function handle(): void
     {
         $starttime = microtime(true);
+        /**
+         * @var \Backpack\Basset\BassetManager $basset
+         */
         $basset = app('basset');
 
         $viewPaths = $basset->getViewPaths();
