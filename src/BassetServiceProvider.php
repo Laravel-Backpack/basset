@@ -119,12 +119,13 @@ class BassetServiceProvider extends ServiceProvider
                 if (Str::endsWith($filePath, ['.js', '.css'])) {
                     return "<?php Basset::basset({$parameter}); ?>";
                 }
-                
+
                 // in case it's not js or css specifically, we assume it's a block of javascript code.
-                // this is to keep backward compatibility with our previous usage of @loadOnce to load blocks of JS. 
+                // this is to keep backward compatibility with our previous usage of @loadOnce to load blocks of JS.
                 // we never used it for css and the recommended way was always to @loadOnce(file.css) or @loadOnce(file.js)
                 // this is a temporary solution until we remove @loadOnce completely.
                 $filePath = Str::of($filePath)->finish('.js')->value();
+
                 return "<?php \$bassetBlock = '{$filePath}'; ob_start(); ?>";
             });
 
