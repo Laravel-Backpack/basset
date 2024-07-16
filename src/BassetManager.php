@@ -231,9 +231,22 @@ class BassetManager
      * @param  string  $code
      * @return StatusEnum
      */
-    public function bassetBlock(string $asset, string $code, bool $output = true): StatusEnum
+    public function bassetBlock(string $asset, string $code, bool $output = true, bool $cache = true): StatusEnum
     {
         $this->loader->start();
+
+        // when cache is set to false we will just mark the asset as loaded to avoid
+        // loading the same asset twice and return the raw code to the browser.
+        if($cache === false) {
+            if($this->isloaded($asset)) {
+                return $this->loader->finish(StatusEnum::LOADED);
+            }
+            $this->markAsLoaded($asset);
+            
+            echo $code;
+
+            return $this->loader->finish(StatusEnum::LOADED);
+        }
 
         // Get asset path and url
         $path = $this->getPathHashed($asset, $code);

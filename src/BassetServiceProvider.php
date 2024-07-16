@@ -103,11 +103,16 @@ class BassetServiceProvider extends ServiceProvider
 
             // Basset Code Block
             $bladeCompiler->directive('bassetBlock', function (string $parameter): string {
-                return "<?php \$bassetBlock = {$parameter}; ob_start(); ?>";
+                $parameters = array_map('trim', explode(',', $parameter));
+                $blockName = $parameters[0];
+                // keep cache as true by default when not provided in block definition
+                $cacheOption = $parameters[1] ?? true;
+               
+                return "<?php \$bassetBlock = {$blockName}; \$cache = {$cacheOption}; ob_start(); ?>";
             });
 
             $bladeCompiler->directive('endBassetBlock', function (): string {
-                return '<?php Basset::bassetBlock($bassetBlock, ob_get_clean()); ?>';
+                return '<?php Basset::bassetBlock($bassetBlock, ob_get_clean(), true, $cache); ?>';
             });
 
             // DEPRECATED - Please use `@basset` or `@bassetBlock`. @loadOnce Will be completely removed in Backpack v7.
