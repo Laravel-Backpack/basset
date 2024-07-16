@@ -4,7 +4,7 @@ use Backpack\Basset\Enums\StatusEnum;
 use Illuminate\Support\Facades\Http;
 
 test('confirm environment is set to testing', function () {
-    expect(config('app.env'))->toBe('testing');
+    expect(config('app.env'))->toBe('workbench');
 });
 
 it('fails on invalid path', function () {

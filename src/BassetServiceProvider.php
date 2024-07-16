@@ -130,7 +130,7 @@ class BassetServiceProvider extends ServiceProvider
             });
 
             $bladeCompiler->directive('endLoadOnce', function (): string {
-                return '<?php Basset::bassetBlock($bassetBlock, ob_get_clean()); ?>';
+                return '<?php Basset::bassetBlock($bassetBlock, ob_get_clean(), true, false); ?>';
             });
 
             $bladeCompiler->directive('loadStyleOnce', function (string $parameter): string {
