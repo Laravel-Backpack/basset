@@ -237,12 +237,12 @@ class BassetManager
 
         // when cache is set to false we will just mark the asset as loaded to avoid
         // loading the same asset twice and return the raw code to the browser.
-        if($cache === false) {
-            if($this->isloaded($asset)) {
+        if ($cache === false) {
+            if ($this->isloaded($asset)) {
                 return $this->loader->finish(StatusEnum::LOADED);
             }
             $this->markAsLoaded($asset);
-            
+
             echo $code;
 
             return $this->loader->finish(StatusEnum::LOADED);

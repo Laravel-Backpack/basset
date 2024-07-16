@@ -107,7 +107,7 @@ class BassetServiceProvider extends ServiceProvider
                 $blockName = $parameters[0];
                 // keep cache as true by default when not provided in block definition
                 $cacheOption = $parameters[1] ?? true;
-               
+
                 return "<?php \$bassetBlock = {$blockName}; \$cache = {$cacheOption}; ob_start(); ?>";
             });
 
