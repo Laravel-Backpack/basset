@@ -37,9 +37,9 @@ class FileOutput
      * @param  array  $attributes
      * @return void
      */
-    public function write(string $path, array $attributes = []): void
+    public function write(string $path, array $attributes = [], string $extension = null): void
     {
-        $extension = (string) Str::of($path)->afterLast('.');
+        $extension ??= (string) Str::of($path)->afterLast('.');
 
         // map extensions
         $file = match ($extension) {
@@ -56,6 +56,7 @@ class FileOutput
             return;
         }
 
+        $path = (string) Str::of($path)->finish('.'.$extension);
         echo Blade::render($template, [
             'src' => $this->assetPath($path),
             'args' => $this->prepareAttributes($attributes),
