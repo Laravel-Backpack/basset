@@ -395,7 +395,7 @@ class BassetManager
             }
         }
         // delete the whole temporary folder
-        File::delete($tempDir);
+        File::deleteDirectory($tempDir);
 
         $this->cacheMap->addAsset($asset);
 
