@@ -45,10 +45,36 @@ class BassetInstall extends Command
         }
 
         // check if artisan storage:link command exists
-        $this->addComposerCommand();
+        $this->addGitIgnore();
 
         $this->newLine();
         $this->info('  Done');
+    }
+
+    private function addGitIgnore()
+    {
+        // check if `.gitignore` exists, if not create it and add `public/{basset_folder}` to the ignore list,
+        // otherwise add to the existing `.gitignore` file
+
+        $message = 'Adding public/'.config('backpack.basset.path').' to .gitignore';
+
+        if (! file_exists(base_path('.gitignore'))) {
+            $this->components->task($message, function () {
+                file_put_contents(base_path('.gitignore'), 'public/'.config('backpack.basset.path'));
+            });
+
+            return;
+        }
+
+        if (Str::of(file_get_contents(base_path('.gitignore')))->contains('public/'.config('backpack.basset.path'))) {
+            $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>BASSET PATH ALREADY EXISTS ON GITIGNORE</>');
+
+            return;
+        }
+
+        $this->components->task($message, function () {
+            file_put_contents(base_path('.gitignore'), 'public/'.config('backpack.basset.path'), FILE_APPEND);
+        });
     }
 
     /**
