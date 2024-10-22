@@ -4,16 +4,16 @@ namespace Backpack\Basset\Traits;
 
 trait ViewPathsTrait
 {
-    private static $viewPaths = [];
+    private $viewPaths = [];
 
     /**
      * Initialize view paths.
      *
      * @return void
      */
-    private static function initViewPaths(): void
+    private function initViewPaths(): void
     {
-        self::$viewPaths = config('backpack.basset.view_paths', []);
+        $this->viewPaths = config('backpack.basset.view_paths', []);
     }
 
     /**
@@ -24,10 +24,10 @@ trait ViewPathsTrait
      * @param  string  $path
      * @return void
      */
-    public static function addViewPath(string $path): void
+    public function addViewPath(string $path): void
     {
-        if (! in_array($path, self::$viewPaths)) {
-            self::$viewPaths[] = $path;
+        if (! in_array($path, $this->viewPaths)) {
+            $this->viewPaths[] = $path;
         }
     }
 
@@ -36,8 +36,8 @@ trait ViewPathsTrait
      *
      * @return array
      */
-    public static function getViewPaths(): array
+    public function getViewPaths(): array
     {
-        return self::$viewPaths;
+        return $this->viewPaths;
     }
 }
