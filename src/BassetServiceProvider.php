@@ -68,11 +68,14 @@ class BassetServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Register the service the package provides.
-        $this->app->scoped('basset', fn () => new BassetManager());
-
         // Merge the configuration file.
         $this->mergeConfigFrom(__DIR__.'/config/backpack/basset.php', 'backpack.basset');
+
+        // Load basset disk
+        $this->loadDisk();
+
+        // Register the service the package provides.
+        $this->app->scoped('basset', fn () => new BassetManager());
 
         // Register blade directives
         $this->registerBladeDirectives();
@@ -186,8 +189,8 @@ class BassetServiceProvider extends ServiceProvider
         // should be kept up to date with https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45
         config(['filesystems.disks.basset' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'root' => public_path(config('backpack.basset.path')),
+            'url' => env('APP_URL').'/assets',
             'visibility' => 'public',
             'throw' => false,
         ]]);
