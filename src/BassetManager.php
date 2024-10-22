@@ -25,6 +25,9 @@ class BassetManager
     private array $loaded;
     private string $basePath;
     private bool $dev = false;
+    private array $namedAssets = [];
+    private array $cachedAssets = [];
+
 
     public CacheMap $cacheMap;
     public LoadingTime $loader;
@@ -46,6 +49,9 @@ class BassetManager
         $this->loader = new LoadingTime();
         $this->unarchiver = new Unarchiver();
         $this->output = new FileOutput();
+        if(File::exists(base_path('.bassets'))) {
+            $this->namedAssets = require base_path('.bassets');
+        }
 
         // initialize static view path methods
         $this->initViewPaths();
@@ -62,6 +68,11 @@ class BassetManager
         if (! $this->isLoaded($asset)) {
             $this->loaded[] = $asset;
         }
+    }
+
+    public function namedAssets(array $assets): void
+    {
+
     }
 
     /**
@@ -91,12 +102,28 @@ class BassetManager
      * @param  string  $asset
      * @return string
      */
-    public function getPath(string $asset): string
+    public function getPath(string $asset, $selectedVariants = []): string
     {
+        // if it's not a url, and don't have a file extension, it's a named asset
+        $asset = $this->namedAssets['overwrites'][$asset] ?? $this->namedAssets['package-assets'][$asset] ?? $asset; 
+
+        if(!empty($selectedVariants)) {
+            $asset = $this->applyVariants($asset, $selectedVariants);
+        }
+
         return Str::of($this->basePath)
             ->append(str_replace([base_path().'/', base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '', $asset))
             ->before('?')
             ->replace('/\\', '/');
+    }
+
+    private function applyVariants(string $asset, array $variants): string
+    {
+        foreach($variants as $variantKey => $variantValue) {
+           $asset = str_replace('$'.$variantKey, $variantValue, $asset);
+        }
+
+        return $asset;
     }
 
     /**
@@ -111,7 +138,7 @@ class BassetManager
         $path = $this->getPath($asset);
 
         // get the hash for the content
-        $hash = substr(md5($content), 0, 8);
+        $hash = hash("xxh32", $content);
 
         return preg_replace('/\.(css|js)$/i', "-{$hash}.$1", $path);
     }
@@ -135,12 +162,35 @@ class BassetManager
      * @param  array  $attributes
      * @return StatusEnum
      */
-    public function basset(string $asset, bool|string $output = true, array $attributes = []): StatusEnum
+    public function basset(string $asset, bool|string $output = true, array $attributes = [], array $variants = [], array $selectedVariants = []): StatusEnum
     {
         $this->loader->start();
 
-        // Get asset path
-        $path = $this->getPath(is_string($output) ? $output : $asset);
+        
+        $this->loadAsset($asset, $output, $attributes, $variants, $selectedVariants);
+        
+
+        return $this->loader->finish(StatusEnum::INVALID);
+    }
+
+    public function loadAsset($asset, $output, $attributes, $variants, $selectedVariants)
+    {
+        if(!empty($variants)) {
+            foreach($variants as $variantKey => $variant) {
+                foreach($variant['options'] as $option) {
+                    $selectedVariant = $variant['selectedVariant'] ?? $variant['options'][0];
+                    if($option === $selectedVariant) {
+                        $this->basset($asset, $output, $attributes, selectedVariants: [$variantKey => $selectedVariant]);
+                    }else{
+                        $this->basset($asset, false, $attributes, selectedVariants: [$variantKey => $selectedVariant]);
+                    }
+                }
+            }
+            return;
+        }
+
+         // Get asset path
+        $path = $this->getPath(is_string($output) ? $output : $asset, $selectedVariants);
 
         if ($this->isLoaded($path)) {
             return $this->loader->finish(StatusEnum::LOADED);
