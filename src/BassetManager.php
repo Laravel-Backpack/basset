@@ -59,7 +59,7 @@ class BassetManager
         if (File::exists(base_path('.bassets'))) {
             $packageAssets = require base_path('.bassets');
 
-            if(File::exists(base_path('.bassets-overwrites'))) {
+            if (File::exists(base_path('.bassets-overwrites'))) {
                 $overwrites = require base_path('.bassets-overwrites');
             } else {
                 $overwrites = [];
@@ -204,7 +204,7 @@ class BassetManager
         foreach ($combinations as $combination) {
             $isSelected = array_reduce(array_keys($combination), fn ($carry, $key) => $carry && $combination[$key] === $selectedVariants[$key], true);
             $variantsArray[] = [
-                'asset'       => $this->applyVariant($asset, $combination),
+                'asset' => $this->applyVariant($asset, $combination),
                 'is_selected' => $isSelected,
             ];
         }
