@@ -44,7 +44,7 @@ class BassetCache extends Command
         $viewPaths = Basset::getViewPaths();
 
         $this->line('Looking for bassets under the following directories:');
-        //dd(eval("return '[]';"));
+
         // Find bassets
         $totalFiles = 0;
         $bassets = collect($viewPaths)
@@ -121,7 +121,6 @@ class BassetCache extends Command
             try {
                 $result = Basset::{$type}(...$args)->value;
             } catch (Throwable $th) {
-                dd($th);
                 $result = StatusEnum::INVALID->value;
             }
 
