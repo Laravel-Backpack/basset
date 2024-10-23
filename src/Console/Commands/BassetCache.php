@@ -65,7 +65,7 @@ class BassetCache extends Command
                 // Map all bassets
                 $content = File::get($file);
                 preg_match_all('/(?:Basset::|@)(basset|bassetArchive|bassetDirectory)\((.+)\)/', $content, $matches);
-                
+
                 $matches[2] = collect($matches[2])
                 ->map(function ($match) {
                     $args = [];
@@ -87,11 +87,12 @@ class BassetCache extends Command
                     if ($currentArg !== '') {
                         $args[] = $currentArg;
                     }
-                    
+
                     return collect($args)
-                        ->map(function($arg) {
+                        ->map(function ($arg) {
                             $arg = trim($arg);
                             $evaled = eval("return $arg;");
+
                             return $evaled !== null ? $evaled : false;
                         })
                         ->toArray();
@@ -113,7 +114,7 @@ class BassetCache extends Command
         $bar->start();
         // Cache the bassets
         $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar) {
-            $type = Str::of($type)->after('@')->before('(')->value ;
+            $type = Str::of($type)->after('@')->before('(')->value;
             // Force output of basset to be false
             if ($type === 'basset') {
                 $args[1] = false;
