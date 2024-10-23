@@ -8,8 +8,10 @@ return [
     'verify_ssl_certificate' => env('BASSET_VERIFY_SSL_CERTIFICATE', true),
 
     // disk and path where to store bassets
-    'disk' => env('BASSET_DISK', 'public'),
-    'path' => 'basset',
+    'disk' => env('BASSET_DISK', 'basset'),
+
+    // the path where assets will be stored inside the `public` folder
+    'path' => env('BASSET_PATH', 'bassets'),
 
     // use cache map file (.basset)
     'cache_map' => env('BASSET_CACHE_MAP', true),

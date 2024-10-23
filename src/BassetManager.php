@@ -22,13 +22,23 @@ class BassetManager
     use Traits\ViewPathsTrait;
 
     private FilesystemAdapter $disk;
+
     private array $loaded;
+
     private string $basePath;
+
     private bool $dev = false;
 
+    private array $namedAssets = [];
+
+    private array $cachedAssets = [];
+
     public CacheMap $cacheMap;
+
     public LoadingTime $loader;
+
     public Unarchiver $unarchiver;
+
     public FileOutput $output;
 
     public function __construct()
@@ -37,7 +47,6 @@ class BassetManager
 
         /** @var FilesystemAdapter */
         $disk = Storage::disk(config('backpack.basset.disk'));
-
         $this->disk = $disk;
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
         $this->dev = config('backpack.basset.dev_mode', false);
@@ -47,8 +56,25 @@ class BassetManager
         $this->unarchiver = new Unarchiver();
         $this->output = new FileOutput();
 
+        if (File::exists(base_path('.bassets'))) {
+            $packageAssets = require base_path('.bassets');
+
+            if (File::exists(base_path('.bassets-overwrites'))) {
+                $overwrites = require base_path('.bassets-overwrites');
+            } else {
+                $overwrites = [];
+            }
+
+            $this->namedAssets = array_merge($packageAssets, $overwrites);
+        }
+
         // initialize static view path methods
         $this->initViewPaths();
+    }
+
+    public function cacheMap(): CacheMap
+    {
+        return $this->cacheMap;
     }
 
     /**
@@ -62,6 +88,10 @@ class BassetManager
         if (! $this->isLoaded($asset)) {
             $this->loaded[] = $asset;
         }
+    }
+
+    public function namedAssets(array $assets): void
+    {
     }
 
     /**
@@ -93,10 +123,20 @@ class BassetManager
      */
     public function getPath(string $asset): string
     {
+        // if it's not a url, and don't have a file extension, it's a named asset
         return Str::of($this->basePath)
             ->append(str_replace([base_path().'/', base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '', $asset))
             ->before('?')
             ->replace('/\\', '/');
+    }
+
+    private function applyVariants(string $asset, array $variants): string
+    {
+        foreach ($variants as $variantKey => $variantValue) {
+            $asset = str_replace('$'.$variantKey, $variantValue, $asset);
+        }
+
+        return $asset;
     }
 
     /**
@@ -111,7 +151,7 @@ class BassetManager
         $path = $this->getPath($asset);
 
         // get the hash for the content
-        $hash = substr(md5($content), 0, 8);
+        $hash = hash('xxh32', $content);
 
         return preg_replace('/\.(css|js)$/i', "-{$hash}.$1", $path);
     }
@@ -135,13 +175,71 @@ class BassetManager
      * @param  array  $attributes
      * @return StatusEnum
      */
-    public function basset(string $asset, bool|string $output = true, array $attributes = []): StatusEnum
+    public function basset(string $asset, bool|string $output = true, array $attributes = [], array $variants = []): StatusEnum
     {
         $this->loader->start();
 
+        $asset = $this->namedAssets[$asset] ?? $asset;
+
+        return $this->loadAsset($asset, $output, $attributes, $variants);
+    }
+
+    public function buildVariantsArray($asset, $variants): array
+    {
+        $variantsArray = [];
+
+        $selectedVariants = array_map(fn ($variant) => $variant['selectedVariant'] ?? $variant['options'][0], $variants);
+
+        $combinations = [[]];
+        foreach ($variants as $variantKey => $variant) {
+            $newCombinations = [];
+            foreach ($combinations as $combination) {
+                foreach ($variant['options'] as $option) {
+                    $newCombinations[] = array_merge($combination, [$variantKey => $option]);
+                }
+            }
+            $combinations = $newCombinations;
+        }
+
+        foreach ($combinations as $combination) {
+            $isSelected = array_reduce(array_keys($combination), fn ($carry, $key) => $carry && $combination[$key] === $selectedVariants[$key], true);
+            $variantsArray[] = [
+                'asset' => $this->applyVariant($asset, $combination),
+                'is_selected' => $isSelected,
+            ];
+        }
+
+        return $variantsArray;
+    }
+
+    public function applyVariant($asset, $variant)
+    {
+        foreach ($variant as $variantKey => $variantValue) {
+            $asset = str_replace('$'.$variantKey, $variantValue, $asset);
+        }
+
+        return $asset;
+    }
+
+    public function loadAsset($asset, $output, $attributes, $variants)
+    {
+        if (! empty($variants)) {
+            $variants = $this->buildVariantsArray($asset, $variants);
+            foreach ($variants as $variant) {
+                if ($variant['is_selected']) {
+                    // if the variant is selected, we should respect the output given by developer
+                    $this->loadAsset($variant['asset'], $output, $attributes, []);
+                } else {
+                    // in case it's not selected, we are sure we want to not output it, just cache the fiile
+                    $this->loadAsset($variant['asset'], false, $attributes, []);
+                }
+            }
+
+            return $this->loader->finish(StatusEnum::LOADED);
+        }
+
         // Get asset path
         $path = $this->getPath(is_string($output) ? $output : $asset);
-
         if ($this->isLoaded($path)) {
             return $this->loader->finish(StatusEnum::LOADED);
         }
@@ -217,7 +315,6 @@ class BassetManager
 
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
-
         // Fallback to the CDN/path
         $output && $this->output->write($asset, $attributes);
 
@@ -313,7 +410,6 @@ class BassetManager
 
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
-
         // Fallback to the code
         echo $code;
 
