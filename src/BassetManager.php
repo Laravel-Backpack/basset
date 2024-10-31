@@ -79,7 +79,7 @@ class BassetManager
     public function map(string $asset, string $source, array $attributes = []): void
     {
         $this->assetList[$asset] = [
-            'source'     => $source,
+            'source' => $source,
             'attributes' => $attributes,
         ];
     }
