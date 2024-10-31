@@ -22,6 +22,8 @@ return [
         resource_path('views'),
     ],
 
+    'assets' => App\Assets::class,
+
     // content security policy nonce
     'nonce' => null,
 

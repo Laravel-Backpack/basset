@@ -29,9 +29,7 @@ class BassetManager
 
     private bool $dev = false;
 
-    private array $namedAssets = [];
-
-    private array $cachedAssets = [];
+    private array $assetList = [];
 
     public CacheMap $cacheMap;
 
@@ -56,18 +54,6 @@ class BassetManager
         $this->unarchiver = new Unarchiver();
         $this->output = new FileOutput();
 
-        if (File::exists(base_path('.bassets'))) {
-            $packageAssets = require base_path('.bassets');
-
-            if (File::exists(base_path('.bassets-overwrites'))) {
-                $overwrites = require base_path('.bassets-overwrites');
-            } else {
-                $overwrites = [];
-            }
-
-            $this->namedAssets = array_merge($packageAssets, $overwrites);
-        }
-
         // initialize static view path methods
         $this->initViewPaths();
     }
@@ -90,8 +76,12 @@ class BassetManager
         }
     }
 
-    public function namedAssets(array $assets): void
+    public function map(string $asset, string $source, array $attributes = []): void
     {
+        $this->assetList[$asset] = [
+            'source'     => $source,
+            'attributes' => $attributes,
+        ];
     }
 
     /**
@@ -128,15 +118,6 @@ class BassetManager
             ->append(str_replace([base_path().'/', base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '', $asset))
             ->before('?')
             ->replace('/\\', '/');
-    }
-
-    private function applyVariants(string $asset, array $variants): string
-    {
-        foreach ($variants as $variantKey => $variantValue) {
-            $asset = str_replace('$'.$variantKey, $variantValue, $asset);
-        }
-
-        return $asset;
     }
 
     /**
@@ -179,67 +160,21 @@ class BassetManager
     {
         $this->loader->start();
 
-        $asset = $this->namedAssets[$asset] ?? $asset;
+        $asset = $this->assetList[$asset] ?? $asset;
 
-        return $this->loadAsset($asset, $output, $attributes, $variants);
+        if (is_array($asset)) {
+            $asset = $asset['source'];
+            $attributes = array_merge($attributes, $asset['attributes']);
+        }
+
+        return $this->loadAsset($asset, $output, $attributes);
     }
 
-    public function buildVariantsArray($asset, $variants): array
+    public function loadAsset($asset, $output, $attributes)
     {
-        $variantsArray = [];
-
-        $selectedVariants = array_map(fn ($variant) => $variant['selectedVariant'] ?? $variant['options'][0], $variants);
-
-        $combinations = [[]];
-        foreach ($variants as $variantKey => $variant) {
-            $newCombinations = [];
-            foreach ($combinations as $combination) {
-                foreach ($variant['options'] as $option) {
-                    $newCombinations[] = array_merge($combination, [$variantKey => $option]);
-                }
-            }
-            $combinations = $newCombinations;
-        }
-
-        foreach ($combinations as $combination) {
-            $isSelected = array_reduce(array_keys($combination), fn ($carry, $key) => $carry && $combination[$key] === $selectedVariants[$key], true);
-            $variantsArray[] = [
-                'asset' => $this->applyVariant($asset, $combination),
-                'is_selected' => $isSelected,
-            ];
-        }
-
-        return $variantsArray;
-    }
-
-    public function applyVariant($asset, $variant)
-    {
-        foreach ($variant as $variantKey => $variantValue) {
-            $asset = str_replace('$'.$variantKey, $variantValue, $asset);
-        }
-
-        return $asset;
-    }
-
-    public function loadAsset($asset, $output, $attributes, $variants)
-    {
-        if (! empty($variants)) {
-            $variants = $this->buildVariantsArray($asset, $variants);
-            foreach ($variants as $variant) {
-                if ($variant['is_selected']) {
-                    // if the variant is selected, we should respect the output given by developer
-                    $this->loadAsset($variant['asset'], $output, $attributes, []);
-                } else {
-                    // in case it's not selected, we are sure we want to not output it, just cache the fiile
-                    $this->loadAsset($variant['asset'], false, $attributes, []);
-                }
-            }
-
-            return $this->loader->finish(StatusEnum::LOADED);
-        }
-
         // Get asset path
         $path = $this->getPath(is_string($output) ? $output : $asset);
+
         if ($this->isLoaded($path)) {
             return $this->loader->finish(StatusEnum::LOADED);
         }
