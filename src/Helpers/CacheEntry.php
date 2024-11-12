@@ -31,8 +31,8 @@ final class CacheEntry implements Arrayable, JsonSerializable
     public function assetPath(string $assetPath): self
     {
         $this->assetPath = $assetPath;
-        
-        if(!isset($this->assetDiskPath) && $this->disk->exists($this->getPathOnDisk($assetPath))) {
+
+        if (! isset($this->assetDiskPath) && $this->disk->exists($this->getPathOnDisk($assetPath))) {
             $this->assetDiskPath = $assetPath;
         }
 
@@ -81,10 +81,10 @@ final class CacheEntry implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         return [
-            'asset_name'      => $this->assetName,
-            'asset_path'      => $this->assetPath,
+            'asset_name' => $this->assetName,
+            'asset_path' => $this->assetPath,
             'asset_disk_path' => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
-            'attributes'      => $this->attributes,
+            'attributes' => $this->attributes,
         ];
     }
 

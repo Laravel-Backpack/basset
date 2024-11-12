@@ -79,6 +79,7 @@ class BassetCache extends Command
                             })
                             ->toArray()
                     );
+
                 return collect($matches[1])->map(fn (string $type, int $i) => [$type, $matches[2][$i]]);
             });
         $totalBassets = count($bassets);
@@ -95,7 +96,7 @@ class BassetCache extends Command
         $bar->start();
         // Cache the bassets
         $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar, &$internalized) {
-            if($args[0] === false) {
+            if ($args[0] === false) {
                 return;
             }
             $type = Str::of($type)->after('@')->before('(')->value;
@@ -104,9 +105,8 @@ class BassetCache extends Command
                 $args[1] = false;
             }
 
-            
             try {
-                if(in_array($type, ['basset', 'bassetArchive', 'bassetDirectory', 'bassetBlock'])) {
+                if (in_array($type, ['basset', 'bassetArchive', 'bassetDirectory', 'bassetBlock'])) {
                     $result = Basset::{$type}(...$args)->value;
                 }
             } catch (Throwable $th) {
@@ -114,7 +114,7 @@ class BassetCache extends Command
                 $result = StatusEnum::INVALID->value;
             }
 
-            if($result !== StatusEnum::INVALID->value) {
+            if ($result !== StatusEnum::INVALID->value) {
                 $internalized[] = $args[0];
             }
 
