@@ -39,6 +39,8 @@ class BassetCache extends Command
      */
     public function handle(): void
     {
+        $internalized = [];
+
         $starttime = microtime(true);
 
         $viewPaths = Basset::getViewPaths();
@@ -64,40 +66,19 @@ class BassetCache extends Command
             ->flatMap(function (string $file) {
                 // Map all bassets
                 $content = File::get($file);
-                preg_match_all('/(?:Basset::|@)(basset|bassetArchive|bassetDirectory)\((.+)\)/', $content, $matches);
-
+                preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\((.+)\)/', $content, $matches);
+                //dump($matches[2]);
                 $matches[2] = collect($matches[2])
-                ->map(function ($match) {
-                    $args = [];
-                    $depth = 0;
-                    $currentArg = '';
-                    foreach (str_split($match) as $char) {
-                        if ($char === ',' && $depth === 0) {
-                            $args[] = $currentArg;
-                            $currentArg = '';
-                        } else {
-                            if (in_array($char, ['(', '['])) {
-                                $depth++;
-                            } elseif (in_array($char, [')', ']'])) {
-                                $depth--;
-                            }
-                            $currentArg .= $char;
-                        }
-                    }
-                    if ($currentArg !== '') {
-                        $args[] = $currentArg;
-                    }
-
-                    return collect($args)
-                        ->map(function ($arg) {
-                            $arg = trim($arg);
-                            $evaled = eval("return $arg;");
-
-                            return $evaled !== null ? $evaled : false;
-                        })
-                        ->toArray();
-                });
-
+                    ->map(fn ($match) => collect(explode(',', $match))
+                            ->map(function ($arg) {
+                                try {
+                                    return eval("return $arg;");
+                                } catch (Throwable $th) {
+                                    return false;
+                                }
+                            })
+                            ->toArray()
+                    );
                 return collect($matches[1])->map(fn (string $type, int $i) => [$type, $matches[2][$i]]);
             });
         $totalBassets = count($bassets);
@@ -113,16 +94,28 @@ class BassetCache extends Command
         $bar = $this->output->createProgressBar($totalBassets);
         $bar->start();
         // Cache the bassets
-        $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar) {
+        $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar, &$internalized) {
+            if($args[0] === false) {
+                return;
+            }
             $type = Str::of($type)->after('@')->before('(')->value;
             // Force output of basset to be false
             if ($type === 'basset') {
                 $args[1] = false;
             }
+
+            
             try {
-                $result = Basset::{$type}(...$args)->value;
+                if(in_array($type, ['basset', 'bassetArchive', 'bassetDirectory', 'bassetBlock'])) {
+                    $result = Basset::{$type}(...$args)->value;
+                }
             } catch (Throwable $th) {
+                dd($th);
                 $result = StatusEnum::INVALID->value;
+            }
+
+            if($result !== StatusEnum::INVALID->value) {
+                $internalized[] = $args[0];
             }
 
             if ($this->getOutput()->isVerbose()) {
@@ -134,6 +127,9 @@ class BassetCache extends Command
             }
         });
 
+        // we will not loop through the bassets that are in the named map, and internalize any that our script hasn't internalized yet
+        $namedAssets = Basset::getNamedAssets();
+        dd($namedAssets, $internalized);
         // Save the cache map
         Basset::cacheMap()->save();
 
