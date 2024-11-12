@@ -37,16 +37,16 @@ class FileOutput
      * @param  array  $attributes
      * @return void
      */
-    public function write(string $path, array $attributes = []): void
+    public function write(CacheEntry $asset): void
     {
-        $extension = (string) Str::of($path)->afterLast('.');
+        $extension = (string) Str::of($asset->getAssetDiskPath())->afterLast('.');
 
         // map extensions
         $file = match ($extension) {
             'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg' => 'img',
             'mp3', 'ogg', 'wav', 'mp4', 'webm', 'avi' => 'source',
-            'pdf' => 'object',
-            'vtt' => 'track',
+            'pdf'   => 'object',
+            'vtt'   => 'track',
             default => $extension
         };
 
@@ -57,8 +57,8 @@ class FileOutput
         }
 
         echo Blade::render($template, [
-            'src' => $this->assetPath($path),
-            'args' => $this->prepareAttributes($attributes),
+            'src'  => $this->assetPath($asset->getAssetDiskPath()),
+            'args' => $this->prepareAttributes($asset->getAttributes()),
         ]);
     }
 

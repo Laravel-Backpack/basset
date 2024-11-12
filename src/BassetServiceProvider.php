@@ -186,14 +186,13 @@ class BassetServiceProvider extends ServiceProvider
         }
 
         // add the basset disk to filesystem configuration
-        // should be kept up to date with https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45
-        config(['filesystems.disks.basset' => [
-            'driver' => 'local',
-            'root' => public_path(),
-            'url' => env('APP_URL').'/assets',
+        app()->config['filesystems.disks.basset'] = [
+            'driver'     => 'local',
+            'root'       => public_path(),
+            'url'        => env('APP_URL').'/',
             'visibility' => 'public',
-            'throw' => false,
-        ]]);
+            'throw'      => false,
+        ];
     }
 
     /**
