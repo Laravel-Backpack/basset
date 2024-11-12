@@ -79,7 +79,7 @@ class BassetManager
     public function map(string $asset, string $source, array $attributes = []): void
     {
         $this->namedAssets[$asset] = [
-            'source'     => $source,
+            'source' => $source,
             'attributes' => $attributes,
         ];
     }
@@ -175,6 +175,7 @@ class BassetManager
         $cacheEntry->assetName($asset)
                     ->assetPath($asset)
                     ->attributes($attributes);
+
         return $this->loadAsset($cacheEntry, $output);
     }
 
@@ -185,6 +186,7 @@ class BassetManager
 
         if ($this->isLoaded($asset)) {
             dd('loaded');
+
             return $this->loader->finish(StatusEnum::LOADED);
         }
 
@@ -240,7 +242,7 @@ class BassetManager
         } else {
             // clean local asset
             //$asset = Str::before($asset, '?');
-   
+
             if (! $asset->existsOnDisk()) {
                 return $this->loader->finish(StatusEnum::INVALID);
             }
