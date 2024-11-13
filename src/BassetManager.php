@@ -28,7 +28,9 @@ class BassetManager
 
     private string $basePath;
 
-    private bool $dev = false;
+    private bool $dev;
+
+    private bool $forceUrlCache;
 
     private array $namedAssets = [];
 
@@ -49,6 +51,7 @@ class BassetManager
         $this->disk = $disk;
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
         $this->dev = config('backpack.basset.dev_mode', false);
+        $this->forceUrlCache = config('backpack.basset.force_url_cache', false);
 
         $this->cacheMap = new CacheMap($this->disk, $this->basePath);
         $this->loader = new LoadingTime();
@@ -69,17 +72,22 @@ class BassetManager
      *
      * @return void
      */
-    public function markAsLoaded(CacheEntry $asset): void
+    public function markAsLoaded(CacheEntry|string $asset): void
     {
+        if(is_string($asset)) {
+            $asset = isset($this->namedAssets[$asset]) ? $this->namedAssets[$asset] : [$asset => ['source' => $asset]];
+            $asset = (new CacheEntry($this->basePath))->assetName($asset)->assetPath($asset['source']);
+        }
+
         if (! $this->isLoaded($asset)) {
-            $this->loaded[$asset->getAssetName()] = $asset;
+            $this->loaded[$asset->getAssetName()] = $asset->toArray();
         }
     }
 
     public function map(string $asset, string $source, array $attributes = []): void
     {
         $this->namedAssets[$asset] = [
-            'source' => $source,
+            'source'     => $source,
             'attributes' => $attributes,
         ];
     }
@@ -96,7 +104,7 @@ class BassetManager
      */
     public function isLoaded(CacheEntry $asset): bool
     {
-        return in_array($asset->getAssetName(), $this->loaded);
+        return in_array($asset->getAssetName(), array_keys($this->loaded));
     }
 
     /**
@@ -106,7 +114,7 @@ class BassetManager
      */
     public function loaded(): array
     {
-        return $this->loaded;
+        return array_keys($this->loaded);
     }
 
     /**
@@ -148,6 +156,12 @@ class BassetManager
      */
     public function getUrl(string $asset): string
     {
+        if(isset($this->namedAssets[$asset])) {
+            if($this->dev) {
+                return $this->namedAssets[$asset]['source'];
+            }
+            return $this->disk->url($this->getPath($this->namedAssets[$asset]['source']));
+        }
         return $this->disk->url($this->getPath($asset));
     }
 
@@ -162,7 +176,7 @@ class BassetManager
     public function basset(string $asset, bool|string $output = true, array $attributes = []): StatusEnum
     {
         $this->loader->start();
-        $cacheEntry = new CacheEntry($this->disk, $this->basePath);
+        $cacheEntry = new CacheEntry($this->basePath);
 
         if (isset($this->namedAssets[$asset])) {
             $cacheEntry->assetName($asset)
@@ -181,12 +195,7 @@ class BassetManager
 
     public function loadAsset(CacheEntry $asset, $output)
     {
-        // Get asset path
-        $path = $this->getPath(is_string($output) ? $output : $asset->getAssetPath());
-
         if ($this->isLoaded($asset)) {
-            dd('loaded');
-
             return $this->loader->finish(StatusEnum::LOADED);
         }
 
@@ -196,16 +205,16 @@ class BassetManager
         /** var CacheEntry $mapped */
         $mapped = $this->cacheMap->getAsset($asset);
 
-        if ($mapped && ! $this->dev) {
+        if ($mapped && (! $this->dev || $this->forceUrlCache)) {
             $output && $this->output->write($mapped);
 
             return $this->loader->finish(StatusEnum::IN_CACHE);
         }
 
-        // Validate the asset is an absolute path or a CDN
-        if (! str_starts_with($asset->getAssetName(), base_path()) && ! Str::isUrl($asset->getAssetName())) {
+         // Validate the asset is an absolute path or a CDN
+        if (! str_starts_with($asset->getAssetPath(), base_path()) && ! Str::isUrl($asset->getAssetPath())) {
             // may be an internalized asset (folder or zip)
-            if ($this->disk->exists($path)) {
+            if ($asset->existsOnDisk($this->disk)) {
                 $output && $this->output->write($asset);
 
                 return $this->loader->finish(StatusEnum::IN_CACHE);
@@ -217,12 +226,9 @@ class BassetManager
             return $this->loader->finish(StatusEnum::INVALID);
         }
 
-        // Get asset url
-        $url = $this->disk->url($path);
-
         // Check if asset exists in basset folder
         // (ignores cache if in dev mode)
-        if ($asset->existsOnDisk() && ! $this->dev) {
+        if ($asset->existsOnDisk($this->disk) && ! $this->dev) {
             $output && $this->output->write($asset);
             $this->cacheMap->addAsset($asset);
 
@@ -230,26 +236,23 @@ class BassetManager
         }
 
         // Download/copy file
-        if (Str::isUrl($asset->getAssetName())) {
+        if (Str::isUrl($asset->getAssetPath())) {
             // when in dev mode, cdn should be rendered
-            if ($this->dev) {
-                $output && $this->output->write($asset);
+            if ($this->dev && ! $this->forceUrlCache) {
+                $output && $this->output->write($asset, $this->dev);
 
                 return $this->loader->finish(StatusEnum::DISABLED);
             }
 
             $content = $this->fetchContent($asset->getAssetPath());
         } else {
-            // clean local asset
-            //$asset = Str::before($asset, '?');
-
-            if (! $asset->existsOnDisk()) {
+            if (! $asset->existsOnLocalPath()) {
                 return $this->loader->finish(StatusEnum::INVALID);
             }
-            $content = File::get($asset);
+            $content = File::get($asset->getAssetPath());
         }
 
-        $result = $this->disk->put($path, $content, 'public');
+        $result = $this->disk->put($asset->getAssetDiskPath(), $content, 'public');
 
         if ($result) {
             $output && $this->output->write($asset);
@@ -259,7 +262,7 @@ class BassetManager
 
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
-
+      
         // Fallback to the CDN/path
         $output && $this->output->write($asset);
 
@@ -276,6 +279,7 @@ class BassetManager
     public function bassetBlock(string $asset, string $code, bool $output = true, bool $cache = true): StatusEnum
     {
         $this->loader->start();
+        $asset = (new CacheEntry($this->basePath))->assetName($asset)->assetPath($asset);
 
         // when cache is set to false we will just mark the asset as loaded to avoid
         // loading the same asset twice and return the raw code to the browser.
@@ -291,13 +295,13 @@ class BassetManager
         }
 
         // Get asset path and url
-        $path = $this->getPathHashed($asset, $code);
+        $path = $this->getPathHashed($asset->getAssetPath(), $code);
 
-        if ($this->isLoaded($path)) {
+        if ($this->isLoaded($asset)) {
             return $this->loader->finish(StatusEnum::LOADED);
         }
 
-        $this->markAsLoaded($path);
+        $this->markAsLoaded($asset);
 
         // fallback to code on dev mode
         if ($this->dev) {
@@ -314,13 +318,10 @@ class BassetManager
             return $this->loader->finish(StatusEnum::IN_CACHE);
         }
 
-        // Get asset url
-        $url = $this->disk->url($path);
-
         // Check if asset exists in basset folder
-        if ($this->disk->exists($path)) {
-            $output && $this->output->write($url);
-            $this->cacheMap->addAsset($asset, $url);
+        if ($asset->existsOnDisk($this->disk)) {
+            $output && $this->output->write($asset);
+            $this->cacheMap->addAsset($asset);
 
             return $this->loader->finish(StatusEnum::IN_CACHE);
         }
@@ -336,10 +337,10 @@ class BassetManager
         $cleanCode = preg_replace('/^'.($matches[0] ?? '').'/m', '', $cleanCode);
 
         // Store the file
-        $result = $this->disk->put($path, $cleanCode, 'public');
+        $result = $this->disk->put($asset->getAssetDiskPath(), $cleanCode, 'public');
 
         // Delete old hashed files
-        $dir = Str::beforeLast($path, '/');
+        $dir = Str::beforeLast($asset->getAssetDiskPath(), '/');
         $pattern = '\/'.Str::afterLast(preg_replace('/\w{8}\.(css|js)$/i', '\w{8}.$1', $path), '/');
 
         collect($this->disk->files($dir))
@@ -348,10 +349,10 @@ class BassetManager
 
         // Output result
         if ($result) {
-            $output && $this->output->write($url);
-            $this->cacheMap->addAsset($asset, $url);
+            $output && $this->output->write($asset);
+            $this->cacheMap->addAsset($asset);
 
-            BassetCachedEvent::dispatch($asset);
+            BassetCachedEvent::dispatch($asset->getAssetPath());
 
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
@@ -371,7 +372,7 @@ class BassetManager
     public function bassetArchive(string $asset, string $output): StatusEnum
     {
         $this->loader->start();
-        $cacheEntry = (new CacheEntry($this->disk, $this->basePath))->assetName($asset)->assetPath($asset);
+        $cacheEntry = (new CacheEntry($this->basePath))->assetName($asset)->assetPath($asset);
 
         // get local output path
         $path = $this->getPath($output);
@@ -412,7 +413,7 @@ class BassetManager
         // local zip file
         if (File::isFile($cacheEntry->getAssetPath())) {
             // check if directory exists
-            if ($cacheEntry->existsOnDisk() && ! $this->dev) {
+            if ($cacheEntry->existsOnDisk($this->disk) && ! $this->dev) {
                 return $this->loader->finish(StatusEnum::IN_CACHE);
             }
 

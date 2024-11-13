@@ -32,15 +32,7 @@ class CacheMap
         $this->filePath = $this->disk->path($this->basePath.'.basset');
 
         if (File::exists($this->filePath)) {
-            $jsonFile = json_decode(File::get($this->filePath), true);
-            //dd($jsonFile);
-            foreach ($jsonFile as $assetName => $asset) {
-                $this->map[$assetName] = (new CacheEntry($this->disk, $this->basePath))
-                    ->assetName($asset['asset_name'])
-                    ->assetPath($asset['asset_path'])
-                    ->assetDiskPath($asset['asset_disk_path'])
-                    ->attributes($asset['attributes']);
-            }
+            $this->map = json_decode(File::get($this->filePath), true);
         }
     }
 
@@ -70,10 +62,7 @@ class CacheMap
             return;
         }
 
-        // Clean both asset and path
-        //$asset = $this->normalizeAsset($asset);
-
-        $this->map[$asset->getAssetName()] = $asset;
+        $this->map[$asset->getAssetName()] = $asset->toArray();
         $this->isDirty = true;
     }
 
@@ -84,24 +73,10 @@ class CacheMap
      */
     public function getAsset(CacheEntry $asset): CacheEntry|false
     {
-        // Clean asset path
-        //$asset = $this->normalizeAsset($asset);
-
         if (! $this->isActive || ! ($this->map[$asset->getAssetName()] ?? false)) {
             return false;
         }
 
         return $this->map[$asset->getAssetName()];
-    }
-
-    /**
-     * Normalize asset path to remove unwanted system paths.
-     *
-     * @param  string  $asset
-     * @return string
-     */
-    private function normalizeAsset(string $asset): string
-    {
-        return (string) Str::of($asset)->after(base_path())->trim('/\\');
     }
 }

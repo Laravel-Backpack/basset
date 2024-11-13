@@ -20,8 +20,8 @@ class BassetServiceProvider extends ServiceProvider
         Console\Commands\BassetClear::class,
         Console\Commands\BassetCheck::class,
         Console\Commands\BassetInstall::class,
-        Console\Commands\BassetInternalize::class,
         Console\Commands\BassetFresh::class,
+        Console\Commands\BassetNamedAssetsList::class,
     ];
 
     /**
