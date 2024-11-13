@@ -4,6 +4,7 @@ namespace Backpack\Basset\Helpers;
 
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use JsonSerializable;
 
@@ -17,7 +18,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
 
     private array $attributes = [];
 
-    public function __construct(private Filesystem $disk, private string $basePath)
+    public function __construct(private string $basePath)
     {
     }
 
@@ -32,8 +33,8 @@ final class CacheEntry implements Arrayable, JsonSerializable
     {
         $this->assetPath = $assetPath;
 
-        if (! isset($this->assetDiskPath) && $this->disk->exists($this->getPathOnDisk($assetPath))) {
-            $this->assetDiskPath = $assetPath;
+        if (! isset($this->assetDiskPath)) {
+            $this->assetDiskPath = $this->getPathOnDisk($assetPath);
         }
 
         return $this;
@@ -73,18 +74,23 @@ final class CacheEntry implements Arrayable, JsonSerializable
         return $this->assetName;
     }
 
-    public function existsOnDisk()
+    public function existsOnDisk(Filesystem $disk): bool
     {
-        return isset($this->assetDiskPath) && $this->disk->exists($this->assetDiskPath);
+        return isset($this->assetDiskPath) && $disk->exists($this->assetDiskPath);
+    }
+
+    public function existsOnLocalPath()
+    {
+        return File::exists($this->assetPath);
     }
 
     public function toArray(): array
     {
         return [
-            'asset_name' => $this->assetName,
-            'asset_path' => $this->assetPath,
+            'asset_name'      => $this->assetName,
+            'asset_path'      => $this->assetPath,
             'asset_disk_path' => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
-            'attributes' => $this->attributes,
+            'attributes'      => $this->attributes,
         ];
     }
 

@@ -40,6 +40,7 @@ class BassetCache extends Command
     public function handle(): void
     {
         $internalized = [];
+        $failedToInternalize = [];
 
         $starttime = microtime(true);
 
@@ -95,7 +96,7 @@ class BassetCache extends Command
         $bar = $this->output->createProgressBar($totalBassets);
         $bar->start();
         // Cache the bassets
-        $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar, &$internalized) {
+        $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar, &$internalized, &$failedToInternalize) {
             if ($args[0] === false) {
                 return;
             }
@@ -110,12 +111,13 @@ class BassetCache extends Command
                     $result = Basset::{$type}(...$args)->value;
                 }
             } catch (Throwable $th) {
-                dd($th);
                 $result = StatusEnum::INVALID->value;
             }
 
             if ($result !== StatusEnum::INVALID->value) {
                 $internalized[] = $args[0];
+            } else {
+                $failedToInternalize[] = $args[0];
             }
 
             if ($this->getOutput()->isVerbose()) {
@@ -129,11 +131,34 @@ class BassetCache extends Command
 
         // we will not loop through the bassets that are in the named map, and internalize any that our script hasn't internalized yet
         $namedAssets = Basset::getNamedAssets();
-        dd($namedAssets, $internalized);
+
+        // get the named assets that are not internalized yet
+        $namedAssets = collect($namedAssets)
+            ->filter(function ($asset, $id) use ($internalized) {
+                return ! in_array($id, $internalized);
+            });
+        
+        foreach($namedAssets as $id => $asset) {
+            $result = Basset::basset($id, false)->value;
+            if ($result !== StatusEnum::INVALID->value) {
+                $internalized[] = $id;
+            } else {
+                $failedToInternalize[] = $id; 
+            }
+        }
+
+        $failedToInternalize = implode(', ', array_unique($failedToInternalize));
+
         // Save the cache map
         Basset::cacheMap()->save();
 
         $bar->finish();
+
+        if(!empty($failedToInternalize)) {
+            $this->newLine(2);
+            $this->line('Failed to cache: ' . $failedToInternalize);
+        }
+        
         $this->newLine(2);
         $this->info(sprintf('Done in %.2fs', microtime(true) - $starttime));
     }
