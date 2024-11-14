@@ -31,7 +31,7 @@ it('internalizes named assets urls with dev mode true and force url cache', func
     disk()->assertExists($path);
 
     expect(disk()->get($path))->toBe(getStub($url.'.output'));
-})->with('namedAssets'); 
+})->with('namedAssets');
 
 it('replaces named assets if version changed and its already cached', function ($name, $url, $newVersion) {
     bassetInstance()->map($name, $url);
@@ -65,7 +65,6 @@ it('replaces named assets if version changed and its already cached', function (
 
     // assert old version was deleted
     disk()->assertMissing($oldPath);
-
 })->with('namedAssets');
 
 it('does not replace named assets if version did not change and its already cached', function ($name, $url, $newVersion) {
@@ -90,10 +89,9 @@ it('does not replace named assets if version did not change and its already cach
     expect($result)->toBe(StatusEnum::IN_CACHE);
 
     disk()->assertExists($oldPath);
-
 })->with('namedAssets');
 
-it('uses named assets attributes', function($name, $url, $newVersion) {
+it('uses named assets attributes', function ($name, $url, $newVersion) {
     bassetInstance()->map($name, $url, ['integrity' => 'something']);
 
     ob_start();
@@ -105,7 +103,7 @@ it('uses named assets attributes', function($name, $url, $newVersion) {
     expect($echo)->toContain('integrity="something"');
 })->with('namedAssetsOutput');
 
-it('uses named assets attributes and allow overwrite', function($name, $url, $newVersion) {
+it('uses named assets attributes and allow overwrite', function ($name, $url, $newVersion) {
     bassetInstance()->map($name, $url, ['integrity' => 'something', 'test' => 'something']);
 
     ob_start();

@@ -137,13 +137,13 @@ class BassetCache extends Command
             ->filter(function ($asset, $id) use ($internalized) {
                 return ! in_array($id, $internalized);
             });
-        
-        foreach($namedAssets as $id => $asset) {
+
+        foreach ($namedAssets as $id => $asset) {
             $result = Basset::basset($id, false)->value;
             if ($result !== StatusEnum::INVALID->value) {
                 $internalized[] = $id;
             } else {
-                $failedToInternalize[] = $id; 
+                $failedToInternalize[] = $id;
             }
         }
 
@@ -154,11 +154,11 @@ class BassetCache extends Command
 
         $bar->finish();
 
-        if(!empty($failedToInternalize)) {
+        if (! empty($failedToInternalize)) {
             $this->newLine(2);
-            $this->line('Failed to cache: ' . $failedToInternalize);
+            $this->line('Failed to cache: '.$failedToInternalize);
         }
-        
+
         $this->newLine(2);
         $this->info(sprintf('Done in %.2fs', microtime(true) - $starttime));
     }
