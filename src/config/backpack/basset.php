@@ -34,7 +34,7 @@ return [
     // this file shouldn't be used to add new assets, but exclusively to overwrite existing ones.
     // to implement it, create a new class that implements the `Basset\AssetOverwrites` interface.
     /**
-     * namespace App;
+     * namespace App;.
      *
      * use Basset\AssetOverwrites;
      *

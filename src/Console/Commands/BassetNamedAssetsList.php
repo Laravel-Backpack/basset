@@ -2,9 +2,9 @@
 
 namespace Backpack\Basset\Console\Commands;
 
+use Backpack\Basset\Facades\Basset;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
-use Backpack\Basset\Facades\Basset;
 
 /**
  * Basset Named Assets list command.
@@ -36,14 +36,14 @@ class BassetNamedAssetsList extends Command
     {
         $assets = Basset::getNamedAssets();
 
-        foreach($assets as $key => $asset) {
+        foreach ($assets as $key => $asset) {
             if ($this->option('filter')) {
                 $filter = $this->option('filter');
-                if (!Str::contains($key, $filter) || !Str::contains($asset['source'], $filter)) {
+                if (! Str::contains($key, $filter) || ! Str::contains($asset['source'], $filter)) {
                     continue;
                 }
             }
-            $this->line('<fg=blue> Asset Key: </>'. $key . '</><fg=blue> Asset Source: </>' . $asset['source']);
+            $this->line('<fg=blue> Asset Key: </>'.$key.'</><fg=blue> Asset Source: </>'.$asset['source']);
         }
     }
 }

@@ -19,4 +19,3 @@ it('internalizes basset urls if force url cache is set and devmode is on', funct
 
     expect($result)->toBe(StatusEnum::INTERNALIZED);
 })->with('cdn');
-

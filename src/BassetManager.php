@@ -83,7 +83,7 @@ class BassetManager
     public function map(string $asset, string $source, array $attributes = []): void
     {
         $this->namedAssets[$asset] = [
-            'source'     => $source,
+            'source' => $source,
             'attributes' => $attributes,
         ];
     }
@@ -193,6 +193,7 @@ class BassetManager
             $cacheEntry->assetName($asset)
                         ->assetPath($this->namedAssets[$asset]['source'])
                         ->attributes(array_merge($this->namedAssets[$asset]['attributes'], $attributes));
+
             return $this->loadAsset($cacheEntry, $output);
         }
 

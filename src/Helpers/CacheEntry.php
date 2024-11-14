@@ -25,6 +25,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
     public static function from(array $asset, $basePath): self
     {
         $instance = new self($basePath);
+
         return $instance->assetName($asset['asset_name'])->assetPath($asset['asset_path'])->assetDiskPath($asset['asset_disk_path'])->attributes($asset['attributes']);
     }
 
@@ -93,10 +94,10 @@ final class CacheEntry implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         return [
-            'asset_name'      => $this->assetName,
-            'asset_path'      => $this->assetPath,
+            'asset_name' => $this->assetName,
+            'asset_path' => $this->assetPath,
             'asset_disk_path' => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
-            'attributes'      => $this->attributes,
+            'attributes' => $this->attributes,
         ];
     }
 
