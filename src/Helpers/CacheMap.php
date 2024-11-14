@@ -77,6 +77,6 @@ class CacheMap
             return false;
         }
 
-        return $this->map[$asset->getAssetName()];
+        return CacheEntry::from($this->map[$asset->getAssetName()], $this->basePath);
     }
 }

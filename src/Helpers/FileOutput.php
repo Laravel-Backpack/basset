@@ -52,7 +52,7 @@ class FileOutput
         };
 
         $template = $this->templates[$file] ?? null;
-
+        
         if (! $template) {
             return;
         }
