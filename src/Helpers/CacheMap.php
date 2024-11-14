@@ -4,7 +4,6 @@ namespace Backpack\Basset\Helpers;
 
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 
 class CacheMap
 {
