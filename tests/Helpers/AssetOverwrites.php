@@ -3,7 +3,6 @@
 namespace Backpack\Basset\Tests\Helpers;
 
 use Backpack\Basset\Facades\Basset;
-use Backpack\Basset\AssetOverwrite;
 
 class AssetOverwrites implements \Backpack\Basset\AssetOverwrite
 {

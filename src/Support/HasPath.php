@@ -1,11 +1,12 @@
-<?php 
+<?php
 
 namespace  Backpack\Basset\Support;
+
 use Illuminate\Support\Str;
 
 trait HasPath
-{   
-     /**
+{
+    /**
      * Returns the asset path.
      *
      * @return string
