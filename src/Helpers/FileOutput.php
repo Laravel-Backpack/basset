@@ -33,8 +33,6 @@ class FileOutput
     /**
      * Outputs a file depending on its type.
      *
-     * @param  string  $path
-     * @param  array  $attributes
      * @return void
      */
     public function write(CacheEntry $asset, bool $dev = false): void

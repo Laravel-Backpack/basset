@@ -144,11 +144,6 @@ class BassetManager
 
     /**
      * Internalize a CDN or local asset.
-     *
-     * @param  string  $asset
-     * @param  bool | string  $output
-     * @param  array  $attributes
-     * @return StatusEnum
      */
     public function basset(string $asset, bool|string $output = true, array $attributes = []): StatusEnum
     {
