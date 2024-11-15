@@ -83,7 +83,7 @@ class BassetManager
     public function map(string $asset, string $source, array $attributes = []): void
     {
         $this->namedAssets[$asset] = [
-            'source' => $source,
+            'source'     => $source,
             'attributes' => $attributes,
         ];
     }
@@ -187,19 +187,12 @@ class BassetManager
     public function basset(string $asset, bool|string $output = true, array $attributes = []): StatusEnum
     {
         $this->loader->start();
-        $cacheEntry = new CacheEntry($this->basePath);
+        
+        $cacheEntry = $this->buildCacheEntry($asset);
 
-        if (isset($this->namedAssets[$asset])) {
-            $cacheEntry->assetName($asset)
-                        ->assetPath($this->namedAssets[$asset]['source'])
-                        ->attributes(array_merge($this->namedAssets[$asset]['attributes'], $attributes));
+        $attributes = array_merge($this->namedAssets[$asset]['attributes'] ?? [], $attributes);
 
-            return $this->loadAsset($cacheEntry, $output);
-        }
-
-        $cacheEntry->assetName($asset)
-                    ->assetPath($asset)
-                    ->attributes($attributes);
+        $cacheEntry->attributes($attributes);
 
         return $this->loadAsset($cacheEntry, $output);
     }
