@@ -84,16 +84,16 @@ class BassetManager
 
     public function map(string $asset, string $source, array $attributes = []): void
     {
-        if(! $this->overwritesLoaded) {
+        if (! $this->overwritesLoaded) {
             $this->initOverwrites();
         }
 
-        if(isset($this->namedAssets[$asset])) {
+        if (isset($this->namedAssets[$asset])) {
             return;
         }
 
         $this->namedAssets[$asset] = [
-            'source'     => $source,
+            'source' => $source,
             'attributes' => $attributes,
         ];
     }
@@ -124,7 +124,7 @@ class BassetManager
     {
         return array_keys($this->loaded);
     }
-    
+
     /**
      * Returns the asset url.
      *
@@ -134,7 +134,7 @@ class BassetManager
     public function getUrl(string $asset): string
     {
         $asset = $this->buildCacheEntry($asset);
-        
+
         if ($this->dev) {
             return $asset->getAssetPath();
         }
@@ -153,7 +153,7 @@ class BassetManager
     public function basset(string $asset, bool|string $output = true, array $attributes = []): StatusEnum
     {
         $this->loader->start();
-        
+
         $cacheEntry = $this->buildCacheEntry($asset, $attributes);
 
         return $this->loadAsset($cacheEntry, $output);
@@ -193,8 +193,8 @@ class BassetManager
                 return $this->loader->finish(StatusEnum::IN_CACHE);
             }
 
-            if($this->dev) {
-                if($mapped->getContentHash() !== $asset->generateContentHash()) {
+            if ($this->dev) {
+                if ($mapped->getContentHash() !== $asset->generateContentHash()) {
                     return $this->replaceAsset($asset, $mapped, $output);
                 }
             }
@@ -531,7 +531,7 @@ class BassetManager
 
     public function buildCacheEntry(CacheEntry|string $asset, $attributes = []): CacheEntry
     {
-        if(! $this->overwritesLoaded) {
+        if (! $this->overwritesLoaded) {
             $this->initOverwrites();
         }
 
@@ -540,7 +540,7 @@ class BassetManager
         }
         $assetName = $asset;
 
-        if(isset($this->namedAssets[$asset])) {
+        if (isset($this->namedAssets[$asset])) {
             $asset = $this->getNamedAsset($asset);
         }
 
@@ -557,7 +557,8 @@ class BassetManager
         return $this->namedAssets[$asset];
     }
 
-    private function initOverwrites(){
+    private function initOverwrites()
+    {
         $class = config('backpack.basset.asset_overwrite');
         if ($class && class_exists($class) && is_a($class, AssetOverwrite::class, true)) {
             $this->overwritesLoaded = true;

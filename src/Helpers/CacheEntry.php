@@ -115,11 +115,11 @@ final class CacheEntry implements Arrayable, JsonSerializable
     {
         try {
             $content = File::get($this->assetPath);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             throw new \Exception("Could not read file: {$this->assetPath}");
         }
 
-        if($generateHash) {
+        if ($generateHash) {
             $this->generateContentHash($content);
         }
 
