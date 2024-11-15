@@ -44,13 +44,12 @@ it('re-internalizes local basset on dev mode', function ($asset) {
 it('ignores basset block on dev mode', function ($asset) {
     // set dev mode
     config(['backpack.basset.dev_mode' => true]);
-    config(['backpack.basset.force_url_cache' => false]);
 
     $codeBlock = getStub($asset);
 
     $result = bassetInstance()->bassetBlock($asset, $codeBlock, false);
 
-    $path = bassetInstance()->getPathHashed($asset, $codeBlock);
+    $path = bassetInstance()->buildCacheEntry($asset)->getPathOnDiskHashed($codeBlock);
 
     // expect the output string
     $this->expectOutputString($codeBlock);
