@@ -31,6 +31,7 @@ uses(BaseTest::class)
             'https://unpkg.com/vue@3.1/dist/vue31.global.prod.js' => Http::response(getStub('vue31.global.prod.js')),
             'https://unpkg.com/react@18/umd/react.production.min.js' => Http::response(getStub('react.production.min.js')),
             'https://unpkg.com/react@3/dist/reactscript.production.min.js' => Http::response(getStub('reactscript.production.min.js')),
+            'https://unpkg.com/backpack@5/dist/script.production.min.js' => Http::response(getStub('backpack.production.min.js')),
         ]);
 
         // setup config

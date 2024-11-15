@@ -4,7 +4,7 @@ return [
     // development mode, assets will not be internalized
     'dev_mode' => env('BASSET_DEV_MODE', env('APP_ENV') === 'local'),
 
-    // all external urls (usually cdns) will be cache on first request or
+    // all external urls (usually cdns) will be cached on first request or
     // when running `basset:cache` even if dev_mode is enabled
     'force_url_cache' => true,
 
@@ -18,7 +18,7 @@ return [
     // if you change this, you should also add it to your .gitignore file
     'path' => env('BASSET_PATH', 'basset'),
 
-    // use cache map file (.basset)
+    // use cache map file (.basset).
     'cache_map' => env('BASSET_CACHE_MAP', true),
 
     // view paths that may use @basset
@@ -32,24 +32,22 @@ return [
     // the package assets without modifying the package files, eg: you want to use
     // a different version of a package asset without modifying the package views.
     // this file shouldn't be used to add new assets, but exclusively to overwrite existing ones.
-    // to implement it, create a new class that implements the `Basset\AssetOverwrites` interface.
+    // to implement it, create a new class that implements the `Backpack\Basset\AssetOverwrite` interface.
     /**
      * namespace App;.
      *
-     * use Basset\AssetOverwrites;
+     * use Backpack\Basset\AssetOverwrite;
      *
-     * class AssetOverwrites implements AssetOverwrites
+     * class AssetOverwrites implements AssetOverwrite
      * {
-     *    public function getAssets(): array
+     *    public function assets(): void
      *    {
-     *      return [
-     *        'some-asset-key' => 'https://some-cdn.com/some-asset@v2.3-asset.css',
-     *      ];
+     *      Basset::map('some-asset-key', 'asset/source/asset.js', ['integrity' => 'sha384-...']);
      *    }
      *
      * }
      */
-    'asset_overwrites' => null,
+    'asset_overwrite' => null,
 
     // content security policy nonce
     'nonce' => null,

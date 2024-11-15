@@ -21,6 +21,7 @@ use Illuminate\Support\Str;
 class BassetManager
 {
     use Traits\ViewPathsTrait;
+    use Support\HasPath;
 
     private FilesystemAdapter $disk;
 
@@ -29,6 +30,8 @@ class BassetManager
     private string $basePath;
 
     private bool $dev;
+
+    private bool $overwritesLoaded = false;
 
     private bool $forceUrlCache;
 
@@ -52,7 +55,6 @@ class BassetManager
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
         $this->dev = config('backpack.basset.dev_mode', false);
         $this->forceUrlCache = config('backpack.basset.force_url_cache', false);
-
         $this->cacheMap = new CacheMap($this->disk, $this->basePath);
         $this->loader = new LoadingTime();
         $this->unarchiver = new Unarchiver();
@@ -82,6 +84,14 @@ class BassetManager
 
     public function map(string $asset, string $source, array $attributes = []): void
     {
+        if(! $this->overwritesLoaded) {
+            $this->initOverwrites();
+        }
+
+        if(isset($this->namedAssets[$asset])) {
+            return;
+        }
+
         $this->namedAssets[$asset] = [
             'source'     => $source,
             'attributes' => $attributes,
@@ -105,17 +115,6 @@ class BassetManager
         return in_array($asset->getAssetName(), array_keys($this->loaded));
     }
 
-    private function buildCacheEntry(CacheEntry|string $asset): CacheEntry
-    {
-        if ($asset instanceof CacheEntry) {
-            return $asset;
-        }
-        $assetName = $asset;
-        $asset = isset($this->namedAssets[$assetName]) ? $this->namedAssets[$assetName] : [$assetName => ['source' => $asset]];
-
-        return (new CacheEntry($this->basePath))->assetName($assetName)->assetPath($asset[$assetName]['source']);
-    }
-
     /**
      * Returns the current loaded basset list on app lifecycle.
      *
@@ -125,38 +124,7 @@ class BassetManager
     {
         return array_keys($this->loaded);
     }
-
-    /**
-     * Returns the asset path.
-     *
-     * @param  string  $asset
-     * @return string
-     */
-    public function getPath(string $asset): string
-    {
-        return Str::of($this->basePath)
-            ->append(str_replace([base_path().'/', base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '', $asset))
-            ->before('?')
-            ->replace('/\\', '/');
-    }
-
-    /**
-     * Gets the name of the file with the hash corresponding to the code block.
-     *
-     * @param  string  $asset
-     * @param  string  $content
-     * @return string
-     */
-    public function getPathHashed(string $asset, string $content): string
-    {
-        $path = $this->getPath($asset);
-
-        // get the hash for the content
-        $hash = hash('xxh32', $content);
-
-        return preg_replace('/\.(css|js)$/i', "-{$hash}.$1", $path);
-    }
-
+    
     /**
      * Returns the asset url.
      *
@@ -165,15 +133,13 @@ class BassetManager
      */
     public function getUrl(string $asset): string
     {
-        if (isset($this->namedAssets[$asset])) {
-            if ($this->dev) {
-                return $this->namedAssets[$asset]['source'];
-            }
-
-            return $this->disk->url($this->getPath($this->namedAssets[$asset]['source']));
+        $asset = $this->buildCacheEntry($asset);
+        
+        if ($this->dev) {
+            return $asset->getAssetPath();
         }
 
-        return $this->disk->url($this->getPath($asset));
+        return $this->disk->url($asset->getAssetDiskPath());
     }
 
     /**
@@ -188,31 +154,19 @@ class BassetManager
     {
         $this->loader->start();
         
-        $cacheEntry = $this->buildCacheEntry($asset);
-
-        $attributes = array_merge($this->namedAssets[$asset]['attributes'] ?? [], $attributes);
-
-        $cacheEntry->attributes($attributes);
+        $cacheEntry = $this->buildCacheEntry($asset, $attributes);
 
         return $this->loadAsset($cacheEntry, $output);
-    }
-
-    private function replaceAsset(CacheEntry $asset, CacheEntry $mapped, $output): StatusEnum
-    {
-        $this->disk->delete($mapped->getAssetDiskPath());
-
-        $content = $this->getAssetContent($asset, $output);
-
-        if (! is_string($content)) {
-            return $content;
-        }
-
-        return $this->uploadAssetToDisk($asset, $content, $output);
     }
 
     public function clearLoadedAssets()
     {
         $this->loaded = [];
+    }
+
+    public function clearAssetMap()
+    {
+        $this->namedAssets = [];
     }
 
     public function loadAsset(CacheEntry $asset, $output)
@@ -233,10 +187,16 @@ class BassetManager
                 return $this->replaceAsset($asset, $mapped, $output);
             }
 
-            if (! $this->dev) {
+            if ($this->forceUrlCache && Str::isUrl($mapped->getAssetPath())) {
                 $output && $this->output->write($mapped);
 
                 return $this->loader->finish(StatusEnum::IN_CACHE);
+            }
+
+            if($this->dev) {
+                if($mapped->getContentHash() !== $asset->generateContentHash()) {
+                    return $this->replaceAsset($asset, $mapped, $output);
+                }
             }
         }
 
@@ -274,46 +234,6 @@ class BassetManager
         return $this->uploadAssetToDisk($asset, $content, $output);
     }
 
-    private function getAssetContent(CacheEntry $asset, bool $output = true): StatusEnum|string
-    {
-        if (Str::isUrl($asset->getAssetPath())) {
-            // when in dev mode, cdn should be rendered
-            if ($this->dev && ! $this->forceUrlCache) {
-                $output && $this->output->write($asset, $this->dev);
-
-                return $this->loader->finish(StatusEnum::DISABLED);
-            }
-
-            $content = $this->fetchContent($asset->getAssetPath());
-        } else {
-            if (! $asset->existsOnLocalPath()) {
-                return $this->loader->finish(StatusEnum::INVALID);
-            }
-            $content = File::get($asset->getAssetPath());
-        }
-
-        return $content;
-    }
-
-    private function uploadAssetToDisk(CacheEntry $asset, string $content, bool $output): StatusEnum
-    {
-        $result = $this->disk->put($asset->getAssetDiskPath(), $content, 'public');
-
-        if ($result) {
-            $output && $this->output->write($asset);
-            $this->cacheMap->addAsset($asset);
-
-            BassetCachedEvent::dispatch($asset->getAssetPath());
-
-            return $this->loader->finish(StatusEnum::INTERNALIZED);
-        }
-
-        // Fallback to the CDN/path
-        $output && $this->output->write($asset);
-
-        return $this->loader->finish(StatusEnum::INVALID);
-    }
-
     /**
      * Internalize a basset code block.
      *
@@ -324,7 +244,7 @@ class BassetManager
     public function bassetBlock(string $asset, string $code, bool $output = true, bool $cache = true): StatusEnum
     {
         $this->loader->start();
-        $asset = (new CacheEntry($this->basePath))->assetName($asset)->assetPath($asset);
+        $asset = $this->buildCacheEntry($asset);
 
         // when cache is set to false we will just mark the asset as loaded to avoid
         // loading the same asset twice and return the raw code to the browser.
@@ -339,12 +259,12 @@ class BassetManager
             return $this->loader->finish(StatusEnum::LOADED);
         }
 
-        // Get asset path and url
-        $path = $this->getPathHashed($asset->getAssetPath(), $code);
-
         if ($this->isLoaded($asset)) {
             return $this->loader->finish(StatusEnum::LOADED);
         }
+
+        // Get asset path and url with content hash
+        $path = $asset->getPathOnDiskHashed($code);
 
         $this->markAsLoaded($asset);
 
@@ -417,7 +337,7 @@ class BassetManager
     public function bassetArchive(string $asset, string $output): StatusEnum
     {
         $this->loader->start();
-        $cacheEntry = (new CacheEntry($this->basePath))->assetName($asset)->assetPath($asset);
+        $cacheEntry = $this->buildCacheEntry($asset);
 
         // get local output path
         $path = $this->getPath($output);
@@ -505,7 +425,7 @@ class BassetManager
         // get local output path
         $path = $this->getPath($output);
 
-        $cacheEntry = (new CacheEntry($this->disk, $this->basePath))->assetName($asset)->assetPath($output);
+        $cacheEntry = $this->buildCacheEntry($asset);
 
         // Check if asset is loaded
         if ($this->isLoaded($cacheEntry)) {
@@ -552,5 +472,96 @@ class BassetManager
         return Http::withOptions(['verify' => config('backpack.basset.verify_ssl_certificate', true)])
             ->get($url)
             ->body();
+    }
+
+    private function replaceAsset(CacheEntry $asset, CacheEntry $mapped, $output): StatusEnum
+    {
+        $this->disk->delete($mapped->getAssetDiskPath());
+
+        $this->cacheMap->delete($mapped);
+
+        $content = $this->getAssetContent($asset, $output);
+
+        if (! is_string($content)) {
+            return $content;
+        }
+
+        return $this->uploadAssetToDisk($asset, $content, $output);
+    }
+
+    private function getAssetContent(CacheEntry $asset, bool $output = true): StatusEnum|string
+    {
+        if (Str::isUrl($asset->getAssetPath())) {
+            // when in dev mode, cdn should be rendered
+            if ($this->dev && ! $this->forceUrlCache) {
+                $output && $this->output->write($asset, $this->dev);
+
+                return $this->loader->finish(StatusEnum::DISABLED);
+            }
+
+            $content = $this->fetchContent($asset->getAssetPath());
+        } else {
+            if (! $asset->existsOnLocalPath()) {
+                return $this->loader->finish(StatusEnum::INVALID);
+            }
+            $content = $asset->getContents();
+        }
+
+        return $content;
+    }
+
+    private function uploadAssetToDisk(CacheEntry $asset, string $content, bool $output): StatusEnum
+    {
+        $result = $this->disk->put($asset->getAssetDiskPath(), $content, 'public');
+
+        if ($result) {
+            $output && $this->output->write($asset);
+            $this->cacheMap->addAsset($asset);
+
+            BassetCachedEvent::dispatch($asset->getAssetPath());
+
+            return $this->loader->finish(StatusEnum::INTERNALIZED);
+        }
+
+        // Fallback to the CDN/path
+        $output && $this->output->write($asset);
+
+        return $this->loader->finish(StatusEnum::INVALID);
+    }
+
+    public function buildCacheEntry(CacheEntry|string $asset, $attributes = []): CacheEntry
+    {
+        if(! $this->overwritesLoaded) {
+            $this->initOverwrites();
+        }
+
+        if ($asset instanceof CacheEntry) {
+            return $asset;
+        }
+        $assetName = $asset;
+
+        if(isset($this->namedAssets[$asset])) {
+            $asset = $this->getNamedAsset($asset);
+        }
+
+        $asset = is_array($asset) ? $asset : ['source' => $asset];
+
+        return (new CacheEntry($this->basePath))
+                ->assetName($assetName)
+                ->assetPath($asset['source'])
+                ->attributes(isset($asset['attributes']) ? array_merge($asset['attributes'], $attributes) : $attributes);
+    }
+
+    private function getNamedAsset(string $asset): array
+    {
+        return $this->namedAssets[$asset];
+    }
+
+    private function initOverwrites(){
+        $class = config('backpack.basset.asset_overwrite');
+        if ($class && class_exists($class) && is_a($class, AssetOverwrite::class, true)) {
+            $this->overwritesLoaded = true;
+            (new $class())->assets();
+        }
     }
 }
