@@ -56,7 +56,7 @@ it('replaces named assets if version changed and its already cached', function (
 
     bassetInstance()->map($name, $newVersion);
 
-    $result = bassetInstance($name, false); 
+    $result = bassetInstance($name, false);
 
     expect($result)->toBe(StatusEnum::INTERNALIZED);
 
@@ -122,8 +122,7 @@ it('uses named assets attributes and allow overwrite', function ($name, $url) {
     expect($echo)->toContain('integrity="something-else"');
 })->with('namedAssetsOutput');
 
-
-it('allow named assets to be overridden by using a class', function($name, $url) {
+it('allow named assets to be overridden by using a class', function ($name, $url) {
     config(['backpack.basset.asset_overwrite' => Backpack\Basset\Tests\Helpers\AssetOverwrites::class]);
     ob_start();
     $result = bassetInstance($name, true);
