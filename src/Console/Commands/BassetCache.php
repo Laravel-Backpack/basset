@@ -109,9 +109,9 @@ class BassetCache extends Command
             try {
                 if (in_array($type, ['basset', 'bassetArchive', 'bassetDirectory', 'bassetBlock'])) {
                     $result = Basset::{$type}(...$args)->value;
-                    if($result !== StatusEnum::INVALID->value) {
+                    if ($result !== StatusEnum::INVALID->value) {
                         $internalized[] = $args[0];
-                    }else{
+                    } else {
                         $failedToInternalize[] = $args[0];
                     }
                 }
