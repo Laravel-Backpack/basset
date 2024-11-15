@@ -15,10 +15,10 @@ use Illuminate\Support\Facades\Facade;
  * @method static string getPath(string $asset)
  * @method static string getPathHashed(string $asset, string $content)
  * @method static string getUrl(string $asset)
- * @method static StatusEnum basset(string $asset, bool|string $output = true, array $attributes = [])
- * @method static StatusEnum bassetBlock(string $asset, string $code, bool $output = true)
- * @method static StatusEnum bassetArchive(string $asset, string $output)
- * @method static StatusEnum bassetDirectory(string $asset, string $output)
+ * @method static \Backpack\Basset\Enums\StatusEnum basset(string $asset, bool|string $output = true, array $attributes = [])
+ * @method static \Backpack\Basset\Enums\StatusEnum bassetBlock(string $asset, string $code, bool $output = true)
+ * @method static \Backpack\Basset\Enums\StatusEnum bassetArchive(string $asset, string $output)
+ * @method static \Backpack\Basset\Enums\StatusEnum bassetDirectory(string $asset, string $output)
  *
  * @mixin BassetManager
  */

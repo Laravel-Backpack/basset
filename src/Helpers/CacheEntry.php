@@ -143,9 +143,9 @@ final class CacheEntry implements Arrayable, JsonSerializable
         return preg_replace('/\.(css|js)$/i', "-{$hash}.$1", $path);
     }
 
-    public function generateContentHash(string $content = null): void
+    public function generateContentHash(string $content = null): string
     {
-        $this->content_hash = hash('xxh32', $content ?? $this->getContents(false));
+        return $this->content_hash = hash('xxh32', $content ?? $this->getContents(false));
     }
 
     private function getPathOnDisk(string $asset): string

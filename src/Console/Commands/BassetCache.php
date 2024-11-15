@@ -100,7 +100,7 @@ class BassetCache extends Command
             if ($args[0] === false) {
                 return;
             }
-            $type = Str::of($type)->after('@')->before('(')->value;
+            $type = Str::of($type)->after('@')->before('(')->value();
             // Force output of basset to be false
             if ($type === 'basset') {
                 $args[1] = false;
@@ -109,14 +109,15 @@ class BassetCache extends Command
             try {
                 if (in_array($type, ['basset', 'bassetArchive', 'bassetDirectory', 'bassetBlock'])) {
                     $result = Basset::{$type}(...$args)->value;
+                    if($result !== StatusEnum::INVALID->value) {
+                        $internalized[] = $args[0];
+                    }else{
+                        $failedToInternalize[] = $args[0];
+                    }
                 }
+                throw new \Exception('Invalid basset type');
             } catch (Throwable $th) {
                 $result = StatusEnum::INVALID->value;
-            }
-
-            if ($result !== StatusEnum::INVALID->value) {
-                $internalized[] = $args[0];
-            } else {
                 $failedToInternalize[] = $args[0];
             }
 
