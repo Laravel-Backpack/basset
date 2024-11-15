@@ -2,14 +2,16 @@
 
 namespace Backpack\Basset\Helpers;
 
+use Backpack\Basset\Support\HasPath;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use JsonSerializable;
 
 final class CacheEntry implements Arrayable, JsonSerializable
 {
+    use HasPath;
+
     private string $assetName;
 
     private string $assetPath;
@@ -17,6 +19,8 @@ final class CacheEntry implements Arrayable, JsonSerializable
     private string $assetDiskPath;
 
     private array $attributes = [];
+
+    private string $content_hash = '';
 
     public function __construct(private string $basePath)
     {
@@ -98,6 +102,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
             'asset_path' => $this->assetPath,
             'asset_disk_path' => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
             'attributes' => $this->attributes,
+            'content_hash' => $this->content_hash,
         ];
     }
 
@@ -106,11 +111,45 @@ final class CacheEntry implements Arrayable, JsonSerializable
         return $this->toArray();
     }
 
-    private function getPathOnDisk(string $asset)
+    public function getContents(bool $generateHash = true): string
     {
-        return Str::of($this->basePath)
-            ->append(str_replace([base_path().'/', base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '', $asset))
-            ->before('?')
-            ->replace('/\\', '/');
+        try {
+            $content = File::get($this->assetPath);
+        }catch (\Exception $e) {
+            throw new \Exception("Could not read file: {$this->assetPath}");
+        }
+
+        if($generateHash) {
+            $this->generateContentHash($content);
+        }
+
+        return $content;
+    }
+
+    public function getContentHash(): string
+    {
+        return $this->content_hash;
+    }
+
+    public function getPathOnDiskHashed(string $content): string
+    {
+        $path = $this->getPathOnDisk($this->assetPath);
+
+        // get the hash for the content
+        $hash = hash('xxh32', $content);
+
+        $this->content_hash = $hash;
+
+        return preg_replace('/\.(css|js)$/i', "-{$hash}.$1", $path);
+    }
+
+    public function generateContentHash(string $content = null): void
+    {
+        $this->content_hash = hash('xxh32', $content ?? $this->getContents(false));
+    }
+
+    private function getPathOnDisk(string $asset): string
+    {
+        return $this->getPath($asset);
     }
 }

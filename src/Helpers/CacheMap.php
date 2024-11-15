@@ -78,4 +78,19 @@ class CacheMap
 
         return CacheEntry::from($this->map[$asset->getAssetName()], $this->basePath);
     }
+
+    public function delete(CacheEntry $asset): void
+    {
+        if (! $this->isActive) {
+            return;
+        }
+
+        unset($this->map[$asset->getAssetName()]);
+        $this->isDirty = true;
+    }
+
+    public function getMap(): array
+    {
+        return $this->map;
+    }
 }

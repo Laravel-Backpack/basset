@@ -42,24 +42,29 @@ it('replaces named assets if version changed and its already cached', function (
 
     expect($result)->toBe(StatusEnum::INTERNALIZED);
 
+    expect(bassetInstance()->cacheMap()->getMap()[$name]['asset_path'])->toContain($url);
+
     $oldPath = bassetInstance()->getPath($url);
 
     disk()->assertExists($oldPath);
 
     expect(disk()->get($oldPath))->toBe(getStub($oldPath.'.output'));
 
-    // change the version
-    bassetInstance()->map($name, $newVersion);
+    bassetInstance()->clearAssetMap();
 
     bassetInstance()->clearLoadedAssets();
 
-    $result = bassetInstance($name, false);
+    bassetInstance()->map($name, $newVersion);
+
+    $result = bassetInstance($name, false); 
 
     expect($result)->toBe(StatusEnum::INTERNALIZED);
 
     $path = bassetInstance()->getPath($newVersion);
 
     disk()->assertExists($path);
+
+    expect(bassetInstance()->cacheMap()->getMap()[$name]['asset_path'])->toContain($newVersion);
 
     expect(disk()->get($path))->toBe(getStub($newVersion.'.output'));
 
@@ -76,6 +81,8 @@ it('does not replace named assets if version did not change and its already cach
 
     expect($result)->toBe(StatusEnum::INTERNALIZED);
 
+    expect(bassetInstance()->cacheMap()->getMap()[$name]['asset_path'])->toContain($url);
+
     $oldPath = bassetInstance()->getPath($url);
 
     disk()->assertExists($oldPath);
@@ -91,7 +98,7 @@ it('does not replace named assets if version did not change and its already cach
     disk()->assertExists($oldPath);
 })->with('namedAssets');
 
-it('uses named assets attributes', function ($name, $url, $newVersion) {
+it('uses named assets attributes', function ($name, $url) {
     bassetInstance()->map($name, $url, ['integrity' => 'something']);
 
     ob_start();
@@ -103,11 +110,23 @@ it('uses named assets attributes', function ($name, $url, $newVersion) {
     expect($echo)->toContain('integrity="something"');
 })->with('namedAssetsOutput');
 
-it('uses named assets attributes and allow overwrite', function ($name, $url, $newVersion) {
+it('uses named assets attributes and allow overwrite', function ($name, $url) {
     bassetInstance()->map($name, $url, ['integrity' => 'something', 'test' => 'something']);
 
     ob_start();
     $result = bassetInstance($name, true, ['integrity' => 'something-else']);
+    $echo = ob_get_clean();
+
+    expect($result)->toBe(StatusEnum::INTERNALIZED);
+
+    expect($echo)->toContain('integrity="something-else"');
+})->with('namedAssetsOutput');
+
+
+it('allow named assets to be overridden by using a class', function($name, $url) {
+    config(['backpack.basset.asset_overwrite' => Backpack\Basset\Tests\Helpers\AssetOverwrites::class]);
+    ob_start();
+    $result = bassetInstance($name, true);
     $echo = ob_get_clean();
 
     expect($result)->toBe(StatusEnum::INTERNALIZED);
