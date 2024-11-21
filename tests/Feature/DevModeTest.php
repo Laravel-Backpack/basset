@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 it('ignores cdn basset on dev mode', function ($asset) {
     // set dev mode
     config(['backpack.basset.dev_mode' => true]);
+    config(['backpack.basset.force_url_cache' => false]);
 
     $result = bassetInstance($asset, false);
     $path = bassetInstance()->getPath($asset);
@@ -22,6 +23,9 @@ it('ignores cdn basset on dev mode', function ($asset) {
 it('re-internalizes local basset on dev mode', function ($asset) {
     // set dev mode
     config(['backpack.basset.dev_mode' => true]);
+    config(['backpack.basset.force_url_cache' => false]);
+
+    disk()->deleteDirectory('basset');
 
     // create the stub resource in disk
     disk()->put($asset, getStub($asset));
@@ -45,7 +49,7 @@ it('ignores basset block on dev mode', function ($asset) {
 
     $result = bassetInstance()->bassetBlock($asset, $codeBlock, false);
 
-    $path = bassetInstance()->getPathHashed($asset, $codeBlock);
+    $path = bassetInstance()->buildCacheEntry($asset)->getPathOnDiskHashed($codeBlock);
 
     // expect the output string
     $this->expectOutputString($codeBlock);
@@ -55,3 +59,20 @@ it('ignores basset block on dev mode', function ($asset) {
 
     expect($result)->toBe(StatusEnum::DISABLED);
 })->with('codeBlock');
+
+it('internalizes basset urls if force url cache is set and devmode is on', function ($asset) {
+    // set dev mode
+    config(['backpack.basset.dev_mode' => true]);
+    config(['backpack.basset.force_url_cache' => true]);
+
+    $result = bassetInstance($asset, false);
+    $path = bassetInstance()->getPath($asset);
+
+    // assert file was not saved
+    expect(disk()->get($path))->toBe(getStub("$asset.output"));
+
+    // assert no download was tried
+    Http::assertSentCount(1);
+
+    expect($result)->toBe(StatusEnum::INTERNALIZED);
+})->with('cdn');

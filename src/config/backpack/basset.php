@@ -4,14 +4,21 @@ return [
     // development mode, assets will not be internalized
     'dev_mode' => env('BASSET_DEV_MODE', env('APP_ENV') === 'local'),
 
+    // all external urls (usually cdns) will be cached on first request or
+    // when running `basset:cache` even if dev_mode is enabled
+    'force_url_cache' => true,
+
     // verify ssl certificate while fetching assets
     'verify_ssl_certificate' => env('BASSET_VERIFY_SSL_CERTIFICATE', true),
 
     // disk and path where to store bassets
-    'disk' => env('BASSET_DISK', 'public'),
-    'path' => 'basset',
+    'disk' => env('BASSET_DISK', 'basset'),
 
-    // use cache map file (.basset)
+    // the path where assets will be stored inside the `public` folder
+    // if you change this, you should also add it to your .gitignore file
+    'path' => env('BASSET_PATH', 'basset'),
+
+    // use cache map file (.basset).
     'cache_map' => env('BASSET_CACHE_MAP', true),
 
     // view paths that may use @basset
@@ -19,6 +26,28 @@ return [
     'view_paths' => [
         resource_path('views'),
     ],
+
+    // a class that allow you to define assets that can overwrite the assets on the map.
+    // packages can define the assets they need in a map, that way you can overwrite
+    // the package assets without modifying the package files, eg: you want to use
+    // a different version of a package asset without modifying the package views.
+    // this file shouldn't be used to add new assets, but exclusively to overwrite existing ones.
+    // to implement it, create a new class that implements the `Backpack\Basset\AssetOverwrite` interface.
+    /**
+     * namespace App;.
+     *
+     * use Backpack\Basset\AssetOverwrite;
+     *
+     * class AssetOverwrites implements AssetOverwrite
+     * {
+     *    public function assets(): void
+     *    {
+     *      Basset::map('some-asset-key', 'asset/source/asset.js', ['integrity' => 'sha384-...']);
+     *    }
+     *
+     * }
+     */
+    'asset_overwrite' => null,
 
     // content security policy nonce
     'nonce' => null,
