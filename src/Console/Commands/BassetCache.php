@@ -114,8 +114,9 @@ class BassetCache extends Command
                     } else {
                         $failedToInternalize[] = $args[0];
                     }
+                }else{
+                    throw new \Exception('Invalid basset type');
                 }
-                throw new \Exception('Invalid basset type');
             } catch (Throwable $th) {
                 $result = StatusEnum::INVALID->value;
                 $failedToInternalize[] = $args[0];
