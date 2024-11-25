@@ -114,7 +114,7 @@ class BassetCache extends Command
                     } else {
                         $failedToInternalize[] = $args[0];
                     }
-                }else{
+                } else {
                     throw new \Exception('Invalid basset type');
                 }
             } catch (Throwable $th) {
