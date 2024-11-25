@@ -135,10 +135,6 @@ class BassetManager
     {
         $asset = $this->buildCacheEntry($asset);
 
-        if ($this->dev) {
-            return $asset->getAssetPath();
-        }
-
         return $this->disk->url($asset->getAssetDiskPath());
     }
 
