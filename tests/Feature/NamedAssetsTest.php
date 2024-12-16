@@ -123,7 +123,7 @@ it('uses named assets attributes and allow overwrite', function ($name, $url) {
 })->with('namedAssetsOutput');
 
 it('allow named assets to be overridden by using a class', function ($name, $url) {
-    config(['backpack.basset.asset_overwrite' => Backpack\Basset\Tests\Helpers\AssetOverwrites::class]);
+    config(['backpack.basset.asset_overrides' => Backpack\Basset\Tests\Helpers\OverrideAssets::class]);
     ob_start();
     $result = bassetInstance($name, true);
     $echo = ob_get_clean();
