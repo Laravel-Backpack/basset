@@ -57,7 +57,7 @@ class FileOutput
         }
 
         echo Blade::render($template, [
-            'src'  => $this->assetPath($filePath, $dev),
+            'src'  => $this->assetPath($filePath),
             'args' => $this->prepareAttributes($asset->getAttributes()),
         ]);
     }
