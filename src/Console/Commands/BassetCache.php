@@ -39,8 +39,8 @@ class BassetCache extends Command
      */
     public function handle(): void
     {
-        $internalized = [];
-        $failedToInternalize = [];
+        $internalizedAssets = [];
+        $notInternalizedAssets = [];
 
         $starttime = microtime(true);
 
@@ -68,7 +68,7 @@ class BassetCache extends Command
                 // Map all bassets
                 $content = File::get($file);
                 preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\((.+)\)/', $content, $matches);
-                //dump($matches[2]);
+
                 $matches[2] = collect($matches[2])
                     ->map(fn ($match) => collect(explode(',', $match))
                             ->map(function ($arg) {
@@ -96,7 +96,7 @@ class BassetCache extends Command
         $bar = $this->output->createProgressBar($totalBassets);
         $bar->start();
         // Cache the bassets
-        $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar, &$internalized, &$failedToInternalize) {
+        $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar, &$internalizedAssets, &$notInternalizedAssets) {
             if ($args[0] === false) {
                 return;
             }
@@ -110,16 +110,16 @@ class BassetCache extends Command
                 if (in_array($type, ['basset', 'bassetArchive', 'bassetDirectory', 'bassetBlock'])) {
                     $result = Basset::{$type}(...$args)->value;
                     if ($result !== StatusEnum::INVALID->value) {
-                        $internalized[] = $args[0];
+                        $internalizedAssets[] = $args[0];
                     } else {
-                        $failedToInternalize[] = $args[0];
+                        $notInternalizedAssets[] = $args[0];
                     }
                 } else {
                     throw new \Exception('Invalid basset type');
                 }
             } catch (Throwable $th) {
                 $result = StatusEnum::INVALID->value;
-                $failedToInternalize[] = $args[0];
+                $notInternalizedAssets[] = $args[0];
             }
 
             if ($this->getOutput()->isVerbose()) {
@@ -131,34 +131,34 @@ class BassetCache extends Command
             }
         });
 
-        // we will not loop through the bassets that are in the named map, and internalize any that our script hasn't internalized yet
+        // we will now loop through the bassets that are in the named map, and internalize any that our script hasn't internalized yet
         $namedAssets = Basset::getNamedAssets();
 
         // get the named assets that are not internalized yet
         $namedAssets = collect($namedAssets)
-            ->filter(function ($asset, $id) use ($internalized) {
-                return ! in_array($id, $internalized);
+            ->filter(function ($asset, $id) use ($internalizedAssets) {
+                return ! in_array($id, $internalizedAssets);
             });
 
         foreach ($namedAssets as $id => $asset) {
             $result = Basset::basset($id, false)->value;
             if ($result !== StatusEnum::INVALID->value) {
-                $internalized[] = $id;
+                $internalizedAssets[] = $id;
             } else {
-                $failedToInternalize[] = $id;
+                $notInternalizedAssets[] = $id;
             }
         }
 
-        $failedToInternalize = implode(', ', array_unique($failedToInternalize));
+        $notInternalizedAssets = implode(', ', array_unique($notInternalizedAssets));
 
         // Save the cache map
         Basset::cacheMap()->save();
 
         $bar->finish();
 
-        if (! empty($failedToInternalize)) {
+        if (! empty($notInternalizedAssets)) {
             $this->newLine(2);
-            $this->line('Failed to cache: '.$failedToInternalize);
+            $this->line('Failed to cache: '.$notInternalizedAssets);
         }
 
         $this->newLine(2);

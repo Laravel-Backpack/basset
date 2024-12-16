@@ -11,14 +11,14 @@ use Illuminate\Support\Str;
  *
  * @property object $output
  */
-class BassetNamedAssetsList extends Command
+class BassetList extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'basset:named-assets {--filter=*}';
+    protected $signature = 'basset:list {--filter=*}';
 
     /**
      * The console command description.

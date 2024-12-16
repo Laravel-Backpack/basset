@@ -2,7 +2,7 @@
 
 namespace Backpack\Basset;
 
-interface AssetOverwrite
+interface OverridesAssets
 {
     public function assets(): void;
 }
