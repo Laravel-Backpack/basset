@@ -50,7 +50,7 @@ it('replaces named assets if version changed and its already cached', function (
 
     expect(disk()->get($oldPath))->toBe(getStub($oldPath.'.output'));
 
-    bassetInstance()->clearAssetMap();
+    bassetInstance()->clearNamedAssets();
 
     bassetInstance()->clearLoadedAssets();
 

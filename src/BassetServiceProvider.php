@@ -21,7 +21,7 @@ class BassetServiceProvider extends ServiceProvider
         Console\Commands\BassetCheck::class,
         Console\Commands\BassetInstall::class,
         Console\Commands\BassetFresh::class,
-        Console\Commands\BassetNamedAssetsList::class,
+        Console\Commands\BassetList::class,
     ];
 
     /**
@@ -35,9 +35,6 @@ class BassetServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
         }
-
-        // Load basset disk
-        $this->loadDisk();
 
         // Run the terminate commands
         $this->app->terminating(fn () => $this->terminate());
@@ -187,11 +184,11 @@ class BassetServiceProvider extends ServiceProvider
 
         // add the basset disk to filesystem configuration
         app()->config['filesystems.disks.basset'] = [
-            'driver' => 'local',
-            'root' => public_path(),
-            'url' => url(''),
+            'driver'     => 'local',
+            'root'       => public_path(),
+            'url'        => url(''),
             'visibility' => 'public',
-            'throw' => false,
+            'throw'      => false,
         ];
     }
 
