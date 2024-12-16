@@ -45,8 +45,8 @@ class FileOutput
         $file = match ($extension) {
             'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg' => 'img',
             'mp3', 'ogg', 'wav', 'mp4', 'webm', 'avi' => 'source',
-            'pdf'   => 'object',
-            'vtt'   => 'track',
+            'pdf' => 'object',
+            'vtt' => 'track',
             default => $extension
         };
 
@@ -57,7 +57,7 @@ class FileOutput
         }
 
         echo Blade::render($template, [
-            'src'  => $this->assetPath($filePath, $dev),
+            'src' => $this->assetPath($filePath, $dev),
             'args' => $this->prepareAttributes($asset->getAttributes()),
         ]);
     }
