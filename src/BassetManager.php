@@ -485,7 +485,7 @@ class BassetManager
         if (Str::isUrl($asset->getAssetPath())) {
             // when in dev mode, cdn should be rendered if external urls are not forced to be cached.
             if ($this->dev && ! $this->forceUrlCache) {
-                $output && $this->output->write($asset, $this->dev);
+                $output && $this->output->write($asset);
 
                 return $this->loader->finish(StatusEnum::DISABLED);
             }
