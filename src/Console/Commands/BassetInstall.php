@@ -51,24 +51,29 @@ class BassetInstall extends Command
 
     private function addGitIgnore()
     {
-        $message = 'Adding public/'.config('backpack.basset.path').' to .gitignore';
+        $publicPath = public_path(config('backpack.basset.path'));
+        $basePath = base_path();
+
+        $publicPath = Str::of($publicPath)->after($basePath)->replace('\\', '/')->start('/')->value();
+
+        $message = 'Adding '.$publicPath.' to .gitignore';
 
         if (! file_exists(base_path('.gitignore'))) {
-            $this->components->task($message, function () {
-                file_put_contents(base_path('.gitignore'), 'public/'.config('backpack.basset.path'));
+            $this->components->task($message, function () use ($publicPath) {
+                file_put_contents(base_path('.gitignore'), $publicPath);
             });
 
             return;
         }
 
-        if (Str::of(file_get_contents(base_path('.gitignore')))->contains('public/'.config('backpack.basset.path'))) {
+        if (Str::of(file_get_contents(base_path('.gitignore')))->contains($publicPath)) {
             $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>BASSET PATH ALREADY EXISTS ON GITIGNORE</>');
 
             return;
         }
 
-        $this->components->task($message, function () {
-            file_put_contents(base_path('.gitignore'), 'public/'.config('backpack.basset.path'), FILE_APPEND);
+        $this->components->task($message, function () use ($publicPath) {
+            file_put_contents(base_path('.gitignore'), $publicPath, FILE_APPEND);
         });
     }
 

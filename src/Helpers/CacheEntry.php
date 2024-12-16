@@ -85,12 +85,23 @@ final class CacheEntry implements Arrayable, JsonSerializable
         return $this->assetName;
     }
 
+    /**
+     * Check if an asset exists on the given disk.
+     *
+     * @param Filesystem $disk
+     * @return bool
+     */
     public function existsOnDisk(Filesystem $disk): bool
     {
         return isset($this->assetDiskPath) && $disk->exists($this->assetDiskPath);
     }
 
-    public function existsOnLocalPath()
+    /**
+     * Check if the current asset is a local file.
+     *
+     * @return bool
+     */
+    public function isLocalAsset()
     {
         return File::exists($this->assetPath);
     }
@@ -98,11 +109,11 @@ final class CacheEntry implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         return [
-            'asset_name' => $this->assetName,
-            'asset_path' => $this->assetPath,
+            'asset_name'      => $this->assetName,
+            'asset_path'      => $this->assetPath,
             'asset_disk_path' => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
-            'attributes' => $this->attributes,
-            'content_hash' => $this->content_hash,
+            'attributes'      => $this->attributes,
+            'content_hash'    => $this->content_hash,
         ];
     }
 

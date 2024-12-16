@@ -31,7 +31,7 @@ class BassetManager
 
     private bool $dev;
 
-    private bool $overwritesLoaded = false;
+    private bool $overridesLoaded = false;
 
     private bool $forceUrlCache;
 
@@ -54,7 +54,7 @@ class BassetManager
         $this->disk = $disk;
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
         $this->dev = config('backpack.basset.dev_mode', false);
-        $this->forceUrlCache = config('backpack.basset.force_url_cache', false);
+        $this->forceUrlCache = config('backpack.basset.always_cache_external_urls', false);
         $this->cacheMap = new CacheMap($this->disk, $this->basePath);
         $this->loader = new LoadingTime();
         $this->unarchiver = new Unarchiver();
@@ -84,7 +84,7 @@ class BassetManager
 
     public function map(string $asset, string $source, array $attributes = []): void
     {
-        if (! $this->overwritesLoaded) {
+        if (! $this->overridesLoaded) {
             $this->initOverwrites();
         }
 
@@ -93,7 +93,7 @@ class BassetManager
         }
 
         $this->namedAssets[$asset] = [
-            'source' => $source,
+            'source'     => $source,
             'attributes' => $attributes,
         ];
     }
@@ -155,7 +155,7 @@ class BassetManager
         $this->loaded = [];
     }
 
-    public function clearAssetMap()
+    public function clearNamedAssets()
     {
         $this->namedAssets = [];
     }
@@ -483,7 +483,7 @@ class BassetManager
     private function getAssetContent(CacheEntry $asset, bool $output = true): StatusEnum|string
     {
         if (Str::isUrl($asset->getAssetPath())) {
-            // when in dev mode, cdn should be rendered
+            // when in dev mode, cdn should be rendered if external urls are not forced to be cached.
             if ($this->dev && ! $this->forceUrlCache) {
                 $output && $this->output->write($asset, $this->dev);
 
@@ -492,7 +492,7 @@ class BassetManager
 
             $content = $this->fetchContent($asset->getAssetPath());
         } else {
-            if (! $asset->existsOnLocalPath()) {
+            if (! $asset->isLocalAsset()) {
                 return $this->loader->finish(StatusEnum::INVALID);
             }
             $content = $asset->getContents();
@@ -522,7 +522,7 @@ class BassetManager
 
     public function buildCacheEntry(CacheEntry|string $asset, $attributes = []): CacheEntry
     {
-        if (! $this->overwritesLoaded) {
+        if (! $this->overridesLoaded) {
             $this->initOverwrites();
         }
 
@@ -548,11 +548,11 @@ class BassetManager
         return $this->namedAssets[$asset];
     }
 
-    private function initOverwrites()
+    private function initOverwrites(): void
     {
-        $class = config('backpack.basset.asset_overwrite');
-        if ($class && class_exists($class) && is_a($class, AssetOverwrite::class, true)) {
-            $this->overwritesLoaded = true;
+        $class = config('backpack.basset.asset_overrides');
+        if ($class && class_exists($class) && is_a($class, OverridesAssets::class, true)) {
+            $this->overridesLoaded = true;
             (new $class())->assets();
         }
     }

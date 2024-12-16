@@ -6,7 +6,7 @@ return [
 
     // all external urls (usually cdns) will be cached on first request or
     // when running `basset:cache` even if dev_mode is enabled
-    'force_url_cache' => true,
+    'always_cache_external_urls' => true,
 
     // verify ssl certificate while fetching assets
     'verify_ssl_certificate' => env('BASSET_VERIFY_SSL_CERTIFICATE', true),
@@ -27,18 +27,15 @@ return [
         resource_path('views'),
     ],
 
-    // a class that allow you to define assets that can overwrite the assets on the map.
-    // packages can define the assets they need in a map, that way you can overwrite
-    // the package assets without modifying the package files, eg: you want to use
-    // a different version of a package asset without modifying the package views.
-    // this file shouldn't be used to add new assets, but exclusively to overwrite existing ones.
-    // to implement it, create a new class that implements the `Backpack\Basset\AssetOverwrite` interface.
+    // define the final asset names and URLs in the asset map; this allows you to override
+    // anything added to the asset map by Composer packages; this config expects
+    // a class that implements `Backpack\Basset\OverridesAssets
     /**
      * namespace App;.
      *
-     * use Backpack\Basset\AssetOverwrite;
+     * use Backpack\Basset\OverridesAssets;
      *
-     * class AssetOverwrites implements AssetOverwrite
+     * class OverrideAssets implements OverridesAssets
      * {
      *    public function assets(): void
      *    {
@@ -47,7 +44,7 @@ return [
      *
      * }
      */
-    'asset_overwrite' => null,
+    'asset_overrides' => null,
 
     // content security policy nonce
     'nonce' => null,

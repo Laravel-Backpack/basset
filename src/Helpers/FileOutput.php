@@ -35,8 +35,9 @@ class FileOutput
      *
      * @return void
      */
-    public function write(CacheEntry $asset, bool $dev = false): void
+    public function write(CacheEntry $asset): void
     {
+        $dev = config('backpack.basset.dev_mode', false);
         $filePath = $dev ? $asset->getAssetPath() : $asset->getAssetDiskPath();
         $extension = (string) Str::of($filePath)->afterLast('.');
 
@@ -44,8 +45,8 @@ class FileOutput
         $file = match ($extension) {
             'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg' => 'img',
             'mp3', 'ogg', 'wav', 'mp4', 'webm', 'avi' => 'source',
-            'pdf' => 'object',
-            'vtt' => 'track',
+            'pdf'   => 'object',
+            'vtt'   => 'track',
             default => $extension
         };
 
@@ -56,7 +57,7 @@ class FileOutput
         }
 
         echo Blade::render($template, [
-            'src' => $this->assetPath($filePath, $dev),
+            'src'  => $this->assetPath($filePath, $dev),
             'args' => $this->prepareAttributes($asset->getAttributes()),
         ]);
     }
@@ -67,8 +68,10 @@ class FileOutput
      * @param  string  $path
      * @return string
      */
-    public function assetPath(string $path, bool $dev = false): string
+    public function assetPath(string $path): string
     {
+        $dev = config('backpack.basset.dev_mode', false);
+
         $asset = Str::of(asset($path.($dev ? '' : $this->cachebusting)));
 
         if ($this->useRelativePaths && $asset->startsWith(url(''))) {
