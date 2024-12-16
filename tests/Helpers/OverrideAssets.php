@@ -4,7 +4,7 @@ namespace Backpack\Basset\Tests\Helpers;
 
 use Backpack\Basset\Facades\Basset;
 
-class AssetOverwrites implements \Backpack\Basset\AssetOverwrite
+class OverrideAssets implements \Backpack\Basset\OverridesAssets
 {
     public function assets(): void
     {

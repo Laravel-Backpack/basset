@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 it('ignores cdn basset on dev mode', function ($asset) {
     // set dev mode
     config(['backpack.basset.dev_mode' => true]);
-    config(['backpack.basset.force_url_cache' => false]);
+    config(['backpack.basset.always_cache_external_urls' => false]);
 
     $result = bassetInstance($asset, false);
     $path = bassetInstance()->getPath($asset);
@@ -23,7 +23,7 @@ it('ignores cdn basset on dev mode', function ($asset) {
 it('re-internalizes local basset on dev mode', function ($asset) {
     // set dev mode
     config(['backpack.basset.dev_mode' => true]);
-    config(['backpack.basset.force_url_cache' => false]);
+    config(['backpack.basset.always_cache_external_urls' => false]);
 
     disk()->deleteDirectory('basset');
 
@@ -63,7 +63,7 @@ it('ignores basset block on dev mode', function ($asset) {
 it('internalizes basset urls if force url cache is set and devmode is on', function ($asset) {
     // set dev mode
     config(['backpack.basset.dev_mode' => true]);
-    config(['backpack.basset.force_url_cache' => true]);
+    config(['backpack.basset.always_cache_external_urls' => true]);
 
     $result = bassetInstance($asset, false);
     $path = bassetInstance()->getPath($asset);
