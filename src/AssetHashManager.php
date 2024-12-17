@@ -6,7 +6,7 @@ use Backpack\Basset\Contracts\AssetHashManager as AssetHashManagerContract;
 
 final class AssetHashManager implements AssetHashManagerContract
 {
-    public function generateHash(string $content): string 
+    public function generateHash(string $content): string
     {
         return hash('xxh32', $content);
     }

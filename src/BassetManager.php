@@ -92,7 +92,7 @@ class BassetManager
         }
 
         $this->namedAssets[$asset] = [
-            'source'     => $source,
+            'source' => $source,
             'attributes' => $attributes,
         ];
     }
