@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static void markAsLoaded(string $asset)
  * @method static bool isLoaded(string $asset)
  * @method static array loaded()
- * @method static string getPath(string $asset)
  * @method static string getPathHashed(string $asset, string $content)
  * @method static string getUrl(string $asset)
  * @method static \Backpack\Basset\Enums\StatusEnum basset(string $asset, bool|string $output = true, array $attributes = [])

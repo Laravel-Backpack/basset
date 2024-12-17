@@ -6,10 +6,10 @@ use Illuminate\Support\Facades\Http;
 it('internalizes basset urls if force url cache is set and devmode is on', function ($asset) {
     // set dev mode
     config(['backpack.basset.dev_mode' => true]);
-    config(['backpack.basset.force_url_cache' => true]);
+    config(['backpack.basset.always_cache_external_urls' => true]);
 
     $result = bassetInstance($asset, false);
-    $path = bassetInstance()->getPath($asset);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($asset);
 
     // assert file was not saved
     expect(disk()->get($path))->toBe(getStub("$asset.output"));

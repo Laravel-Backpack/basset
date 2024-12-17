@@ -76,7 +76,7 @@ class CacheMap
             return false;
         }
 
-        return CacheEntry::from($this->map[$asset->getAssetName()], $this->basePath);
+        return CacheEntry::from($this->map[$asset->getAssetName()]);
     }
 
     public function delete(CacheEntry $asset): void

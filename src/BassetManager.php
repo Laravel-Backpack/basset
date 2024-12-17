@@ -21,13 +21,10 @@ use Illuminate\Support\Str;
 class BassetManager
 {
     use Traits\ViewPathsTrait;
-    use Support\HasPath;
 
     private FilesystemAdapter $disk;
 
     private array $loaded;
-
-    private string $basePath;
 
     private bool $dev;
 
@@ -45,17 +42,19 @@ class BassetManager
 
     public FileOutput $output;
 
+    public AssetPathManager $assetPathsManager;
+
     public function __construct()
     {
         $this->loaded = [];
 
         /** @var FilesystemAdapter */
         $disk = Storage::disk(config('backpack.basset.disk'));
+        $this->assetPathsManager = app(AssetPathManager::class);
         $this->disk = $disk;
-        $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
         $this->dev = config('backpack.basset.dev_mode', false);
         $this->forceUrlCache = config('backpack.basset.always_cache_external_urls', false);
-        $this->cacheMap = new CacheMap($this->disk, $this->basePath);
+        $this->cacheMap = new CacheMap($this->disk, $this->assetPathsManager->getBasePath());
         $this->loader = new LoadingTime();
         $this->unarchiver = new Unarchiver();
         $this->output = new FileOutput();
@@ -93,7 +92,7 @@ class BassetManager
         }
 
         $this->namedAssets[$asset] = [
-            'source' => $source,
+            'source'     => $source,
             'attributes' => $attributes,
         ];
     }
@@ -328,10 +327,10 @@ class BassetManager
     public function bassetArchive(string $asset, string $output): StatusEnum
     {
         $this->loader->start();
-        $cacheEntry = $this->buildCacheEntry($asset);
+        $cacheEntry = $this->buildCacheEntry($asset, []);
 
         // get local output path
-        $path = $this->getPath($output);
+        $path = $this->assetPathsManager->getPathOnDisk($output);
         $output = $this->disk->path($path);
 
         // Check if asset is loaded
@@ -414,9 +413,10 @@ class BassetManager
     {
         $this->loader->start();
         // get local output path
-        $path = $this->getPath($output);
 
-        $cacheEntry = $this->buildCacheEntry($asset);
+        $cacheEntry = $this->buildCacheEntry($asset, []);
+
+        $path = $this->assetPathsManager->getPathOnDisk($output);
 
         // Check if asset is loaded
         if ($this->isLoaded($cacheEntry)) {
@@ -495,7 +495,7 @@ class BassetManager
             if (! $asset->isLocalAsset()) {
                 return $this->loader->finish(StatusEnum::INVALID);
             }
-            $content = $asset->getContents();
+            $content = $asset->getContentAndGenerateHash();
         }
 
         return $content;
@@ -537,7 +537,7 @@ class BassetManager
 
         $asset = is_array($asset) ? $asset : ['source' => $asset];
 
-        return (new CacheEntry($this->basePath))
+        return (new CacheEntry())
                 ->assetName($assetName)
                 ->assetPath($asset['source'])
                 ->attributes(isset($asset['attributes']) ? array_merge($asset['attributes'], $attributes) : $attributes);

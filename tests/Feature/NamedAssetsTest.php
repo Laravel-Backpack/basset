@@ -9,7 +9,7 @@ it('internalizes named assets', function ($name, $url, $newVersion) {
 
     expect($result)->toBe(StatusEnum::INTERNALIZED);
 
-    $path = bassetInstance()->getPath($url);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($url);
 
     disk()->assertExists($path);
 
@@ -20,13 +20,13 @@ it('internalizes named assets urls with dev mode true and force url cache', func
     bassetInstance()->map($name, $url);
     // set dev mode
     config(['backpack.basset.dev_mode' => true]);
-    config(['backpack.basset.force_url_cache' => true]);
+    config(['backpack.basset.always_cache_external_urls' => true]);
 
     $result = bassetInstance($name, false);
 
     expect($result)->toBe(StatusEnum::INTERNALIZED);
 
-    $path = bassetInstance()->getPath($url);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($url);
 
     disk()->assertExists($path);
 
@@ -44,7 +44,7 @@ it('replaces named assets if version changed and its already cached', function (
 
     expect(bassetInstance()->cacheMap()->getMap()[$name]['asset_path'])->toContain($url);
 
-    $oldPath = bassetInstance()->getPath($url);
+    $oldPath = bassetInstance()->assetPathsManager->getPathOnDisk($url);
 
     disk()->assertExists($oldPath);
 
@@ -60,7 +60,7 @@ it('replaces named assets if version changed and its already cached', function (
 
     expect($result)->toBe(StatusEnum::INTERNALIZED);
 
-    $path = bassetInstance()->getPath($newVersion);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($newVersion);
 
     disk()->assertExists($path);
 
@@ -83,7 +83,7 @@ it('does not replace named assets if version did not change and its already cach
 
     expect(bassetInstance()->cacheMap()->getMap()[$name]['asset_path'])->toContain($url);
 
-    $oldPath = bassetInstance()->getPath($url);
+    $oldPath = bassetInstance()->assetPathsManager->getPathOnDisk($url);
 
     disk()->assertExists($oldPath);
 

@@ -74,6 +74,12 @@ class BassetServiceProvider extends ServiceProvider
         // Register the service the package provides.
         $this->app->scoped('basset', fn () => new BassetManager());
 
+        // Register the asset path resolver
+        $this->app->singleton(Contracts\AssetPathManager::class, AssetPathManager::class);
+
+        // Register the asset hash manager
+        $this->app->singleton(Contracts\AssetHashManager::class, AssetHashManager::class);
+
         // Register blade directives
         $this->registerBladeDirectives();
     }
