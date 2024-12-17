@@ -9,7 +9,7 @@ it('ignores cdn basset on dev mode', function ($asset) {
     config(['backpack.basset.always_cache_external_urls' => false]);
 
     $result = bassetInstance($asset, false);
-    $path = bassetInstance()->getPath($asset);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($asset);
 
     // assert file was not saved
     disk()->assertMissing($path);
@@ -33,7 +33,7 @@ it('re-internalizes local basset on dev mode', function ($asset) {
 
     // internalize the file
     $result = bassetInstance($path, false);
-    $path = bassetInstance()->getPath($path);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($path);
 
     // assert file was not saved
     disk()->assertExists($path);
@@ -66,7 +66,7 @@ it('internalizes basset urls if force url cache is set and devmode is on', funct
     config(['backpack.basset.always_cache_external_urls' => true]);
 
     $result = bassetInstance($asset, false);
-    $path = bassetInstance()->getPath($asset);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($asset);
 
     // assert file was not saved
     expect(disk()->get($path))->toBe(getStub("$asset.output"));
