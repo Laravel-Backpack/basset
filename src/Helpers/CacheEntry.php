@@ -2,7 +2,8 @@
 
 namespace Backpack\Basset\Helpers;
 
-use Backpack\Basset\Support\HasPath;
+use Backpack\Basset\Contracts\AssetHashManager;
+use Backpack\Basset\Contracts\AssetPathManager;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Facades\File;
@@ -10,8 +11,6 @@ use JsonSerializable;
 
 final class CacheEntry implements Arrayable, JsonSerializable
 {
-    use HasPath;
-
     private string $assetName;
 
     private string $assetPath;
@@ -22,13 +21,19 @@ final class CacheEntry implements Arrayable, JsonSerializable
 
     private string $content_hash = '';
 
-    public function __construct(private string $basePath)
+    private AssetPathManager $assetPathsManager;
+
+    private AssetHashManager $assetHashManager;
+
+    public function __construct()
     {
+        $this->assetPathsManager = app(AssetPathManager::class);
+        $this->assetHashManager = app(AssetHashManager::class);
     }
 
-    public static function from(array $asset, $basePath): self
+    public static function from(array $asset): self
     {
-        $instance = new self($basePath);
+        $instance = new self();
 
         return $instance->assetName($asset['asset_name'])->assetPath($asset['asset_path'])->assetDiskPath($asset['asset_disk_path'])->attributes($asset['attributes']);
     }
@@ -86,7 +91,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
     }
 
     /**
-     * Check if an asset exists on the given disk.
+     * Check if the asset exists in a given disk.
      *
      * @param  Filesystem  $disk
      * @return bool
@@ -97,23 +102,23 @@ final class CacheEntry implements Arrayable, JsonSerializable
     }
 
     /**
-     * Check if the current asset is a local file.
+     * Check if the asset is a local file.
      *
      * @return bool
      */
     public function isLocalAsset()
     {
-        return File::exists($this->assetPath);
+        return $this->assetPathsManager->isLocal($this->assetPath);
     }
 
     public function toArray(): array
     {
         return [
-            'asset_name' => $this->assetName,
-            'asset_path' => $this->assetPath,
+            'asset_name'      => $this->assetName,
+            'asset_path'      => $this->assetPath,
             'asset_disk_path' => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
-            'attributes' => $this->attributes,
-            'content_hash' => $this->content_hash,
+            'attributes'      => $this->attributes,
+            'content_hash'    => $this->content_hash,
         ];
     }
 
@@ -122,7 +127,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
         return $this->toArray();
     }
 
-    public function getContents(bool $generateHash = true): string
+    public function getContent(): string
     {
         try {
             $content = File::get($this->assetPath);
@@ -130,9 +135,13 @@ final class CacheEntry implements Arrayable, JsonSerializable
             throw new \Exception("Could not read file: {$this->assetPath}");
         }
 
-        if ($generateHash) {
-            $this->generateContentHash($content);
-        }
+        return $content;
+    }
+
+    public function getContentAndGenerateHash(): string
+    {
+        $content = $this->getContent();
+        $this->assetHashManager->generateHash($content);
 
         return $content;
     }
@@ -144,23 +153,25 @@ final class CacheEntry implements Arrayable, JsonSerializable
 
     public function getPathOnDiskHashed(string $content): string
     {
-        $path = $this->getPathOnDisk($this->assetPath);
+        $path = $this->assetPathsManager->getPathOnDisk($this->assetPath);
 
         // get the hash for the content
-        $hash = hash('xxh32', $content);
+        $hash = $this->assetHashManager->generateHash($content);
 
-        $this->content_hash = $hash;
+        $this->content_hash = $this->assetHashManager->appendHashToPath($content, $hash);
 
-        return preg_replace('/\.(css|js)$/i', "-{$hash}.$1", $path);
+        return $this->assetHashManager->appendHashToPath($path, $hash);
     }
 
     public function generateContentHash(string $content = null): string
     {
-        return $this->content_hash = hash('xxh32', $content ?? $this->getContents(false));
+        $content = $content ?? $this->getContent();
+
+        return $this->content_hash = $this->assetHashManager->generateHash($content);
     }
 
     private function getPathOnDisk(string $asset): string
     {
-        return $this->getPath($asset);
+        return $this->assetPathsManager->getPathOnDisk($asset);
     }
 }
