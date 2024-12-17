@@ -1,15 +1,16 @@
-<?php 
+<?php
 
 namespace  Backpack\Basset;
 
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 final class AssetPathManager implements \Backpack\Basset\Contracts\AssetPathManager
 {
     private string $basePath;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->basePath = (string) Str::of(config('backpack.basset.path'))->finish('/');
     }
 
