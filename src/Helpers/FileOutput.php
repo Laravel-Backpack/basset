@@ -37,16 +37,15 @@ class FileOutput
      */
     public function write(CacheEntry $asset): void
     {
-        $dev = config('backpack.basset.dev_mode', false);
-        $filePath = $dev ? $asset->getAssetPath() : $asset->getAssetDiskPath();
+        $filePath = $asset->getAssetDiskPath();
         $extension = (string) Str::of($filePath)->afterLast('.');
 
         // map extensions
         $file = match ($extension) {
             'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg' => 'img',
             'mp3', 'ogg', 'wav', 'mp4', 'webm', 'avi' => 'source',
-            'pdf' => 'object',
-            'vtt' => 'track',
+            'pdf'   => 'object',
+            'vtt'   => 'track',
             default => $extension
         };
 
@@ -57,7 +56,7 @@ class FileOutput
         }
 
         echo Blade::render($template, [
-            'src' => $this->assetPath($filePath),
+            'src'  => $this->assetPath($filePath),
             'args' => $this->prepareAttributes($asset->getAttributes()),
         ]);
     }
