@@ -121,11 +121,11 @@ final class CacheEntry implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         return [
-            'asset_name'      => $this->assetName,
-            'asset_path'      => $this->assetPath,
+            'asset_name' => $this->assetName,
+            'asset_path' => $this->assetPath,
             'asset_disk_path' => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
-            'attributes'      => $this->attributes,
-            'content_hash'    => $this->content_hash,
+            'attributes' => $this->attributes,
+            'content_hash' => $this->content_hash,
         ];
     }
 
