@@ -92,7 +92,7 @@ class BassetManager
         }
 
         $this->namedAssets[$asset] = [
-            'source' => $source,
+            'source'     => $source,
             'attributes' => $attributes,
         ];
     }
@@ -219,6 +219,12 @@ class BassetManager
 
         if (! is_string($content)) {
             return $content;
+        }
+
+        if (str_starts_with($asset->getAssetPath(), public_path())) {
+            $output && $this->output->write($asset);
+
+            return $this->loader->finish(StatusEnum::INVALID);
         }
 
         return $this->uploadAssetToDisk($asset, $content, $output);
