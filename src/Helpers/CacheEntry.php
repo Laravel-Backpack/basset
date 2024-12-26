@@ -53,7 +53,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
         if (! str_starts_with($assetPath, base_path()) && ! Str::isUrl($assetPath)) {
             if (File::exists(public_path($assetPath))) {
                 $this->assetPath = public_path($assetPath);
-                $this->assetDiskPath = $this->assetPathsManager->getCleanPath($this->assetPath);
+                $this->assetDiskPath = $this->assetPathsManager->getCleanPath($assetPath);
             } else {
                 $this->assetPath = base_path($assetPath);
             }
