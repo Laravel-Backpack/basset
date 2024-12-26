@@ -22,13 +22,14 @@ final class AssetPathManager implements \Backpack\Basset\Contracts\AssetPathMana
     public function getPathOnDisk(string $asset): string
     {
         return Str::of($this->basePath)
-            ->append($this->getCleanPath($asset));
+            ->append($this->getCleanPath($asset))
+            ->replace(['//'], '/');
     }
 
     public function getCleanPath(string $asset): string
     {
         return Str::of($asset)
-            ->replace([base_path().'/', base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '')
+            ->replace([base_path().'/', base_path(), base_path().'\\', 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '')
             ->before('?')
             ->replace(['/\\', '\\'], '/');
     }
