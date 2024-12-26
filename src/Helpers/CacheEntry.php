@@ -7,6 +7,7 @@ use Backpack\Basset\Contracts\AssetPathManager;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use JsonSerializable;
 
 final class CacheEntry implements Arrayable, JsonSerializable
@@ -49,8 +50,14 @@ final class CacheEntry implements Arrayable, JsonSerializable
     {
         $this->assetPath = $assetPath;
 
+        if (! str_starts_with(base_path(), $assetPath) && ! Str::isUrl($assetPath)) {
+            // if asset path is not a full path, we assume it's a relative path to the public folder
+            $this->assetPath = public_path($assetPath);
+            $this->assetDiskPath = $this->assetPathsManager->getCleanPath($this->assetPath);
+        }
+
         if (! isset($this->assetDiskPath)) {
-            $this->assetDiskPath = $this->getPathOnDisk($assetPath);
+            $this->assetDiskPath = $this->getPathOnDisk($this->assetPath);
         }
 
         return $this;
@@ -114,11 +121,11 @@ final class CacheEntry implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         return [
-            'asset_name' => $this->assetName,
-            'asset_path' => $this->assetPath,
+            'asset_name'      => $this->assetName,
+            'asset_path'      => $this->assetPath,
             'asset_disk_path' => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
-            'attributes' => $this->attributes,
-            'content_hash' => $this->content_hash,
+            'attributes'      => $this->attributes,
+            'content_hash'    => $this->content_hash,
         ];
     }
 
