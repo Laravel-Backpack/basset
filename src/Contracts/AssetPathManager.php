@@ -9,4 +9,6 @@ interface AssetPathManager
     public function isLocal(string $path): bool;
 
     public function getPathOnDisk(string $path): string;
+
+    public function getCleanPath(string $path): string;
 }

@@ -22,9 +22,15 @@ final class AssetPathManager implements \Backpack\Basset\Contracts\AssetPathMana
     public function getPathOnDisk(string $asset): string
     {
         return Str::of($this->basePath)
-            ->append(str_replace([base_path().'/', base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '', $asset))
+            ->append($this->getCleanPath($asset));
+    }
+
+    public function getCleanPath(string $asset): string
+    {
+        return Str::of($asset)
+            ->replace([base_path().'/', base_path(), 'http://', 'https://', '://', '<', '>', ':', '"', '|', "\0", '*', '`', ';', "'", '+'], '')
             ->before('?')
-            ->replace('/\\', '/');
+            ->replace(['/\\', '\\'], '/');
     }
 
     public function isLocal(string $path): bool
