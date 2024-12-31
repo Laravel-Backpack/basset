@@ -2,6 +2,7 @@
 
 namespace Backpack\Basset;
 
+use Backpack\Basset\Contracts\AssetPathManagerInterface;
 use Backpack\Basset\Enums\StatusEnum;
 use Backpack\Basset\Events\BassetCachedEvent;
 use Backpack\Basset\Helpers\CacheEntry;
@@ -42,7 +43,7 @@ class BassetManager
 
     public FileOutput $output;
 
-    public AssetPathManager $assetPathsManager;
+    public AssetPathManagerInterface $assetPathsManager;
 
     public function __construct()
     {
@@ -92,7 +93,7 @@ class BassetManager
         }
 
         $this->namedAssets[$asset] = [
-            'source' => $source,
+            'source'     => $source,
             'attributes' => $attributes,
         ];
     }
@@ -224,7 +225,7 @@ class BassetManager
         if (str_starts_with($asset->getAssetPath(), public_path())) {
             $output && $this->output->write($asset);
 
-            return $this->loader->finish(StatusEnum::INVALID);
+            return $this->loader->finish(StatusEnum::PUBLIC_FILE);
         }
 
         return $this->uploadAssetToDisk($asset, $content, $output);
@@ -546,7 +547,7 @@ class BassetManager
         return (new CacheEntry())
                 ->assetName($assetName)
                 ->assetPath($asset['source'])
-                ->attributes(isset($asset['attributes']) ? array_merge($asset['attributes'], $attributes) : $attributes);
+                ->assetAttributes(isset($asset['asset_attributes']) ? array_merge($asset['asset_attributes'], $attributes) : (isset($asset['attributes']) ? array_merge($asset['attributes'], $attributes) : $attributes));
     }
 
     private function getNamedAsset(string $asset): array

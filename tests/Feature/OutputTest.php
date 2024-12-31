@@ -9,7 +9,7 @@ it('echoes the correct html tag', function ($asset, $tag) {
 it('echoes the attributes', function ($asset) {
     bassetInstance($asset, true, [
         'async' => true,
-        'type' => 'module',
+        'type'  => 'module',
     ]);
 
     $this->expectOutputRegex('/<script .+ async type="module"/');
