@@ -18,7 +18,7 @@ class BassetInstall extends Command
      *
      * @var string
      */
-    protected $signature = 'basset:install {--no-check} : As the name says, `basset:check` will not run.';
+    protected $signature = 'basset:install {--no-check} {--git-ignore} : As the name says, `basset:check` will not run.';
 
     /**
      * The console command description.
@@ -41,7 +41,9 @@ class BassetInstall extends Command
         }
 
         // add basset folder to .gitignore
-        $this->addGitIgnore();
+        if ($this->option('git-ignore')) {
+            $this->addGitIgnore();
+        }
 
         $this->addComposerCommands();
 

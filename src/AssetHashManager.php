@@ -2,9 +2,9 @@
 
 namespace Backpack\Basset;
 
-use Backpack\Basset\Contracts\AssetHashManager as AssetHashManagerContract;
+use Backpack\Basset\Contracts\AssetHashManagerInterface;
 
-final class AssetHashManager implements AssetHashManagerContract
+final class AssetHashManager implements AssetHashManagerInterface
 {
     public function generateHash(string $content): string
     {

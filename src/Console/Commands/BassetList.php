@@ -18,14 +18,14 @@ class BassetList extends Command
      *
      * @var string
      */
-    protected $signature = 'basset:list {--filter=*}';
+    protected $signature = 'basset:list-named {--filter=*}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'List the assets that packages added to the map.';
+    protected $description = 'List the named assets that packages added to the map.';
 
     /**
      * Execute the console command.
@@ -44,6 +44,10 @@ class BassetList extends Command
                 }
             }
             $this->line('<fg=blue> Asset Key: </>'.$key.'</><fg=blue> Asset Source: </>'.$asset['source']);
+        }
+
+        if (empty($assets)) {
+            $this->line('No named assets listed.');
         }
     }
 }

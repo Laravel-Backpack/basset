@@ -2,10 +2,11 @@
 
 namespace  Backpack\Basset;
 
+use Backpack\Basset\Contracts\AssetPathManagerInterface;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-final class AssetPathManager implements \Backpack\Basset\Contracts\AssetPathManager
+final class AssetPathManager implements AssetPathManagerInterface
 {
     private string $basePath;
 

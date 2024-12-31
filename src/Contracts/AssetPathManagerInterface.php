@@ -2,7 +2,7 @@
 
 namespace Backpack\Basset\Contracts;
 
-interface AssetPathManager
+interface AssetPathManagerInterface
 {
     public function getBasePath(): string;
 
