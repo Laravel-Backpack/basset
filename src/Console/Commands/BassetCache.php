@@ -30,7 +30,7 @@ class BassetCache extends Command
      *
      * @var string
      */
-    protected $description = 'Cache all the assets under the basset blade directive and update package manifesto';
+    protected $description = 'Cache all the assets using the basset blade directive and update the cache map.';
 
     /**
      * Execute the console command.

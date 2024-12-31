@@ -2,7 +2,7 @@
 
 namespace Backpack\Basset\Contracts;
 
-interface AssetHashManager
+interface AssetHashManagerInterface
 {
     public function generateHash(string $content): string;
 

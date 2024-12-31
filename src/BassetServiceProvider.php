@@ -2,7 +2,6 @@
 
 namespace Backpack\Basset;
 
-use Backpack\Basset\Facades\Basset;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -71,14 +70,17 @@ class BassetServiceProvider extends ServiceProvider
         // Load basset disk
         $this->loadDisk();
 
+        // Load public disk
+        $this->loadPublicDisk();
+
         // Register the service the package provides.
         $this->app->scoped('basset', fn () => new BassetManager());
 
         // Register the asset path resolver
-        $this->app->singleton(Contracts\AssetPathManager::class, AssetPathManager::class);
+        $this->app->singleton(Contracts\AssetPathManagerInterface::class, AssetPathManager::class);
 
         // Register the asset hash manager
-        $this->app->singleton(Contracts\AssetHashManager::class, AssetHashManager::class);
+        $this->app->singleton(Contracts\AssetHashManagerInterface::class, AssetHashManager::class);
 
         // Register blade directives
         $this->registerBladeDirectives();
@@ -190,11 +192,33 @@ class BassetServiceProvider extends ServiceProvider
 
         // add the basset disk to filesystem configuration
         app()->config['filesystems.disks.basset'] = [
-            'driver' => 'local',
-            'root' => public_path(),
-            'url' => url(''),
+            'driver'     => 'local',
+            'root'       => storage_path('app/public'),
+            'url'        => env('APP_URL').'/storage',
             'visibility' => 'public',
-            'throw' => false,
+            'throw'      => false,
+        ];
+    }
+
+    public function loadPublicDisk(): void
+    {
+        // if the basset disk already exists, don't override it
+        if (app()->config['filesystems.disks.public_basset']) {
+            return;
+        }
+
+        // if the basset disk isn't being used at all, don't even bother to add it
+        if (app()->config['backpack.basset.disk'] !== 'public_basset') {
+            return;
+        }
+
+        // add the basset disk to filesystem configuration
+        app()->config['filesystems.disks.public_basset'] = [
+            'driver'     => 'local',
+            'root'       => public_path(),
+            'url'        => url(''),
+            'visibility' => 'public',
+            'throw'      => false,
         ];
     }
 

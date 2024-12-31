@@ -2,8 +2,8 @@
 
 namespace Backpack\Basset\Helpers;
 
-use Backpack\Basset\Contracts\AssetHashManager;
-use Backpack\Basset\Contracts\AssetPathManager;
+use Backpack\Basset\AssetHashManager;
+use Backpack\Basset\AssetPathManager;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Facades\File;
@@ -18,9 +18,9 @@ final class CacheEntry implements Arrayable, JsonSerializable
 
     private string $assetDiskPath;
 
-    private array $attributes = [];
+    private array $assetAttributes = [];
 
-    private string $content_hash = '';
+    private string $assetContentHash = '';
 
     private AssetPathManager $assetPathsManager;
 
@@ -36,7 +36,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
     {
         $instance = new self();
 
-        return $instance->assetName($asset['asset_name'])->assetPath($asset['asset_path'])->assetDiskPath($asset['asset_disk_path'])->attributes($asset['attributes']);
+        return $instance->assetName($asset['asset_name'])->assetPath($asset['asset_path'])->assetDiskPath($asset['asset_disk_path'])->assetAttributes($asset['asset_attributes']);
     }
 
     public function assetName(string $assetName): self
@@ -73,9 +73,9 @@ final class CacheEntry implements Arrayable, JsonSerializable
         return $this;
     }
 
-    public function attributes(array $attributes): self
+    public function assetAttributes(array $attributes): self
     {
-        $this->attributes = $attributes;
+        $this->assetAttributes = $attributes;
 
         return $this;
     }
@@ -92,7 +92,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
 
     public function getAttributes(): array
     {
-        return $this->attributes;
+        return $this->assetAttributes;
     }
 
     public function getAssetName(): string
@@ -124,11 +124,11 @@ final class CacheEntry implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         return [
-            'asset_name' => $this->assetName,
-            'asset_path' => $this->assetPath,
-            'asset_disk_path' => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
-            'attributes' => $this->attributes,
-            'content_hash' => $this->content_hash,
+            'asset_name'            => $this->assetName,
+            'asset_path'            => $this->assetPath,
+            'asset_disk_path'       => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
+            'asset_attributes'      => $this->assetAttributes,
+            'asset_content_hash'    => $this->assetContentHash,
         ];
     }
 
@@ -158,7 +158,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
 
     public function getContentHash(): string
     {
-        return $this->content_hash;
+        return $this->assetContentHash;
     }
 
     public function getPathOnDiskHashed(string $content): string
@@ -168,7 +168,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
         // get the hash for the content
         $hash = $this->assetHashManager->generateHash($content);
 
-        $this->content_hash = $this->assetHashManager->appendHashToPath($content, $hash);
+        $this->assetContentHash = $this->assetHashManager->appendHashToPath($content, $hash);
 
         return $this->assetHashManager->appendHashToPath($path, $hash);
     }
@@ -177,7 +177,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
     {
         $content = $content ?? $this->getContent();
 
-        return $this->content_hash = $this->assetHashManager->generateHash($content);
+        return $this->assetContentHash = $this->assetHashManager->generateHash($content);
     }
 
     private function getPathOnDisk(string $asset): string
