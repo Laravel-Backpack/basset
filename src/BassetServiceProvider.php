@@ -192,11 +192,11 @@ class BassetServiceProvider extends ServiceProvider
 
         // add the basset disk to filesystem configuration
         app()->config['filesystems.disks.basset'] = [
-            'driver'     => 'local',
-            'root'       => storage_path('app/public'),
-            'url'        => env('APP_URL').'/storage',
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
-            'throw'      => false,
+            'throw' => false,
         ];
     }
 
@@ -214,11 +214,11 @@ class BassetServiceProvider extends ServiceProvider
 
         // add the basset disk to filesystem configuration
         app()->config['filesystems.disks.public_basset'] = [
-            'driver'     => 'local',
-            'root'       => public_path(),
-            'url'        => url(''),
+            'driver' => 'local',
+            'root' => public_path(),
+            'url' => url(''),
             'visibility' => 'public',
-            'throw'      => false,
+            'throw' => false,
         ];
     }
 
