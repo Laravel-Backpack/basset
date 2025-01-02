@@ -3,27 +3,9 @@
 use Backpack\Basset\Enums\StatusEnum;
 use Illuminate\Support\Facades\Http;
 
-it('ignores cdn basset on dev mode', function ($asset) {
-    // set dev mode
-    config(['backpack.basset.dev_mode' => true]);
-    config(['backpack.basset.always_cache_external_urls' => false]);
-
-    $result = bassetInstance($asset, false);
-    $path = bassetInstance()->assetPathsManager->getPathOnDisk($asset);
-
-    // assert file was not saved
-    disk()->assertMissing($path);
-
-    // assert no download was tried
-    Http::assertSentCount(0);
-
-    expect($result)->toBe(StatusEnum::DISABLED);
-})->with('cdn');
-
 it('re-internalizes local basset on dev mode', function ($asset) {
     // set dev mode
-    config(['backpack.basset.dev_mode' => true]);
-    config(['backpack.basset.always_cache_external_urls' => false]);
+    bassetInstance()->setDevMode(true);
 
     disk()->deleteDirectory('basset');
 
@@ -43,7 +25,7 @@ it('re-internalizes local basset on dev mode', function ($asset) {
 
 it('ignores basset block on dev mode', function ($asset) {
     // set dev mode
-    config(['backpack.basset.dev_mode' => true]);
+    bassetInstance()->setDevMode(true);
 
     $codeBlock = getStub($asset);
 
@@ -60,10 +42,9 @@ it('ignores basset block on dev mode', function ($asset) {
     expect($result)->toBe(StatusEnum::DISABLED);
 })->with('codeBlock');
 
-it('internalizes basset urls if force url cache is set and devmode is on', function ($asset) {
+it('internalize asset urls', function ($asset) {
     // set dev mode
-    config(['backpack.basset.dev_mode' => true]);
-    config(['backpack.basset.always_cache_external_urls' => true]);
+    bassetInstance()->setDevMode(true);
 
     $result = bassetInstance($asset, false);
     $path = bassetInstance()->assetPathsManager->getPathOnDisk($asset);

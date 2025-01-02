@@ -63,6 +63,10 @@ final class CacheEntry implements Arrayable, JsonSerializable
             $this->assetDiskPath = $this->getPathOnDisk($this->assetPath);
         }
 
+        if ($this->isLocalAsset()) {
+            $this->generateContentHash();
+        }
+
         return $this;
     }
 
@@ -124,10 +128,10 @@ final class CacheEntry implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         return [
-            'asset_name' => $this->assetName,
-            'asset_path' => $this->assetPath,
-            'asset_disk_path' => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
-            'asset_attributes' => $this->assetAttributes,
+            'asset_name'         => $this->assetName,
+            'asset_path'         => $this->assetPath,
+            'asset_disk_path'    => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
+            'asset_attributes'   => $this->assetAttributes,
             'asset_content_hash' => $this->assetContentHash,
         ];
     }
@@ -183,5 +187,12 @@ final class CacheEntry implements Arrayable, JsonSerializable
     private function getPathOnDisk(string $asset): string
     {
         return $this->assetPathsManager->getPathOnDisk($asset);
+    }
+
+    public function getOutputDiskPath(): string
+    {
+        $diskPath = Str::of(config('filesystems.disks.'.config('backpack.basset.disk'))['url'])->finish('/');
+
+        return (string) Str::of($diskPath.$this->assetDiskPath);
     }
 }
