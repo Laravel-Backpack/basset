@@ -1,12 +1,9 @@
 <?php
 
 return [
-    // development mode, assets will not be internalized
+    // when dev mode is enabled basset will replace the changed assets by either checking if the url changed
+    // or comparing the file hash with the one in the asset map
     'dev_mode' => env('BASSET_DEV_MODE', env('APP_ENV') === 'local'),
-
-    // all external urls (usually cdns) will be cached on first request or
-    // when running `basset:cache` even if dev_mode is enabled
-    'always_cache_external_urls' => true,
 
     // verify ssl certificate while fetching assets
     'verify_ssl_certificate' => env('BASSET_VERIFY_SSL_CERTIFICATE', true),
