@@ -36,7 +36,7 @@ it('internalizes named assets urls with dev mode true and force url cache', func
 it('replaces named assets if version changed and its already cached', function ($name, $url, $newVersion) {
     bassetInstance()->map($name, $url);
     // set dev mode
-    config(['backpack.basset.dev_mode' => true]);
+    bassetInstance()->setDevMode(true);
 
     $result = bassetInstance($name, false);
 
@@ -75,7 +75,7 @@ it('replaces named assets if version changed and its already cached', function (
 it('does not replace named assets if version did not change and its already cached', function ($name, $url, $newVersion) {
     bassetInstance()->map($name, $url);
     // set dev mode
-    config(['backpack.basset.dev_mode' => true]);
+    bassetInstance()->setDevMode(true);
 
     $result = bassetInstance($name, false);
 

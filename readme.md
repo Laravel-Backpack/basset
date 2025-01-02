@@ -16,7 +16,7 @@
 <script src="{{ basset('https://cdn.com/path/to/file.js') }}">
 ```
 
-That's all you need to do. **Basset will download the file to `storage/app/public/bassets` from wherever it is, then output the now-public path to your asset.**
+That's all you need to do. **Basset will download the file to the predefined disk, then output that disk path to your asset.**
 
 Using Basset, you easily internalize and use:
 - files from external URLs (like CDNs)
@@ -38,9 +38,6 @@ php artisan basset:install
 php artisan vendor:publish --provider="Backpack\Basset\BassetServiceProvider"
 ```
 
-> **Note**  
-> Basset is disabled by default on local environment. If you want to change it, please set `BASSET_DEV_MODE=false` in your env file.
-
 #### Storage Symlink
 Basset uses the `public` disk to store cached assets in a directory that is publicly-accessible. So it needs you to run `php artisan storage:link` to create the symlink. The installation command will create ask to run that, and to add that command to your `composer.json`. That will most likely make it work on your development/staging/production servers. If that's not the case, make sure you create the links manually wherever you need them, with the command `php artisan storage:link`.
 
@@ -59,14 +56,14 @@ For local from CDNs:
 <link href="{{ asset('path/to/public/file.css') }}">
 
 {{-- you can do --}}
-<link href="{{ basset('path/to/public/file.css' }}">
+<link href="{{ basset('path/to/public/file.css') }}">
 <link href="{{ basset('https://cdn.com/path/to/file.css') }}">
 <link href="{{ basset(base_path('vendor/org/package/assets/file.css')) }}">
 <link href="{{ basset(storage_path('file.css')) }}">
 ```
 
 Basset will:
-- copy that file from the vendor directory to your `storage` directory (aka. internalize the file)
+- copy that file from the vendor directory to your public disk.
 - use the internalized file on all requests
 
 ### The `@basset()` Directive
@@ -171,9 +168,17 @@ If you require customized behavior after each asset is cached, you can set up a 
 ## Configuration
 
 Take a look at [the config file](https://github.com/Laravel-Backpack/basset/blob/main/src/config/backpack/basset.php) for all configuration options. Notice some of those configs also have ENV variables, so you can:
-- enable/disable dev mode using `BASSET_DEV_MODE=false` - this will force Basset to internalize assets even on localhost
+- enable/disable dev mode using `BASSET_DEV_MODE=false` - when enabled Basset will check for changes in your url/files and update the cached assets
 - change the disk where assets get internalized using `BASSET_DISK=yourdiskname`
 - disable the cache map using `BASSET_CACHE_MAP=false` (needed on serverless like Laravel Vapor)
+
+### Storing assets in the application repository
+
+If you would like to track the assets in your application repository and avoid downloading them on each deployment, you can set the `BASSET_DISK` environment variable to `public_basset`. This will store the assets in the `public/basset` directory by default and they can now be committed alongside the rest of your application code.
+
+This is advantageous as you know what assets are in your application right when you deploy, avoiding issues like a cdn being down at the deployment time and breaking your application production.
+
+```bash
 
 ## Deployment
 

@@ -37,7 +37,7 @@ class FileOutput
      */
     public function write(CacheEntry $asset): void
     {
-        $filePath = $asset->getAssetDiskPath();
+        $filePath = $asset->getOutputDiskPath();
         $extension = (string) Str::of($filePath)->afterLast('.');
 
         // map extensions

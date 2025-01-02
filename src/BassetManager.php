@@ -31,8 +31,6 @@ class BassetManager
 
     private bool $overridesLoaded = false;
 
-    private bool $forceUrlCache;
-
     private array $namedAssets = [];
 
     public CacheMap $cacheMap;
@@ -54,7 +52,6 @@ class BassetManager
         $this->assetPathsManager = app(AssetPathManager::class);
         $this->disk = $disk;
         $this->dev = config('backpack.basset.dev_mode', false);
-        $this->forceUrlCache = config('backpack.basset.always_cache_external_urls', false);
         $this->cacheMap = new CacheMap($this->disk, $this->assetPathsManager->getBasePath());
         $this->loader = new LoadingTime();
         $this->unarchiver = new Unarchiver();
@@ -93,7 +90,7 @@ class BassetManager
         }
 
         $this->namedAssets[$asset] = [
-            'source' => $source,
+            'source'     => $source,
             'attributes' => $attributes,
         ];
     }
@@ -160,6 +157,11 @@ class BassetManager
         $this->namedAssets = [];
     }
 
+    public function setDevMode(bool $dev)
+    {
+        $this->dev = $dev;
+    }
+
     public function loadAsset(CacheEntry $asset, $output)
     {
         if ($this->isLoaded($asset)) {
@@ -172,22 +174,26 @@ class BassetManager
         /** var CacheEntry $mapped */
         $mapped = $this->cacheMap->getAsset($asset);
 
-        if ($mapped && (! $this->dev || $this->forceUrlCache)) {
-            // if it's an url, and the paths changed, we should replace the asset
-            if (Str::isUrl($mapped->getAssetPath()) && $mapped->getAssetPath() !== $asset->getAssetPath()) {
-                return $this->replaceAsset($asset, $mapped, $output);
-            }
-
-            if ($this->forceUrlCache && Str::isUrl($mapped->getAssetPath())) {
+        if ($mapped) {
+            // if dev mode is not active we will just return the cached asset
+            if (! $this->dev) {
                 $output && $this->output->write($mapped);
 
                 return $this->loader->finish(StatusEnum::IN_CACHE);
             }
 
-            if ($this->dev) {
-                if ($mapped->getContentHash() !== $asset->generateContentHash()) {
+            if (Str::isUrl($mapped->getAssetPath())) {
+                if ($mapped->getAssetPath() !== $asset->getAssetPath()) {
                     return $this->replaceAsset($asset, $mapped, $output);
                 }
+
+                $output && $this->output->write($mapped);
+
+                return $this->loader->finish(StatusEnum::IN_CACHE);
+            }
+
+            if ($mapped->getContentHash() !== $asset->generateContentHash()) {
+                return $this->replaceAsset($asset, $mapped, $output);
             }
         }
 
@@ -490,13 +496,6 @@ class BassetManager
     private function getAssetContent(CacheEntry $asset, bool $output = true): StatusEnum|string
     {
         if (Str::isUrl($asset->getAssetPath())) {
-            // when in dev mode, cdn should be rendered if external urls are not forced to be cached.
-            if ($this->dev && ! $this->forceUrlCache) {
-                $output && $this->output->write($asset);
-
-                return $this->loader->finish(StatusEnum::DISABLED);
-            }
-
             $content = $this->fetchContent($asset->getAssetPath());
         } else {
             if (! $asset->isLocalAsset()) {
