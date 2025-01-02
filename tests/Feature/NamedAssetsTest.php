@@ -19,8 +19,7 @@ it('internalizes named assets', function ($name, $url, $newVersion) {
 it('internalizes named assets urls with dev mode true and force url cache', function ($name, $url, $newVersion) {
     bassetInstance()->map($name, $url);
     // set dev mode
-    config(['backpack.basset.dev_mode' => true]);
-    config(['backpack.basset.always_cache_external_urls' => true]);
+    bassetInstance()->setDevMode(true);
 
     $result = bassetInstance($name, false);
 
