@@ -24,7 +24,7 @@ Using Basset, you easily internalize and use:
 - entire archives from external URLs (like GitHub)
 - entire directories from local, non-public paths (like other local projects)
 
-No more publishing package files. No more using NPM just to download some files. It's a simple yet effective solution in the age of `HTTP/2` and `HTTP/3`.
+No more publishing package files. No more NPM bloat, just to download some files. It's a simple yet effective solution in the age of `HTTP/2` and `HTTP/3`.
 
 ## Installation
 
@@ -38,12 +38,27 @@ php artisan basset:install
 php artisan vendor:publish --provider="Backpack\Basset\BassetServiceProvider"
 ```
 
+
 #### Storage Symlink
-Basset uses the `public` disk to store cached assets in a directory that is publicly-accessible. So it needs you to run `php artisan storage:link` to create the symlink. The installation command will create ask to run that, and to add that command to your `composer.json`. That will most likely make it work on your development/staging/production servers. If that's not the case, make sure you create the links manually wherever you need them, with the command `php artisan storage:link`.
+By default, Basset uses the `storage` directory to store cached assets in a directory that is publicly-accessible. So it needs you to run `php artisan storage:link` to create the symlink. The installation command will ask to run that, and to add that command to your `composer.json`. That will most likely make it work on your development/staging/production servers. If that's not the case, make sure you create the links manually wherever you need them, with the command `php artisan storage:link`.
 
 #### Disk
 By default Basset uses the `public` disk. If you're having trouble with the assets not showing up on page, you might have an old Laravel configuration for it. Please make sure your disk is properly setup on `config/filsystems.php` - it should look like [the default one](https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45).
 
+#### Where to store cached assets?
+
+Basset provides a few options out-of-the-box:
+- (a) inside the storage directory, eg. `storage/app/basset` [default]
+    - PROs: the Git history is clean - because your cached assets will NOT be tracked by Git;
+    - CONs: in rare cases, your deployments to staging/production could break, because assets are being re-cached upon `composer update`; if a CDN is down during deployment, the system will not be able to internalize it; if will however internalize it when the CDN is back on, and the page that loads the file gets accessed;
+    - How to enable: do nothing, or do `BASSET_DISK=basset` in your .env file;
+- (b) inside the public directory, eg. `public/basset`
+    - PROs: you are certain the same assets you have on localhost will be in production, because the assets are commited to Git;
+    - CONs: your Git history will be dirtier, because it will contain changes to libraries of CSS/JS files;
+    - How to enable: do `BASSET_DISK=public_basset` in your .env file or `config/backpack/basset.php` config file;
+- (c) custom - you can completely customize what disk is used to store the assets; take a look at the config file for details; most common customizations:
+    - store assets on a S3 bucket (using a custom disk);
+ 
 ## Usage
 
 ### The `basset()` Helper
