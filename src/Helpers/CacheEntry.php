@@ -144,7 +144,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
     public function getContent(): string
     {
         try {
-            if(! File::isFile($this->assetPath) && ! Str::isUrl($this->assetPath)) {
+            if (! File::isFile($this->assetPath) && ! Str::isUrl($this->assetPath)) {
                 return $this->assetPath;
             }
             $content = File::get($this->assetPath);
