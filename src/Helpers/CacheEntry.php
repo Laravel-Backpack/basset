@@ -60,7 +60,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
         }
 
         if (! isset($this->assetDiskPath)) {
-            $this->assetDiskPath = $this->getPathOnDisk($this->assetPath);
+            $this->assetDiskPath = $this->getPathOnDisk($this->assetPathsManager->getCleanPath($assetPath));
         }
 
         if ($this->isLocalAsset()) {
@@ -144,6 +144,9 @@ final class CacheEntry implements Arrayable, JsonSerializable
     public function getContent(): string
     {
         try {
+            if(! File::isFile($this->assetPath) && ! Str::isUrl($this->assetPath)) {
+                return $this->assetPath;
+            }
             $content = File::get($this->assetPath);
         } catch (\Exception $e) {
             throw new \Exception("Could not read file: {$this->assetPath}");
