@@ -1,13 +1,17 @@
 name: PHP Stan and Tests
 
-on: [push]
+on:
+  - push
 
 jobs:
   stan-and-tests:
     strategy:
       matrix:
         php: [8.1, 8.2]
-        laravel: [^10.15]
+        laravel: ['12.0', ^10.15]
+        exclude:
+          - laravel: '12.0'
+            php: 8.1
 
     name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}
 
@@ -41,6 +45,3 @@ jobs:
 
       - name: PHP Tests
         run: composer test
-
-
-
