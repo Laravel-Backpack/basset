@@ -180,7 +180,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
         return $this->assetHashManager->appendHashToPath($path, $hash);
     }
 
-    public function generateContentHash(string $content = null): string
+    public function generateContentHash(?string $content = null): string
     {
         $content = $content ?? $this->getContent();
 
