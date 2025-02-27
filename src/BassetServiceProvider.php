@@ -181,7 +181,7 @@ class BassetServiceProvider extends ServiceProvider
     public function loadDisk(): void
     {
         // if the basset disk already exists, don't override it
-        if (config('filesystems.disks.basset') {
+        if (config('filesystems.disks.basset')) {
             return;
         }
 
@@ -191,13 +191,13 @@ class BassetServiceProvider extends ServiceProvider
         }
 
         // add the basset disk to filesystem configuration
-        config()'filesystems.disks.basset') = [
-            'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => url('').'/storage',
+        config(['filesystems.disks.basset' => [
+            'driver'     => 'local',
+            'root'       => storage_path('app/public'),
+            'url'        => url('').'/storage',
             'visibility' => 'public',
-            'throw' => false,
-        ];
+            'throw'      => false,
+        ]]);
     }
 
     public function loadPublicDisk(): void
@@ -213,13 +213,13 @@ class BassetServiceProvider extends ServiceProvider
         }
 
         // add the basset disk to filesystem configuration
-        config('filesystems.disks.public_basset') = [
-            'driver' => 'local',
-            'root' => public_path(),
-            'url' => url(''),
+        config(['filesystems.disks.public_basset' => [
+            'driver'     => 'local',
+            'root'       => public_path(),
+            'url'        => url(''),
             'visibility' => 'public',
-            'throw' => false,
-        ];
+            'throw'      => false,
+        ]]);
     }
 
     /**
