@@ -15,3 +15,18 @@ dataset('codeBlock', [
     'codeBlock02.js',
     'codeBlock03.css',
 ]);
+
+dataset('namedAssets', [
+    [
+        'vue',
+        'https://unpkg.com/vue@3/dist/vue.global.prod.js',
+        'https://unpkg.com/vue@3.1/dist/vue31.global.prod.js',
+    ],
+]);
+
+dataset('namedAssetsOutput', [
+    [
+        'react',
+        'https://unpkg.com/react@3/dist/reactscript.production.min.js',
+    ],
+]);

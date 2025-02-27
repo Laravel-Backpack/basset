@@ -33,13 +33,12 @@ class FileOutput
     /**
      * Outputs a file depending on its type.
      *
-     * @param  string  $path
-     * @param  array  $attributes
      * @return void
      */
-    public function write(string $path, array $attributes = []): void
+    public function write(CacheEntry $asset): void
     {
-        $extension = (string) Str::of($path)->afterLast('.');
+        $filePath = $asset->getOutputDiskPath();
+        $extension = (string) Str::of($filePath)->afterLast('.');
 
         // map extensions
         $file = match ($extension) {
@@ -57,8 +56,8 @@ class FileOutput
         }
 
         echo Blade::render($template, [
-            'src' => $this->assetPath($path),
-            'args' => $this->prepareAttributes($attributes),
+            'src' => $this->assetPath($filePath),
+            'args' => $this->prepareAttributes($asset->getAttributes()),
         ]);
     }
 
@@ -70,7 +69,9 @@ class FileOutput
      */
     public function assetPath(string $path): string
     {
-        $asset = Str::of(asset($path.$this->cachebusting));
+        $dev = config('backpack.basset.dev_mode', false);
+
+        $asset = Str::of(asset($path.($dev ? '' : $this->cachebusting)));
 
         if ($this->useRelativePaths && $asset->startsWith(url(''))) {
             $asset = $asset->after('//')->after('/')->start('/');

@@ -16,7 +16,7 @@
 <script src="{{ basset('https://cdn.com/path/to/file.js') }}">
 ```
 
-That's all you need to do. **Basset will download the file to `storage/app/public/bassets` from wherever it is, then output the now-public path to your asset.**
+That's all you need to do. **Basset will download the file to the predefined disk, then output that disk path to your asset.**
 
 Using Basset, you easily internalize and use:
 - files from external URLs (like CDNs)
@@ -24,7 +24,7 @@ Using Basset, you easily internalize and use:
 - entire archives from external URLs (like GitHub)
 - entire directories from local, non-public paths (like other local projects)
 
-No more publishing package files. No more using NPM just to download some files. It's a simple yet effective solution in the age of `HTTP/2` and `HTTP/3`.
+No more publishing package files. No more NPM bloat, just to download some files. It's a simple yet effective solution in the age of `HTTP/2` and `HTTP/3`.
 
 ## Installation
 
@@ -33,19 +33,22 @@ composer require backpack/basset
 php artisan basset:install
 ```
 
-**Optional** publish the config file.
+To check that Basset is running correctly, please run:
+
 ```bash
+# recommended - this will tell you if anything is wrong & what to do:
+php artisan basset:check
+````
+
+Optionally, you can also publish the config file to make changes in how Basset works:
+
+```bash
+# optional
 php artisan vendor:publish --provider="Backpack\Basset\BassetServiceProvider"
 ```
 
-> **Note**  
-> Basset is disabled by default on local environment. If you want to change it, please set `BASSET_DEV_MODE=false` in your env file.
-
 #### Storage Symlink
-Basset uses the `public` disk to store cached assets in a directory that is publicly-accessible. So it needs you to run `php artisan storage:link` to create the symlink. The installation command will create ask to run that, and to add that command to your `composer.json`. That will most likely make it work on your development/staging/production servers. If that's not the case, make sure you create the links manually wherever you need them, with the command `php artisan storage:link`.
-
-#### Disk
-By default Basset uses the `public` disk. If you're having trouble with the assets not showing up on page, you might have an old Laravel configuration for it. Please make sure your disk is properly setup on `config/filsystems.php` - it should look like [the default one](https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45).
+By default, Basset uses the `storage` directory to store cached assets in a directory that is publicly-accessible. So it needs you to run `php artisan storage:link` to create the symlink. The installation command will ask to run that, and to add that command to your `composer.json`. That will most likely make it work on your development/staging/production servers. If that's not the case, make sure you create the links manually wherever you need them, with the command `php artisan storage:link`.
 
 ## Usage
 
@@ -59,14 +62,14 @@ For local from CDNs:
 <link href="{{ asset('path/to/public/file.css') }}">
 
 {{-- you can do --}}
-<link href="{{ basset('path/to/public/file.css' }}">
+<link href="{{ basset('path/to/public/file.css') }}">
 <link href="{{ basset('https://cdn.com/path/to/file.css') }}">
 <link href="{{ basset(base_path('vendor/org/package/assets/file.css')) }}">
 <link href="{{ basset(storage_path('file.css')) }}">
 ```
 
 Basset will:
-- copy that file from the vendor directory to your `storage` directory (aka. internalize the file)
+- copy that file from the vendor directory to the basset disk (if needed)
 - use the internalized file on all requests
 
 ### The `@basset()` Directive
@@ -101,7 +104,7 @@ These are the know file types;
 
 
 Basset will:
-- copy that file from the vendor directory to your `storage` directory (aka. internalize the file)
+- copy that file from the vendor directory to your basset directory (aka. internalize the file)
 - use the internalized file on all requests
 - make sure that file is only loaded once per pageload
 
@@ -118,7 +121,7 @@ Easily move code blocks to files, so they're cached
 ```
 
 Basset will:
-- create a file with that JS code in your `storage/app/public/basset` directory (aka. internalize the code)
+- create a file with that JS code in your basset directory (aka. internalize the code)
 - on all requests, use the local file (using `<script src="">`) instead of having the JS inline
 - make sure that file is only loaded once per pageload
 
@@ -132,7 +135,7 @@ Easily use archived assets (.zip & .tar.gz):
 ```
 
 Basset will:
-- download the archive to your `storage/app/public/basset` directory (aka. internalize the code)
+- download the archive to your basset directory (aka. internalize the code)
 - unarchive it
 - on all requests, use the local file (using `<script src="">`)
 - make sure that file is only loaded once per pageload
@@ -149,7 +152,7 @@ Easily internalize and use entire non-public directories:
 ```
 
 Basset will:
-- copy the directory to your `storage/app/public/basset` directory (aka. internalize the code)
+- copy the directory to your basset directory (aka. internalize the code)
 - on all requests, use the internalized file (using `<script src="">`)
 - make sure that file is only loaded once per pageload
 
@@ -164,14 +167,10 @@ php artisan basset:clear         # clears the basset directory
 
 In order to speed up the first page load on production, we recommend you to add `php artisan basset:cache` command to your deploy script.
 
-### Basset Cached Event
-
-If you require customized behavior after each asset is cached, you can set up a listener for the `BassetCachedEvent` in your `EventServiceProvider`. This event will be triggered each time an asset is cached.
-
 ## Configuration
 
 Take a look at [the config file](https://github.com/Laravel-Backpack/basset/blob/main/src/config/backpack/basset.php) for all configuration options. Notice some of those configs also have ENV variables, so you can:
-- enable/disable dev mode using `BASSET_DEV_MODE=false` - this will force Basset to internalize assets even on localhost
+- enable/disable dev mode using `BASSET_DEV_MODE=false` - when enabled Basset will check for changes in your url/files and update the cached assets
 - change the disk where assets get internalized using `BASSET_DISK=yourdiskname`
 - disable the cache map using `BASSET_CACHE_MAP=false` (needed on serverless like Laravel Vapor)
 
@@ -271,6 +270,33 @@ If you use the default `public` disk, Basset requires that the symlink between t
 
 Note for Homestead users: the symlink can't be created inside the virtual machine. You should stop your instance with: `vagrant down`, create the symlink in your local application folder and then `vagrant up` to bring the system back up. 
 
+#### Where are cached assets stored?
+
+Basset provides a few options out-of-the-box:
+- **`basset` disk** - inside the storage directory (eg. `storage/app/basset`) [DEFAULT]
+    - PROs: the Git history is clean - because your cached assets will NOT be tracked by Git;
+    - CONs: you have to run `php artisan basset:cache` in your deploy script, which adds seconds to your deploy time; plus, it opens up a corner case on deployment - because assets are being re-cached upon deployment, if a CDN is down during deployment, the system will not be able to internalize it; if will however internalize it when the CDN is back on, and the page that loads the file gets accessed; we consider the tradeoffs minor and unlikely, which is why this is the DEFAULT;
+    - How to enable: do nothing, or do `BASSET_DISK=basset` in your .env file;
+- **`public_basset` disk** - inside the public directory (eg. `public/basset`)
+    - PROs: you are certain the same assets you have on localhost will be in production, because the assets are commited to Git;
+    - CONs: your Git history will be dirtier, because it will contain changes to libraries of CSS/JS files;
+    - How to enable: do `BASSET_DISK=public_basset` in your .env file or `config/backpack/basset.php` config file;
+- **custom** - you can completely customize what disk is used to store the assets - just change it in the config file; most common customizations:
+    - store assets on a S3 bucket (using a custom disk);
+    - store assets in `public_basset` disk, but add `public/basset` to .gitignore;
+
+#### Can I track the assets in git, just like my source code? (aka NOT gitignore CSS and JS assets)
+
+Yes, you can track the assets in your application repository and avoid downloading them on each deployment (aka. have them in git). The easiest way to do that is to set the `BASSET_DISK=public_basset` in your .ENV, or in the basset config file. This will store the assets in the `public/basset` directory by default and they will now be committed to git alongside the rest of your application code. But note that this has both PROs and CONs:
+- PROs: This is advantageous as you know what assets are in your application right when you deploy, avoiding issues like a CDN being down at the deployment time and breaking your application production.
+- CONs: As a downside, you must be 100% sure all assets are internalized on localhost, and commited to git. Otherwise, when a page is accessed in production, Basset will internalize that file in production alone (it always prioritizes having production in a working state), which means you'll have uncommitted changes in your production code. You will then have to fix merge conflicts in production, or do a git reset before each deployment.
+
+To summarize - if you're 100% sure that `php artisan basset:cache` is pulling all assets your application needs, you can safely commit your assets to git. If not, you are exposing yourself to conflicts in production (which can be managed as well).
+
+### Events
+
+If you require customized behavior after each asset is cached, you can set up a listener for the `BassetCachedEvent` in your `EventServiceProvider`. This event will be triggered each time an asset is cached.
+
 ## Change log
 
 Please see the [releases tab](https://github.com/Laravel-Backpack/basset/releases) for more information on what has changed recently.
@@ -292,6 +318,7 @@ If you discover any security related issues, please email hello@backpackforlarav
 ## Credits
 
 - [Antonio Almeida](https://github.com/promatik)
+- [Pedro Martins](https://github.com/pxpm)
 - [Cristian Tabacitu][link-author]
 - [All Contributors][link-contributors]
 

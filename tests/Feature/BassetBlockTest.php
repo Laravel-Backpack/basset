@@ -7,7 +7,7 @@ it('stores basset block', function ($asset) {
 
     $result = bassetInstance()->bassetBlock($asset, $codeBlock, false);
 
-    $path = bassetInstance()->getPathHashed($asset, $codeBlock);
+    $path = bassetInstance()->buildCacheEntry($asset)->getPathOnDiskHashed($codeBlock);
 
     disk()->assertExists($path);
 
@@ -19,7 +19,7 @@ it('cleans basset block', function ($asset) {
 
     bassetInstance()->bassetBlock($asset, $codeBlock, false);
 
-    $path = bassetInstance()->getPathHashed($asset, $codeBlock);
+    $path = bassetInstance()->buildCacheEntry($asset)->getPathOnDiskHashed($codeBlock);
 
     // validate the output content
     expect(getStub("$asset.output"))->toBe(disk()->get($path));

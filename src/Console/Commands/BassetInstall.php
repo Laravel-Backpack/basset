@@ -5,7 +5,6 @@ namespace Backpack\Basset\Console\Commands;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
-use Symfony\Component\Process\Process;
 
 /**
  * Basset Cache command.
@@ -19,7 +18,7 @@ class BassetInstall extends Command
      *
      * @var string
      */
-    protected $signature = 'basset:install {--no-check} : As the name says, `basset:check` will not run.';
+    protected $signature = 'basset:install {--no-check} {--git-ignore} : As the name says, `basset:check` will not run.';
 
     /**
      * The console command description.
@@ -37,37 +36,47 @@ class BassetInstall extends Command
     {
         $this->components->info('Installing Basset');
 
-        // create symlink
-        $this->createSymLink();
-
         if (! $this->option('no-check')) {
             $this->checkBasset();
         }
 
-        // check if artisan storage:link command exists
-        $this->addComposerCommand();
+        // add basset folder to .gitignore
+        if ($this->option('git-ignore')) {
+            $this->addGitIgnore();
+        }
+
+        $this->addComposerCommands();
 
         $this->newLine();
         $this->info('  Done');
     }
 
-    /**
-     * Create symlink logic.
-     *
-     * @return void
-     */
-    private function createSymLink(): void
+    private function addGitIgnore()
     {
-        $message = 'Creating symlink';
+        $publicPath = public_path(config('backpack.basset.path'));
+        $basePath = base_path();
 
-        try {
-            $this->callSilent('storage:link');
-            $this->components->twoColumnDetail($message, '<fg=green;options=bold>DONE</>');
-        } catch (Exception $e) {
-            $this->components->twoColumnDetail($message, '<fg=red;options=bold>ERROR</>');
-            $this->line('  <fg=gray>│ '.$e->getMessage().'</>');
-            $this->newLine();
+        $publicPath = Str::of($publicPath)->after($basePath)->replace('\\', '/')->start('/')->value();
+
+        $message = 'Adding '.$publicPath.' to .gitignore';
+
+        if (! file_exists(base_path('.gitignore'))) {
+            $this->components->task($message, function () use ($publicPath) {
+                file_put_contents(base_path('.gitignore'), $publicPath);
+            });
+
+            return;
         }
+
+        if (Str::of(file_get_contents(base_path('.gitignore')))->contains($publicPath)) {
+            $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>BASSET PATH ALREADY EXISTS ON GITIGNORE</>');
+
+            return;
+        }
+
+        $this->components->task($message, function () use ($publicPath) {
+            file_put_contents(base_path('.gitignore'), $publicPath, FILE_APPEND);
+        });
     }
 
     /**
@@ -92,21 +101,32 @@ class BassetInstall extends Command
      *
      * @return void
      */
-    private function addComposerCommand(): void
+    private function addComposerCommands(): void
     {
-        $message = 'Adding storage:link command to composer.json';
+        $composer = json_decode(file_get_contents(base_path('composer.json')), true);
 
-        if (Str::of(file_get_contents('composer.json'))->contains('php artisan storage:link')) {
-            $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>ALREADY EXISTED</>');
+        $composerJsonUpdate = false;
 
-            return;
+        $message = 'Adding basset:cache to composer.json post-install script';
+
+        if (isset($composer['scripts']['post-install-cmd']) && in_array('@php artisan basset:cache', $composer['scripts']['post-install-cmd'])) {
+            $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>ALREADY EXISTS</>');
+        } else {
+            $composerJsonUpdate = true;
+            $composer['scripts']['post-install-cmd'][] = '@php artisan basset:cache';
         }
 
-        if ($this->components->confirm('You will need to run `php artisan storage:link` on every server you deploy the app to. Do you wish to add that command to composer.json\' post-install-script, to make that automatic?', true)) {
-            $this->components->task($message, function () {
-                $process = new Process(['composer', 'config', 'scripts.post-install-cmd.-1', '@php artisan storage:link --quiet']);
-                $process->run();
-            });
+        $message = 'Adding basset:cache to composer.json post-update script';
+
+        if (isset($composer['scripts']['post-update-cmd']) && in_array('@php artisan basset:cache', $composer['scripts']['post-update-cmd'])) {
+            $this->components->twoColumnDetail($message, '<fg=yellow;options=bold>ALREADY EXISTS</>');
+        } else {
+            $composerJsonUpdate = true;
+            $composer['scripts']['post-update-cmd'][] = '@php artisan basset:cache';
+        }
+
+        if ($composerJsonUpdate) {
+            file_put_contents(base_path('composer.json'), json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         }
     }
 }

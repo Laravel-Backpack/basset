@@ -2,7 +2,6 @@
 
 namespace Backpack\Basset;
 
-use Backpack\Basset\Facades\Basset;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -20,8 +19,8 @@ class BassetServiceProvider extends ServiceProvider
         Console\Commands\BassetClear::class,
         Console\Commands\BassetCheck::class,
         Console\Commands\BassetInstall::class,
-        Console\Commands\BassetInternalize::class,
         Console\Commands\BassetFresh::class,
+        Console\Commands\BassetList::class,
     ];
 
     /**
@@ -35,9 +34,6 @@ class BassetServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
         }
-
-        // Load basset disk
-        $this->loadDisk();
 
         // Run the terminate commands
         $this->app->terminating(fn () => $this->terminate());
@@ -68,11 +64,23 @@ class BassetServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Merge the configuration file.
+        $this->mergeConfigFrom(__DIR__.'/config/backpack/basset.php', 'backpack.basset');
+
+        // Load basset disk
+        $this->loadDisk();
+
+        // Load public disk
+        $this->loadPublicDisk();
+
         // Register the service the package provides.
         $this->app->scoped('basset', fn () => new BassetManager());
 
-        // Merge the configuration file.
-        $this->mergeConfigFrom(__DIR__.'/config/backpack/basset.php', 'backpack.basset');
+        // Register the asset path resolver
+        $this->app->singleton(Contracts\AssetPathManagerInterface::class, AssetPathManager::class);
+
+        // Register the asset hash manager
+        $this->app->singleton(Contracts\AssetHashManagerInterface::class, AssetHashManager::class);
 
         // Register blade directives
         $this->registerBladeDirectives();
@@ -173,24 +181,45 @@ class BassetServiceProvider extends ServiceProvider
     public function loadDisk(): void
     {
         // if the basset disk already exists, don't override it
-        if (app()->config['filesystems.disks.basset']) {
+        if (config('filesystems.disks.basset')) {
             return;
         }
 
         // if the basset disk isn't being used at all, don't even bother to add it
-        if (app()->config['backpack.basset.disk'] !== 'basset') {
+        if (config('backpack.basset.disk') !== 'basset') {
             return;
         }
 
         // add the basset disk to filesystem configuration
-        // should be kept up to date with https://github.com/laravel/laravel/blob/10.x/config/filesystems.php#L39-L45
-        app()->config['filesystems.disks.basset'] = [
+        config(['filesystems.disks.basset' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => url('').'/storage',
             'visibility' => 'public',
             'throw' => false,
-        ];
+        ]]);
+    }
+
+    public function loadPublicDisk(): void
+    {
+        // if the basset disk already exists, don't override it
+        if (config('filesystems.disks.public_basset')) {
+            return;
+        }
+
+        // if the basset disk isn't being used at all, don't even bother to add it
+        if (config('backpack.basset.disk') !== 'public_basset') {
+            return;
+        }
+
+        // add the basset disk to filesystem configuration
+        config(['filesystems.disks.public_basset' => [
+            'driver' => 'local',
+            'root' => public_path(),
+            'url' => url(''),
+            'visibility' => 'public',
+            'throw' => false,
+        ]]);
     }
 
     /**

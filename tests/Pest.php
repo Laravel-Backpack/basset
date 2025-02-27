@@ -28,7 +28,10 @@ uses(BaseTest::class)
         // setup fake links
         Http::fake([
             'https://unpkg.com/vue@3/dist/vue.global.prod.js' => Http::response(getStub('vue.global.prod.js')),
+            'https://unpkg.com/vue@3.1/dist/vue31.global.prod.js' => Http::response(getStub('vue31.global.prod.js')),
             'https://unpkg.com/react@18/umd/react.production.min.js' => Http::response(getStub('react.production.min.js')),
+            'https://unpkg.com/react@3/dist/reactscript.production.min.js' => Http::response(getStub('reactscript.production.min.js')),
+            'https://unpkg.com/backpack@5/dist/script.production.min.js' => Http::response(getStub('backpack.production.min.js')),
         ]);
 
         // setup config
@@ -36,6 +39,12 @@ uses(BaseTest::class)
             'backpack.basset.disk' => 'basset',
             'backpack.basset.path', 'basset',
         ]);
+        // add fake files to public_path() for testing
+        File::ensureDirectoryExists(public_path('bootstrap/js'), 0755, true);
+        File::ensureDirectoryExists(public_path('bootstrap/css'), 0755, true);
+
+        File::put(public_path('bootstrap/js/bootstrap.min.js'), getStub('bootstrap.min.js'));
+        File::put(public_path('bootstrap/css/bootstrap.min.css'), getStub('bootstrap.min.css'));
     })
     ->in(__DIR__);
 

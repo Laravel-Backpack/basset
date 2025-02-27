@@ -30,7 +30,7 @@ class BassetCache extends Command
      *
      * @var string
      */
-    protected $description = 'Cache all the assets under the basset blade directive';
+    protected $description = 'Cache all the assets using the basset blade directive and update the cache map.';
 
     /**
      * Execute the console command.
@@ -39,13 +39,12 @@ class BassetCache extends Command
      */
     public function handle(): void
     {
-        $starttime = microtime(true);
-        /**
-         * @var \Backpack\Basset\BassetManager $basset
-         */
-        $basset = app('basset');
+        $internalizedAssets = [];
+        $notInternalizedAssets = [];
 
-        $viewPaths = $basset->getViewPaths();
+        $starttime = microtime(true);
+
+        $viewPaths = Basset::getViewPaths();
 
         $this->line('Looking for bassets under the following directories:');
 
@@ -84,7 +83,6 @@ class BassetCache extends Command
 
                 return collect($matches[1])->map(fn (string $type, int $i) => [$type, $matches[2][$i]]);
             });
-
         $totalBassets = count($bassets);
         if (! $totalBassets) {
             $this->line('No bassets found.');
@@ -97,18 +95,31 @@ class BassetCache extends Command
 
         $bar = $this->output->createProgressBar($totalBassets);
         $bar->start();
-
         // Cache the bassets
-        $bassets->eachSpread(function (string $type, array $args, int $i) use ($basset, $bar) {
+        $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar, &$internalizedAssets, &$notInternalizedAssets) {
+            if ($args[0] === false) {
+                return;
+            }
+            $type = Str::of($type)->after('@')->before('(')->value();
             // Force output of basset to be false
             if ($type === 'basset') {
                 $args[1] = false;
             }
 
             try {
-                $result = $basset->{$type}(...$args)->value;
+                if (in_array($type, ['basset', 'bassetArchive', 'bassetDirectory', 'bassetBlock'])) {
+                    $result = Basset::{$type}(...$args)->value;
+                    if ($result !== StatusEnum::INVALID->value) {
+                        $internalizedAssets[] = $args[0];
+                    } else {
+                        $notInternalizedAssets[] = $args[0];
+                    }
+                } else {
+                    throw new \Exception('Invalid basset type');
+                }
             } catch (Throwable $th) {
                 $result = StatusEnum::INVALID->value;
+                $notInternalizedAssets[] = $args[0];
             }
 
             if ($this->getOutput()->isVerbose()) {
@@ -120,10 +131,36 @@ class BassetCache extends Command
             }
         });
 
+        // we will now loop through the bassets that are in the named map, and internalize any that our script hasn't internalized yet
+        $namedAssets = Basset::getNamedAssets();
+
+        // get the named assets that are not internalized yet
+        $namedAssets = collect($namedAssets)
+            ->filter(function ($asset, $id) use ($internalizedAssets) {
+                return ! in_array($id, $internalizedAssets);
+            });
+
+        foreach ($namedAssets as $id => $asset) {
+            $result = Basset::basset($id, false)->value;
+            if ($result !== StatusEnum::INVALID->value) {
+                $internalizedAssets[] = $id;
+            } else {
+                $notInternalizedAssets[] = $id;
+            }
+        }
+
+        $notInternalizedAssets = implode(', ', array_unique($notInternalizedAssets));
+
         // Save the cache map
-        $basset->cacheMap->save();
+        Basset::cacheMap()->save();
 
         $bar->finish();
+
+        if (! empty($notInternalizedAssets)) {
+            $this->newLine(2);
+            $this->line('Failed to cache: '.$notInternalizedAssets);
+        }
+
         $this->newLine(2);
         $this->info(sprintf('Done in %.2fs', microtime(true) - $starttime));
     }
