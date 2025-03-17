@@ -3,6 +3,7 @@
 namespace Backpack\Basset\Facades;
 
 use Backpack\Basset\BassetManager;
+use Backpack\Basset\Enums\StatusEnum;
 use Illuminate\Support\Facades\Facade;
 
 /**
