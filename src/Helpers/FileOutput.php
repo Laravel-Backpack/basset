@@ -70,7 +70,7 @@ class FileOutput
      */
     public function assetPath(string $path): string
     {
-        $asset = Str::of(asset($path.$this->cachebusting));
+        $asset = Str::isUrl($path) ? Str::of(asset($path)) : Str::of($path.$this->cachebusting);
 
         if ($this->useRelativePaths && $asset->startsWith(url(''))) {
             $asset = $asset->after('//')->after('/')->start('/');
