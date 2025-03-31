@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class FileOutput
 {
-    private string|null $nonce;
+    private ?string $nonce;
 
     private string $cachebusting;
 

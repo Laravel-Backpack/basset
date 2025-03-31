@@ -50,7 +50,7 @@ uses(BaseTest::class)
 |
 */
 
-function bassetInstance(string $asset = null, bool $output = true, array $attributes = []): StatusEnum|BassetManager
+function bassetInstance(?string $asset = null, bool $output = true, array $attributes = []): StatusEnum|BassetManager
 {
     return $asset ? app('basset')->basset(...func_get_args()) : app('basset');
 }
