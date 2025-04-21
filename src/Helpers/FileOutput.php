@@ -18,8 +18,14 @@ class FileOutput
 
     public function __construct()
     {
+        $cacheBuster = config('backpack.basset.cache_buster');
+
+        if (! is_a($cacheBuster, CacheBusterInterface::class, true)) {
+            throw new \Exception('Cache buster must implement CacheBusterInterface');
+        }
+
         $this->nonce = config('backpack.basset.nonce', null);
-        $this->cachebusting = '?'.substr(md5(base_path('composer.lock')), 0, 12);
+        $this->cachebusting = '?'.$cacheBuster::getCacheBusterString();
         $this->useRelativePaths = config('backpack.basset.relative_paths', true);
 
         // load all templates
