@@ -177,7 +177,7 @@ final class CacheEntry implements Arrayable, JsonSerializable
 
         $this->assetContentHash = $this->assetHashManager->appendHashToPath($content, $hash);
 
-        return $this->assetHashManager->appendHashToPath($path, $hash);
+        return $path;
     }
 
     public function generateContentHash(?string $content = null): string
