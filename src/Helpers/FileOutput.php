@@ -76,7 +76,7 @@ class FileOutput
             $asset = $asset->after('//')->after('/')->start('/');
         }
 
-        return $asset->value();
+        return config('backpack.basset.cdn_url') . $asset->value();
     }
 
     /**

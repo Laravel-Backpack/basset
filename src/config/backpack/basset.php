@@ -25,4 +25,8 @@ return [
 
     // use relative path
     'relative_paths' => env('BASSET_RELATIVE_PATHS', true),
+
+    // Populate this to use a CDN like AWS Cloudfront with basset.  
+    // Example: https://example.cloudfront.net
+    'cdn_url' => env('BASSET_CDN_URL', ''), 
 ];
