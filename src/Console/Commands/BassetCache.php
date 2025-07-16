@@ -179,8 +179,8 @@ class BassetCache extends Command
             $char = $argumentString[$i];
             $isEscaped = $i > 0 && $argumentString[$i - 1] === '\\';
 
-            if (in_array($char, ['"', "'"], true) && !$isEscaped) {
-                if (!$state['inQuotes']) {
+            if (in_array($char, ['"', "'"], true) && ! $isEscaped) {
+                if (! $state['inQuotes']) {
                     $state['inQuotes'] = true;
                     $state['quoteChar'] = $char;
                 } elseif ($char === $state['quoteChar']) {
