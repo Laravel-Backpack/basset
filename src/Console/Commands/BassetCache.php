@@ -70,19 +70,11 @@ class BassetCache extends Command
                 preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\((.+)\)/', $content, $matches);
 
                 $matches[2] = collect($matches[2])
-                    ->map(fn ($match) => collect(explode(',', $match))
-                            ->map(function ($arg) {
-                                try {
-                                    return eval("return $arg;");
-                                } catch (Throwable $th) {
-                                    return false;
-                                }
-                            })
-                            ->toArray()
-                    );
+                    ->map(fn ($match) => $this->parseBassetArguments($match));
 
                 return collect($matches[1])->map(fn (string $type, int $i) => [$type, $matches[2][$i]]);
             });
+
         $totalBassets = count($bassets);
         if (! $totalBassets) {
             $this->line('No bassets found.');
@@ -163,6 +155,84 @@ class BassetCache extends Command
 
         $this->newLine(2);
         $this->info(sprintf('Done in %.2fs', microtime(true) - $starttime));
+    }
+
+    /**
+     * Parse basset arguments from a string, respecting array boundaries and quotes.
+     *
+     * @param  string  $argumentString
+     * @return array
+     */
+    private function parseBassetArguments(string $argumentString): array
+    {
+        $arguments = [];
+        $current = '';
+        $inQuotes = false;
+        $quoteChar = null;
+        $bracketDepth = 0;
+        $parenDepth = 0;
+        
+        for ($i = 0; $i < strlen($argumentString); $i++) {
+            $char = $argumentString[$i];
+            $prevChar = $i > 0 ? $argumentString[$i - 1] : null;
+            
+            // Handle quotes
+            if (($char === '"' || $char === "'") && $prevChar !== '\\') {
+                if (!$inQuotes) {
+                    $inQuotes = true;
+                    $quoteChar = $char;
+                } elseif ($char === $quoteChar) {
+                    $inQuotes = false;
+                    $quoteChar = null;
+                }
+                $current .= $char;
+                continue;
+            }
+            
+            // If we're inside quotes, just add the character
+            if ($inQuotes) {
+                $current .= $char;
+                continue;
+            }
+            
+            // Handle brackets and parentheses
+            if ($char === '[') {
+                $bracketDepth++;
+            } elseif ($char === ']') {
+                $bracketDepth--;
+            } elseif ($char === '(') {
+                $parenDepth++;
+            } elseif ($char === ')') {
+                $parenDepth--;
+            }
+            
+            // Split on comma only if we're not inside quotes, brackets, or parentheses
+            if ($char === ',' && $bracketDepth === 0 && $parenDepth === 0) {
+                $arg = trim($current);
+                if ($arg !== '') {
+                    try {
+                        $arguments[] = eval("return $arg;");
+                    } catch (Throwable $th) {
+                        $arguments[] = false;
+                    }
+                }
+                $current = '';
+            } else {
+                $current .= $char;
+            }
+        }
+        
+        // Add the last argument
+        $arg = trim($current);
+        if ($arg !== '') {
+            try {
+                $arguments[] = eval("return $arg;");
+            } catch (Throwable $th) {
+                $arguments[] = false;
+            }
+        }
+        
+        return $arguments;
     }
 
     /**
