@@ -221,17 +221,17 @@ class BassetManager
             return $this->loader->finish(StatusEnum::IN_CACHE);
         }
 
+        if (str_starts_with($asset->getAssetPath(), public_path())) {
+            $output && $this->output->write($asset);
+
+            return $this->loader->finish(StatusEnum::PUBLIC_FILE);
+        }
+
         // Download/copy file
         $content = $this->getAssetContent($asset, $output);
 
         if (! is_string($content)) {
             return $content;
-        }
-
-        if (str_starts_with($asset->getAssetPath(), public_path())) {
-            $output && $this->output->write($asset);
-
-            return $this->loader->finish(StatusEnum::PUBLIC_FILE);
         }
 
         return $this->uploadAssetToDisk($asset, $content, $output);

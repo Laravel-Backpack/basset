@@ -70,19 +70,11 @@ class BassetCache extends Command
                 preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\((.+)\)/', $content, $matches);
 
                 $matches[2] = collect($matches[2])
-                    ->map(fn ($match) => collect(explode(',', $match))
-                            ->map(function ($arg) {
-                                try {
-                                    return eval("return $arg;");
-                                } catch (Throwable $th) {
-                                    return false;
-                                }
-                            })
-                            ->toArray()
-                    );
+                    ->map(fn ($match) => $this->parseBassetArguments($match));
 
                 return collect($matches[1])->map(fn (string $type, int $i) => [$type, $matches[2][$i]]);
             });
+
         $totalBassets = count($bassets);
         if (! $totalBassets) {
             $this->line('No bassets found.');
@@ -163,6 +155,91 @@ class BassetCache extends Command
 
         $this->newLine(2);
         $this->info(sprintf('Done in %.2fs', microtime(true) - $starttime));
+    }
+
+    /**
+     * Parse basset arguments from a string, respecting array boundaries and quotes.
+     *
+     * @param  string  $argumentString
+     * @return array
+     */
+    private function parseBassetArguments(string $argumentString): array
+    {
+        $length = strlen($argumentString);
+        $arguments = [];
+        $current = '';
+        $state = [
+            'inQuotes' => false,
+            'quoteChar' => null,
+            'bracketDepth' => 0,
+            'parenDepth' => 0,
+        ];
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = $argumentString[$i];
+            $isEscaped = $i > 0 && $argumentString[$i - 1] === '\\';
+
+            if (in_array($char, ['"', "'"], true) && ! $isEscaped) {
+                if (! $state['inQuotes']) {
+                    $state['inQuotes'] = true;
+                    $state['quoteChar'] = $char;
+                } elseif ($char === $state['quoteChar']) {
+                    $state['inQuotes'] = false;
+                    $state['quoteChar'] = null;
+                }
+                $current .= $char;
+                continue;
+            }
+
+            if ($state['inQuotes']) {
+                $current .= $char;
+                continue;
+            }
+
+            $state['bracketDepth'] += match ($char) {
+                '[' => 1,
+                ']' => -1,
+                default => 0,
+            };
+
+            $state['parenDepth'] += match ($char) {
+                '(' => 1,
+                ')' => -1,
+                default => 0,
+            };
+
+            if ($char === ',' && $state['bracketDepth'] === 0 && $state['parenDepth'] === 0) {
+                $arguments[] = $this->evaluateArgument(trim($current));
+                $current = '';
+            } else {
+                $current .= $char;
+            }
+        }
+
+        if (($finalArg = trim($current)) !== '') {
+            $arguments[] = $this->evaluateArgument($finalArg);
+        }
+
+        return $arguments;
+    }
+
+    /**
+     * Safely evaluate a single argument string.
+     *
+     * @param  string  $argument
+     * @return mixed
+     */
+    private function evaluateArgument(string $argument): mixed
+    {
+        if ($argument === '') {
+            return false;
+        }
+
+        try {
+            return eval("return $argument;");
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**
