@@ -165,74 +165,81 @@ class BassetCache extends Command
      */
     private function parseBassetArguments(string $argumentString): array
     {
+        $length = strlen($argumentString);
         $arguments = [];
         $current = '';
-        $inQuotes = false;
-        $quoteChar = null;
-        $bracketDepth = 0;
-        $parenDepth = 0;
-        
-        for ($i = 0; $i < strlen($argumentString); $i++) {
+        $state = [
+            'inQuotes' => false,
+            'quoteChar' => null,
+            'bracketDepth' => 0,
+            'parenDepth' => 0,
+        ];
+
+        for ($i = 0; $i < $length; $i++) {
             $char = $argumentString[$i];
-            $prevChar = $i > 0 ? $argumentString[$i - 1] : null;
-            
-            // Handle quotes
-            if (($char === '"' || $char === "'") && $prevChar !== '\\') {
-                if (!$inQuotes) {
-                    $inQuotes = true;
-                    $quoteChar = $char;
-                } elseif ($char === $quoteChar) {
-                    $inQuotes = false;
-                    $quoteChar = null;
+            $isEscaped = $i > 0 && $argumentString[$i - 1] === '\\';
+
+            if (in_array($char, ['"', "'"], true) && !$isEscaped) {
+                if (!$state['inQuotes']) {
+                    $state['inQuotes'] = true;
+                    $state['quoteChar'] = $char;
+                } elseif ($char === $state['quoteChar']) {
+                    $state['inQuotes'] = false;
+                    $state['quoteChar'] = null;
                 }
                 $current .= $char;
                 continue;
             }
-            
-            // If we're inside quotes, just add the character
-            if ($inQuotes) {
+
+            if ($state['inQuotes']) {
                 $current .= $char;
                 continue;
             }
-            
-            // Handle brackets and parentheses
-            if ($char === '[') {
-                $bracketDepth++;
-            } elseif ($char === ']') {
-                $bracketDepth--;
-            } elseif ($char === '(') {
-                $parenDepth++;
-            } elseif ($char === ')') {
-                $parenDepth--;
-            }
-            
-            // Split on comma only if we're not inside quotes, brackets, or parentheses
-            if ($char === ',' && $bracketDepth === 0 && $parenDepth === 0) {
-                $arg = trim($current);
-                if ($arg !== '') {
-                    try {
-                        $arguments[] = eval("return $arg;");
-                    } catch (Throwable $th) {
-                        $arguments[] = false;
-                    }
-                }
+
+            $state['bracketDepth'] += match ($char) {
+                '[' => 1,
+                ']' => -1,
+                default => 0,
+            };
+
+            $state['parenDepth'] += match ($char) {
+                '(' => 1,
+                ')' => -1,
+                default => 0,
+            };
+
+            if ($char === ',' && $state['bracketDepth'] === 0 && $state['parenDepth'] === 0) {
+                $arguments[] = $this->evaluateArgument(trim($current));
                 $current = '';
             } else {
                 $current .= $char;
             }
         }
-        
-        // Add the last argument
-        $arg = trim($current);
-        if ($arg !== '') {
-            try {
-                $arguments[] = eval("return $arg;");
-            } catch (Throwable $th) {
-                $arguments[] = false;
-            }
+
+        if (($finalArg = trim($current)) !== '') {
+            $arguments[] = $this->evaluateArgument($finalArg);
         }
-        
+
         return $arguments;
+    }
+
+    /**
+     * Safely evaluate a single argument string.
+     *
+     * @param  string  $argument
+     * @return mixed
+     */
+    private function evaluateArgument(string $argument): mixed
+    {
+        if ($argument === '') {
+            return false;
+        }
+
+        try {
+            return eval("return $argument;");
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**
