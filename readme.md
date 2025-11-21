@@ -336,10 +336,12 @@ If you require customized behavior after each asset is cached, you can set up a 
 
 ## Upgrading from v1 to v2
 
-- Run `php artisan basset:install --git-ignore` to refresh composer hooks and optionally ignore the public cache folder.
-- Decide on `BASSET_DISK` (`basset` + storage symlink, or `public_basset` + git rule) before deploying.
-- Replace any custom `@loadOnce` usage with `@basset` or `@bassetBlock`; the old directive now proxies the new ones.
-- Ensure deploy scripts warm the cache (`basset:cache` or `basset:fresh`) so your public folder is ready when the app boots.
+
+To upgrade Basset:
+- **Step 1.** Run `php artisan basset:install --git-ignore` to refresh composer hooks and optionally ignore the public cache folder.
+- **Step 2.** Decide on `BASSET_DISK` (`basset` + storage symlink, or `public_basset` + git rule) before deploying.
+- **Step 3.** Replace any custom `@loadOnce` usage with `@basset` or `@bassetBlock`; the old directive now proxies the new ones.
+- **Step 4.** Ensure deploy scripts warm the cache (`basset:cache` or `basset:fresh`) so your public folder is ready when the app boots.
 
 ## Change log
 
