@@ -48,13 +48,24 @@ php artisan vendor:publish --provider="Backpack\Basset\BassetServiceProvider"
 ```
 
 #### Storage Symlink
-By default, Basset uses the `storage` directory to store cached assets in a directory that is publicly-accessible. So it needs you to run `php artisan storage:link` to create the symlink. The installation command will ask to run that, and to add that command to your `composer.json`. That will most likely make it work on your development/staging/production servers. If that's not the case, make sure you create the links manually wherever you need them, with the command `php artisan storage:link`.
+The default disk remains `basset`, which lives under `storage/app/public`. Run `php artisan storage:link` so the cached assets are reachable from `public/`. The installer keeps the command in your composer scripts.
+
+If you prefer to keep cached files under `public/` instead of `storage/`, switch to the `public_basset` disk (`BASSET_DISK=public_basset`) and commit or ignore `public/basset` according to your workflow.
+
+### Disk Options
+
+| Disk | Where files live | Pros | Cons |
+| --- | --- | --- | --- |
+| `basset` (default) | `storage/app/public/basset` | Clean git tree; downloads happen on deploy; matches previous defaults | Needs `php artisan storage:link`; |
+| `public_basset` | `public/basset` | Assets are ready to serve after deploy; can be versioned | Git noise unless ignored; |
+
+If you move to `public_basset`, re-run `php artisan basset:install --git-ignore` (or edit the file yourself) when you want the installer to append `public/basset` to `.gitignore`.
 
 ## Usage
 
 ### The `basset()` Helper
 
-You can just use the `basset()` helper instead of Laravel's `asset()` helper, and point to CDNs and non-public files too. Use [Laravel's path helpers](https://laravel.com/docs/10.x/helpers#paths-method-list) to construct the absolute path to your file, then Basset will take care of the rest.
+You can just use the `basset()` helper instead of Laravel's `asset()` helper, and point to CDNs and non-public files too. Use [Laravel's path helpers](https://laravel.com/docs/12.x/helpers#paths-method-list) to construct the absolute path to your file, then Basset will take care of the rest.
 
 For local from CDNs:
 ```blade
@@ -156,13 +167,35 @@ Basset will:
 - on all requests, use the internalized file (using `<script src="">`)
 - make sure that file is only loaded once per pageload
 
+### Named Assets & Overrides
+
+Named assets let packages expose friendly handles that always point to the right file.
+
+```php
+// App\Providers\AppServiceProvider.php
+public function boot(): void
+{
+    \Backpack\Basset\Facades\Basset::map('crud.select2', 'https://cdn.example.com/select2.js', [
+        'defer' => true,
+    ]);
+}
+```
+
+In Blade you can now call `@basset('crud.select2')` or `basset('crud.select2')` and Basset will internalize the mapped source.
+
+Need a different CDN or integrity hash? Create a class that implements `Backpack\Basset\OverridesAssets`, point `config('backpack.basset.asset_overrides')` to it, and call `Basset::map()` again inside `assets()`.
+
+Use `php artisan basset:list-named` anytime to check which keys are currently registered.
+
 ### The `basset` Commands
 
 Copying an asset from CDNs to your server could take a bit of time, depending on the asset size. For large pages, that could even take entire seconds. You can easily prevent that from happening, by internalizing all assets in one go. You can use `php artisan basset:cache` to go through all your blade files, and internalize everything that's possible. If you ever need it, `basset:clear` will delete all the files.
 
 ```bash 
-php artisan basset:cache         # internalizes all @bassets
+php artisan basset:cache         # internalizes all @bassets and named assets
 php artisan basset:clear         # clears the basset directory
+php artisan basset:fresh         # runs clear + cache back-to-back
+php artisan basset:list-named    # shows all registered named assets
 ```
 
 In order to speed up the first page load on production, we recommend you to add `php artisan basset:cache` command to your deploy script.
@@ -173,6 +206,10 @@ Take a look at [the config file](https://github.com/Laravel-Backpack/basset/blob
 - enable/disable dev mode using `BASSET_DEV_MODE=false` - when enabled Basset will check for changes in your url/files and update the cached assets
 - change the disk where assets get internalized using `BASSET_DISK=yourdiskname`
 - disable the cache map using `BASSET_CACHE_MAP=false` (needed on serverless like Laravel Vapor)
+
+### Dev Mode
+
+When `BASSET_DEV_MODE` is `true`, Basset keeps hashing local files and code blocks so edits are picked up immediately. Remote URLs are still downloaded the first time they are hit; this avoids surprises when you lose connectivity.
 
 ## Deployment
 
@@ -296,6 +333,15 @@ To summarize - if you're 100% sure that `php artisan basset:cache` is pulling al
 ### Events
 
 If you require customized behavior after each asset is cached, you can set up a listener for the `BassetCachedEvent` in your `EventServiceProvider`. This event will be triggered each time an asset is cached.
+
+## Upgrading from v1 to v2
+
+
+To upgrade Basset:
+- **Step 1.** Run `php artisan basset:install --git-ignore` to refresh composer hooks and optionally ignore the public cache folder.
+- **Step 2.** Decide on `BASSET_DISK` (`basset` + storage symlink, or `public_basset` + git rule) before deploying.
+- **Step 3.** Replace any custom `@loadOnce` usage with `@basset` or `@bassetBlock`; the old directive now proxies the new ones.
+- **Step 4.** Ensure deploy scripts warm the cache (`basset:cache` or `basset:fresh`) so your public folder is ready when the app boots.
 
 ## Change log
 
