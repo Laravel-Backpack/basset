@@ -33,9 +33,7 @@ class BassetFresh extends Command
      */
     public function handle(): void
     {
-        Process::pipe([
-            'php artisan basset:clear',
-            'php artisan basset:cache',
-        ]);
+        Process::timeout(120)->run('php artisan basset:clear');
+        Process::timeout(120)->run('php artisan basset:cache');
     }
 }

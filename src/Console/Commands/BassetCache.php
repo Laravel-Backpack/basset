@@ -30,7 +30,7 @@ class BassetCache extends Command
      *
      * @var string
      */
-    protected $description = 'Cache all the assets under the basset blade directive';
+    protected $description = 'Cache all the assets using the basset blade directive and update the cache map.';
 
     /**
      * Execute the console command.
@@ -39,13 +39,12 @@ class BassetCache extends Command
      */
     public function handle(): void
     {
-        $starttime = microtime(true);
-        /**
-         * @var \Backpack\Basset\BassetManager $basset
-         */
-        $basset = app('basset');
+        $internalizedAssets = [];
+        $notInternalizedAssets = [];
 
-        $viewPaths = $basset->getViewPaths();
+        $starttime = microtime(true);
+
+        $viewPaths = Basset::getViewPaths();
 
         $this->line('Looking for bassets under the following directories:');
 
@@ -71,16 +70,7 @@ class BassetCache extends Command
                 preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\((.+)\)/', $content, $matches);
 
                 $matches[2] = collect($matches[2])
-                    ->map(fn ($match) => collect(explode(',', $match))
-                            ->map(function ($arg) {
-                                try {
-                                    return eval("return $arg;");
-                                } catch (Throwable $th) {
-                                    return false;
-                                }
-                            })
-                            ->toArray()
-                    );
+                    ->map(fn ($match) => $this->parseBassetArguments($match));
 
                 return collect($matches[1])->map(fn (string $type, int $i) => [$type, $matches[2][$i]]);
             });
@@ -97,18 +87,31 @@ class BassetCache extends Command
 
         $bar = $this->output->createProgressBar($totalBassets);
         $bar->start();
-
         // Cache the bassets
-        $bassets->eachSpread(function (string $type, array $args, int $i) use ($basset, $bar) {
+        $bassets->eachSpread(function (string $type, array $args, int $i) use ($bar, &$internalizedAssets, &$notInternalizedAssets) {
+            if ($args[0] === false) {
+                return;
+            }
+            $type = Str::of($type)->after('@')->before('(')->value();
             // Force output of basset to be false
             if ($type === 'basset') {
                 $args[1] = false;
             }
 
             try {
-                $result = $basset->{$type}(...$args)->value;
+                if (in_array($type, ['basset', 'bassetArchive', 'bassetDirectory', 'bassetBlock'])) {
+                    $result = Basset::{$type}(...$args)->value;
+                    if ($result !== StatusEnum::INVALID->value) {
+                        $internalizedAssets[] = $args[0];
+                    } else {
+                        $notInternalizedAssets[] = $args[0];
+                    }
+                } else {
+                    throw new \Exception('Invalid basset type');
+                }
             } catch (Throwable $th) {
                 $result = StatusEnum::INVALID->value;
+                $notInternalizedAssets[] = $args[0];
             }
 
             if ($this->getOutput()->isVerbose()) {
@@ -120,12 +123,123 @@ class BassetCache extends Command
             }
         });
 
+        // we will now loop through the bassets that are in the named map, and internalize any that our script hasn't internalized yet
+        $namedAssets = Basset::getNamedAssets();
+
+        // get the named assets that are not internalized yet
+        $namedAssets = collect($namedAssets)
+            ->filter(function ($asset, $id) use ($internalizedAssets) {
+                return ! in_array($id, $internalizedAssets);
+            });
+
+        foreach ($namedAssets as $id => $asset) {
+            $result = Basset::basset($id, false)->value;
+            if ($result !== StatusEnum::INVALID->value) {
+                $internalizedAssets[] = $id;
+            } else {
+                $notInternalizedAssets[] = $id;
+            }
+        }
+
+        $notInternalizedAssets = implode(', ', array_unique($notInternalizedAssets));
+
         // Save the cache map
-        $basset->cacheMap->save();
+        Basset::cacheMap()->save();
 
         $bar->finish();
+
+        if (! empty($notInternalizedAssets)) {
+            $this->newLine(2);
+            $this->line('Failed to cache: '.$notInternalizedAssets);
+        }
+
         $this->newLine(2);
         $this->info(sprintf('Done in %.2fs', microtime(true) - $starttime));
+    }
+
+    /**
+     * Parse basset arguments from a string, respecting array boundaries and quotes.
+     *
+     * @param  string  $argumentString
+     * @return array
+     */
+    private function parseBassetArguments(string $argumentString): array
+    {
+        $length = strlen($argumentString);
+        $arguments = [];
+        $current = '';
+        $state = [
+            'inQuotes' => false,
+            'quoteChar' => null,
+            'bracketDepth' => 0,
+            'parenDepth' => 0,
+        ];
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = $argumentString[$i];
+            $isEscaped = $i > 0 && $argumentString[$i - 1] === '\\';
+
+            if (in_array($char, ['"', "'"], true) && ! $isEscaped) {
+                if (! $state['inQuotes']) {
+                    $state['inQuotes'] = true;
+                    $state['quoteChar'] = $char;
+                } elseif ($char === $state['quoteChar']) {
+                    $state['inQuotes'] = false;
+                    $state['quoteChar'] = null;
+                }
+                $current .= $char;
+                continue;
+            }
+
+            if ($state['inQuotes']) {
+                $current .= $char;
+                continue;
+            }
+
+            $state['bracketDepth'] += match ($char) {
+                '[' => 1,
+                ']' => -1,
+                default => 0,
+            };
+
+            $state['parenDepth'] += match ($char) {
+                '(' => 1,
+                ')' => -1,
+                default => 0,
+            };
+
+            if ($char === ',' && $state['bracketDepth'] === 0 && $state['parenDepth'] === 0) {
+                $arguments[] = $this->evaluateArgument(trim($current));
+                $current = '';
+            } else {
+                $current .= $char;
+            }
+        }
+
+        if (($finalArg = trim($current)) !== '') {
+            $arguments[] = $this->evaluateArgument($finalArg);
+        }
+
+        return $arguments;
+    }
+
+    /**
+     * Safely evaluate a single argument string.
+     *
+     * @param  string  $argument
+     * @return mixed
+     */
+    private function evaluateArgument(string $argument): mixed
+    {
+        if ($argument === '') {
+            return false;
+        }
+
+        try {
+            return eval("return $argument;");
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**

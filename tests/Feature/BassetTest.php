@@ -14,7 +14,7 @@ it('fails on invalid path', function () {
 });
 
 it('cleans the pathname of an asset', function ($asset, $path) {
-    $generatedPath = bassetInstance()->getPath($asset);
+    $generatedPath = bassetInstance()->assetPathsManager->getPathOnDisk($asset);
 
     expect((string) $generatedPath)->toBe("basset/$path");
 })->with('paths');
@@ -29,7 +29,7 @@ it('downloads a cdn basset', function ($asset) {
 
 it('stores a downloaded basset', function ($asset) {
     $result = bassetInstance($asset, false);
-    $path = bassetInstance()->getPath($asset);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($asset);
 
     disk()->assertExists($path);
 
@@ -38,7 +38,7 @@ it('stores a downloaded basset', function ($asset) {
 
 it('cleans the content of a downloaded basset', function ($asset) {
     bassetInstance($asset, false);
-    $path = bassetInstance()->getPath($asset);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($asset);
 
     expect(disk()->get($path))->toBe(getStub("$asset.output"));
 })->with('cdn');
@@ -62,7 +62,7 @@ it('stores a local basset', function ($asset) {
 
     // internalize the file
     $result = bassetInstance($path, false);
-    $path = bassetInstance()->getPath($path);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($path);
 
     disk()->assertExists($path);
 
@@ -76,7 +76,7 @@ it('cleans the content of a local basset', function ($asset) {
 
     // internalize the file
     $result = bassetInstance($path, false);
-    $path = bassetInstance()->getPath($path);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($path);
 
     expect(disk()->get($path))->toBe(getStub("$asset.output"));
 
@@ -106,7 +106,7 @@ it('does not output when not required', function ($asset) {
 
 it('retrieves from cache when available', function ($asset) {
     // store the stub in disk
-    $generatedPath = bassetInstance()->getPath($asset);
+    $generatedPath = bassetInstance()->assetPathsManager->getPathOnDisk($asset);
     disk()->put($generatedPath, getStub($asset));
 
     // should not download
@@ -120,7 +120,7 @@ it('retrieves from cache when available', function ($asset) {
 
 it('works with the basset helper method', function ($asset) {
     $result = basset($asset);
-    $path = bassetInstance()->getPath($asset);
+    $path = bassetInstance()->assetPathsManager->getPathOnDisk($asset);
 
     expect($result)->toBe(disk()->url($path));
 })->with('cdn');

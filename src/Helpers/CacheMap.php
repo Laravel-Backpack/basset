@@ -4,15 +4,19 @@ namespace Backpack\Basset\Helpers;
 
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 
 class CacheMap
 {
     private array $map = [];
+
     private string $basePath;
+
     private string $filePath;
+
     private FilesystemAdapter $disk;
+
     private bool $isActive = false;
+
     private bool $isDirty = false;
 
     public function __construct(FilesystemAdapter $disk, string $basePath)
@@ -26,7 +30,6 @@ class CacheMap
         $this->basePath = $basePath;
         $this->filePath = $this->disk->path($this->basePath.'.basset');
 
-        // Load map
         if (File::exists($this->filePath)) {
             $this->map = json_decode(File::get($this->filePath), true);
         }
@@ -43,9 +46,6 @@ class CacheMap
             return;
         }
 
-        // sort the map file
-        ksort($this->map);
-
         // save file
         File::put($this->filePath, json_encode($this->map, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
@@ -53,49 +53,44 @@ class CacheMap
     /**
      * Adds an asset to the cache map.
      *
-     * @param  string  $asset
-     * @param  string  $path
      * @return void
      */
-    public function addAsset(string $asset, string|bool $path = true): void
+    public function addAsset(CacheEntry $asset): void
     {
         if (! $this->isActive) {
             return;
         }
 
-        // Clean both asset and path
-        $asset = $this->normalizeAsset($asset);
-
-        $this->map[$asset] = Str::of($path)->after($this->disk->url($this->basePath))->start('/');
+        $this->map[$asset->getAssetName()] = $asset->toArray();
         $this->isDirty = true;
     }
 
     /**
      * Gets the asset url from map.
      *
-     * @param  string  $asset
-     * @return string | false
+     * @return CacheEntry | false
      */
-    public function getAsset(string $asset): string|false
+    public function getAsset(CacheEntry $asset): CacheEntry|false
     {
-        // Clean asset path
-        $asset = $this->normalizeAsset($asset);
-
-        if (! $this->isActive || ! ($this->map[$asset] ?? false)) {
+        if (! $this->isActive || ! ($this->map[$asset->getAssetName()] ?? false)) {
             return false;
         }
 
-        return $this->disk->url(rtrim($this->basePath, '/').$this->map[$asset]);
+        return CacheEntry::from($this->map[$asset->getAssetName()]);
     }
 
-    /**
-     * Normalize asset path to remove unwanted system paths.
-     *
-     * @param  string  $asset
-     * @return string
-     */
-    private function normalizeAsset(string $asset): string
+    public function delete(CacheEntry $asset): void
     {
-        return (string) Str::of($asset)->after(base_path())->trim('/\\');
+        if (! $this->isActive) {
+            return;
+        }
+
+        unset($this->map[$asset->getAssetName()]);
+        $this->isDirty = true;
+    }
+
+    public function getMap(): array
+    {
+        return $this->map;
     }
 }
