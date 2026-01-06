@@ -67,12 +67,22 @@ class BassetCache extends Command
             ->flatMap(function (string $file) {
                 // Map all bassets
                 $content = File::get($file);
+                $bassets = collect();
+
                 preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\((.+)\)/', $content, $matches);
+                foreach ($matches[1] as $i => $type) {
+                    $args = $this->parseBassetArguments($matches[2][$i]);
+                    $bassets->push([$type, $args]);
+                }
 
-                $matches[2] = collect($matches[2])
-                    ->map(fn ($match) => $this->parseBassetArguments($match));
+                preg_match_all('/@bassetBlock\((.+?)\)(.*?)@endBassetBlock/si', $content, $matches);
+                foreach ($matches[1] as $i => $argsString) {
+                    $args = $this->parseBassetArguments($argsString);
+                    array_splice($args, 1, 0, [$matches[2][$i]]);
+                    $bassets->push(['bassetBlock', $args]);
+                }
 
-                return collect($matches[1])->map(fn (string $type, int $i) => [$type, $matches[2][$i]]);
+                return $bassets;
             });
 
         $totalBassets = count($bassets);
@@ -96,6 +106,10 @@ class BassetCache extends Command
             // Force output of basset to be false
             if ($type === 'basset') {
                 $args[1] = false;
+            }
+
+            if ($type === 'bassetBlock') {
+                $args[2] = false;
             }
 
             try {
