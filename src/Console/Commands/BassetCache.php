@@ -72,7 +72,7 @@ class BassetCache extends Command
                 preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\((.+)\)/', $content, $matches);
                 foreach ($matches[1] as $i => $type) {
                     $args = $this->parseBassetArguments($matches[2][$i]);
-                    $bassets->push([$type, $args]);
+                    $bassets->push([ltrim($type, '@'), $args]);
                 }
 
                 preg_match_all('/@bassetBlock\((.+?)\)(.*?)@endBassetBlock/si', $content, $matches);
