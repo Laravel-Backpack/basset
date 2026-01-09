@@ -206,6 +206,7 @@ Take a look at [the config file](https://github.com/Laravel-Backpack/basset/blob
 - enable/disable dev mode using `BASSET_DEV_MODE=false` - when enabled Basset will check for changes in your url/files and update the cached assets
 - change the disk where assets get internalized using `BASSET_DISK=yourdiskname`
 - disable the cache map using `BASSET_CACHE_MAP=false` (needed on serverless like Laravel Vapor)
+- use an external CDN together with Basset using `BASSET_CDN_URL=https://yoursite.examplecdnprovider`
 
 ### Dev Mode
 
