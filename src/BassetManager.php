@@ -257,7 +257,9 @@ class BassetManager
             }
             $this->markAsLoaded($asset);
 
-            echo $code;
+            if ($output) {
+                echo $code;
+            }
 
             return $this->loader->finish(StatusEnum::LOADED);
         }
@@ -273,7 +275,9 @@ class BassetManager
 
         // fallback to code on dev mode
         if ($this->dev) {
-            echo $code;
+            if ($output) {
+                echo $code;
+            }
 
             return $this->loader->finish(StatusEnum::DISABLED);
         }
@@ -325,7 +329,9 @@ class BassetManager
             return $this->loader->finish(StatusEnum::INTERNALIZED);
         }
         // Fallback to the code
-        echo $code;
+        if ($output) {
+            echo $code;
+        }
 
         return $this->loader->finish(StatusEnum::INVALID);
     }
