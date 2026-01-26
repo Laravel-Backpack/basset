@@ -33,6 +33,7 @@ class BassetServiceProvider extends ServiceProvider
         // Publishing is only necessary when using the CLI.
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
+            $this->registerCacheClearingListener();
         }
 
         // Run the terminate commands
@@ -55,6 +56,18 @@ class BassetServiceProvider extends ServiceProvider
         if (! empty($this->commands)) {
             $this->commands($this->commands);
         }
+    }
+
+    /**
+     * Register cache clearing listener to hook into optimize:clear command.
+     *
+     * @return void
+     */
+    protected function registerCacheClearingListener(): void
+    {
+        $this->app['events']->listen('cache:clearing', function () {
+            Console\Commands\BassetClear::clearBassetCache();
+        });
     }
 
     /**
