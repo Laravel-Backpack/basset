@@ -22,6 +22,8 @@ final class CacheEntry implements Arrayable, JsonSerializable
 
     private string $assetContentHash = '';
 
+    private bool $isPublicFile = false;
+
     private AssetPathManager $assetPathsManager;
 
     private AssetHashManager $assetHashManager;
@@ -50,10 +52,23 @@ final class CacheEntry implements Arrayable, JsonSerializable
     {
         $this->assetPath = $assetPath;
 
-        if (! str_starts_with($assetPath, base_path()) && ! Str::isUrl($assetPath)) {
+        if (Str::isUrl($assetPath)) {
+            $appUrl = Str::of(url(''))->finish('/')->value();
+            if (str_starts_with($assetPath, $appUrl)) {
+                $relativePath = (string) Str::of($assetPath)->after($appUrl)->before('?');
+                if ($relativePath !== '' && File::exists(public_path($relativePath))) {
+                    $this->assetPath = public_path($relativePath);
+                    $this->assetDiskPath = $this->assetPathsManager->getCleanPath($relativePath);
+                    $this->isPublicFile = true;
+                }
+            }
+        }
+
+        if (! $this->isPublicFile && ! str_starts_with($assetPath, base_path()) && ! Str::isUrl($assetPath)) {
             if (File::exists(public_path($assetPath))) {
                 $this->assetPath = public_path($assetPath);
                 $this->assetDiskPath = $this->assetPathsManager->getCleanPath($assetPath);
+                $this->isPublicFile = true;
             } else {
                 $this->assetPath = base_path($assetPath);
             }
@@ -194,6 +209,10 @@ final class CacheEntry implements Arrayable, JsonSerializable
 
     public function getOutputDiskPath(): string
     {
+        if ($this->isPublicFile) {
+            return $this->assetDiskPath;
+        }
+
         $diskPath = Str::of(config('filesystems.disks.'.config('backpack.basset.disk'))['url'])->finish('/');
 
         return (string) Str::of($diskPath.$this->assetDiskPath);
