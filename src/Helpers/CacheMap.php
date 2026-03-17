@@ -26,9 +26,13 @@ class CacheMap
         $this->basePath = $basePath;
         $this->filePath = $this->disk->path($this->basePath.'.basset');
 
-        // Load map
-        if (File::exists($this->filePath)) {
-            $this->map = json_decode(File::get($this->filePath), true);
+        try {
+            if (File::exists($this->filePath)) {
+                $decoded = json_decode(File::get($this->filePath), true);
+                $this->map = is_array($decoded) ? $decoded : [];
+            }
+        } catch (\Throwable) {
+            $this->map = [];
         }
     }
 
