@@ -29,7 +29,7 @@ it('ignores basset block on dev mode', function ($asset) {
 
     $codeBlock = getStub($asset);
 
-    $result = bassetInstance()->bassetBlock($asset, $codeBlock, false);
+    $result = bassetInstance()->bassetBlock($asset, $codeBlock);
 
     $path = bassetInstance()->buildCacheEntry($asset)->getPathOnDiskHashed($codeBlock);
 
