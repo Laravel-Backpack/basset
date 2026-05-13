@@ -48,4 +48,9 @@ return [
 
     // use relative path
     'relative_paths' => env('BASSET_RELATIVE_PATHS', true),
+
+    // Extra attributes to add to every <script> tag output by Basset.
+    // Useful for opt-out directives on CDN/proxy layers that rewrite scripts.
+    // Example (Cloudflare Rocket Loader): ['data-cfasync' => 'false']
+    'script_attributes' => [],
 ];
