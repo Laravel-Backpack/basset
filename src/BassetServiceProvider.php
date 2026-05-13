@@ -124,7 +124,7 @@ class BassetServiceProvider extends ServiceProvider
                 $cleanParameter = Str::of($parameter)->trim("'")->trim('"')->trim('`');
                 $filePath = Str::of($cleanParameter)->before('?')->before('#');
 
-                if (Str::endsWith($filePath, ['.js', '.css'])) {
+                if ($filePath->endsWith(['.js', '.css'])) {
                     return "<?php Basset::basset({$parameter}); ?>";
                 }
 

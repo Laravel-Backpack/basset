@@ -16,11 +16,14 @@ class FileOutput
 
     private array $templates = [];
 
+    private array $scriptAttributes = [];
+
     public function __construct()
     {
         $this->nonce = config('backpack.basset.nonce', null);
         $this->cachebusting = '?'.substr(md5(base_path('composer.lock')), 0, 12);
         $this->useRelativePaths = config('backpack.basset.relative_paths', true);
+        $this->scriptAttributes = config('backpack.basset.script_attributes', []);
 
         // load all templates
         $templates = File::allFiles(realpath(__DIR__.'/../resources/views'));
@@ -86,8 +89,26 @@ class FileOutput
      * @param  array  $attributes
      * @return string
      */
+    /**
+     * Inject the configured script_attributes into every <script> tag found in a
+     * raw code block (used when Basset falls back to echoing inline code directly).
+     */
+    public function injectToBlock(string $code): string
+    {
+        if (empty($this->scriptAttributes)) {
+            return $code;
+        }
+
+        $attrs = $this->prepareAttributes();
+
+        return preg_replace('/<script\b/i', '<script'.$attrs, $code);
+    }
+
     private function prepareAttributes(array $attributes = []): string
     {
+        // Merge global script_attributes as defaults; per-asset attributes take precedence.
+        $attributes = array_merge($this->scriptAttributes, $attributes);
+
         if ($this->nonce) {
             $attributes['nonce'] ??= $this->nonce;
         }
