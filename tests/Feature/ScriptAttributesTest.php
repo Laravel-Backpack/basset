@@ -2,8 +2,6 @@
 
 use Backpack\Basset\Helpers\FileOutput;
 
-// ─── FileOutput::injectToBlock() unit tests ───────────────────────────────────
-
 it('injectToBlock returns code unchanged when script_attributes is empty', function () {
     $output = new FileOutput();
     $code = '<script>alert("hello")</script>';
@@ -166,4 +164,40 @@ it('does not inject script_attributes into style blocks in dev mode', function (
     expect($html)
         ->toBe($cssCode)
         ->not->toContain('data-cfasync');
+});
+
+// ─── bassetBlock() cached (write) paths ───────────────────────────────────────
+
+it('adds script_attributes to the script src tag when a basset block is internalized', function () {
+    config(['backpack.basset.script_attributes' => ['data-cfasync' => 'false']]);
+
+    ob_start();
+    bassetInstance()->bassetBlock('test-block.js', '<script>fn()</script>');
+    $html = ob_get_clean();
+
+    // The block should be internalized and output as a <script src> tag
+    expect($html)
+        ->toContain('<script')
+        ->toContain('data-cfasync="false"');
+});
+
+it('adds script_attributes to the script src tag when a basset block is served from cache', function () {
+    config(['backpack.basset.script_attributes' => ['data-cfasync' => 'false']]);
+
+    $code = '<script>fn()</script>';
+
+    // First request — internalizes and caches
+    bassetInstance()->bassetBlock('test-block.js', $code);
+
+    // Reset loaded so the second request is not skipped as already-loaded
+    bassetInstance()->clearLoadedAssets();
+
+    ob_start();
+    // Second request — served from cache map / disk
+    bassetInstance()->bassetBlock('test-block.js', $code);
+    $html = ob_get_clean();
+
+    expect($html)
+        ->toContain('<script')
+        ->toContain('data-cfasync="false"');
 });
