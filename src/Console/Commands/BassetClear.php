@@ -42,10 +42,24 @@ class BassetClear extends Command
 
         $this->line("Clearing basset '$pathRelative'");
 
+        self::clearBassetCache();
+
+        $this->info('Done');
+    }
+
+    /**
+     * Clear the basset cache.
+     *
+     * @return void
+     */
+    public static function clearBassetCache(): void
+    {
+        /** @var FilesystemAdapter */
+        $disk = Storage::disk(config('backpack.basset.disk'));
+        $path = config('backpack.basset.path');
+
         $disk->deleteDirectory($path);
         $disk->makeDirectory($path);
         $disk->delete('.basset');
-
-        $this->info('Done');
     }
 }
