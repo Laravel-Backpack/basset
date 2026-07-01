@@ -179,14 +179,6 @@ final class CacheEntry implements Arrayable, JsonSerializable
         return $content;
     }
 
-    public function getContentAndGenerateHash(): string
-    {
-        $content = $this->getContent();
-        $this->assetHashManager->generateHash($content);
-
-        return $content;
-    }
-
     public function getContentHash(): string
     {
         return $this->assetContentHash;
