@@ -124,3 +124,17 @@ it('works with the basset helper method', function ($asset) {
 
     expect($result)->toBe(disk()->url($path));
 })->with('cdn');
+
+it('serves a public_path file from the public directory, not basset disk', function () {
+    $file = public_path('bootstrap/js/bootstrap.min.js');
+
+    $result = bassetInstance($file);
+
+    // Public files are not internalized — they're served directly from public/
+    expect($result)->toBe(StatusEnum::PUBLIC_FILE);
+
+    // Output should point to the public URL, NOT the basset storage path
+    $this->expectOutputRegex(
+        '#<script\s[^>]*src\s*=\s*["\']/?bootstrap/js/bootstrap\.min\.js\?[^"\']*["\']#i'
+    );
+});

@@ -507,7 +507,7 @@ class BassetManager
             if (! $asset->isLocalAsset()) {
                 return $this->loader->finish(StatusEnum::INVALID);
             }
-            $content = $asset->getContentAndGenerateHash();
+            $content = $asset->getContent();
         }
 
         return $content;
