@@ -64,6 +64,15 @@ final class CacheEntry implements Arrayable, JsonSerializable
             }
         }
 
+        // Handle absolute paths that point to the public directory
+        // e.g. public_path('js/example.js') → C:\project\public\js\example.js
+        if (! $this->isPublicFile && str_starts_with($assetPath, public_path())) {
+            $this->assetDiskPath = $this->assetPathsManager->getCleanPath(
+                Str::after($assetPath, public_path())
+            );
+            $this->isPublicFile = true;
+        }
+
         if (! $this->isPublicFile && ! str_starts_with($assetPath, base_path()) && ! Str::isUrl($assetPath)) {
             if (File::exists(public_path($assetPath))) {
                 $this->assetPath = public_path($assetPath);
