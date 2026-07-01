@@ -69,7 +69,7 @@ class BassetCache extends Command
                 $content = File::get($file);
                 $bassets = collect();
 
-                preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\((.+)\)/', $content, $matches);
+                preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\((.+?)\)/s', $content, $matches);
                 foreach ($matches[1] as $i => $type) {
                     $args = $this->parseBassetArguments($matches[2][$i]);
                     $bassets->push([ltrim($type, '@'), $args]);
