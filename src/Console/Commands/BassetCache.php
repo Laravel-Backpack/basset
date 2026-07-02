@@ -116,7 +116,7 @@ class BassetCache extends Command
             // Skip if the asset is a URL already cached (URL identity = content identity).
             // Local files are never skipped — re-copying is cheap and content may have changed.
             // Only active when cache_map_comparison is enabled (opt-in).
-            if (config('backpack.basset.cache_map_comparison') && $this->shouldSkipCachedAsset($args[0])) {
+            if (config('backpack.basset.cache_map_comparison') && $this->shouldSkipCachedAsset($args[0], $args[2] ?? [])) {
                 $internalizedAssets[] = $args[0];
 
                 if ($this->getOutput()->isVerbose()) {
@@ -130,10 +130,11 @@ class BassetCache extends Command
                 return;
             }
 
-            // When cache_map_comparison is enabled and this is a local file that's
-            // already cached, delete the old copy to force a fresh re-copy.
-            if (config('backpack.basset.cache_map_comparison') && $type === 'basset') {
-                $this->invalidateCachedLocalFile($args[0]);
+            // When the asset already exists on disk, delete the old copy to force
+            // a fresh download/copy. Applies to: local files (when comparison enabled)
+            // and URL assets with the 'refresh' attribute.
+            if ($type === 'basset') {
+                $this->invalidateCachedLocalFile($args[0], $args[2] ?? []);
             }
 
             try {
@@ -171,6 +172,20 @@ class BassetCache extends Command
             });
 
         foreach ($namedAssets as $id => $asset) {
+            // Skip if the named asset is already cached (when comparison enabled and no refresh flag)
+            $namedAttributes = $asset['attributes'] ?? [];
+            if (config('backpack.basset.cache_map_comparison')
+                && ! ($namedAttributes['refresh'] ?? false)
+                && Basset::isAssetCached($id)) {
+                $internalizedAssets[] = $id;
+                continue;
+            }
+
+            // If refresh is set, invalidate the old cached file to force re-download
+            if ($namedAttributes['refresh'] ?? false) {
+                $this->invalidateCachedLocalFile($id);
+            }
+
             $result = Basset::basset($id, false)->value;
             if ($result !== StatusEnum::INVALID->value) {
                 $internalizedAssets[] = $id;
@@ -204,18 +219,23 @@ class BassetCache extends Command
     }
 
     /**
-     * Delete a cached local file from disk so it will be re-copied.
-     * URL assets are left alone — they are handled by shouldSkipCachedAsset.
+     * Remove a cached file from disk if present, forcing a fresh download/copy.
+     * Invalidates when: the 'refresh' attribute is set, OR it's a local file
+     * and cache_map_comparison is enabled.
      *
      * @param  string  $asset
      * @return void
      */
-    private function invalidateCachedLocalFile(string $asset): void
+    private function invalidateCachedLocalFile(string $asset, array $attributes = []): void
     {
         $entry = Basset::buildCacheEntry($asset);
+        $attributes = array_merge($entry->getAttributes(), $attributes);
+        $isUrl = Str::isUrl($entry->getAssetPath());
 
-        // Only invalidate local (non-URL) assets
-        if (Str::isUrl($entry->getAssetPath())) {
+        $shouldInvalidate = ($attributes['refresh'] ?? false)
+            || (! $isUrl && config('backpack.basset.cache_map_comparison'));
+
+        if (! $shouldInvalidate) {
             return;
         }
 
@@ -232,9 +252,14 @@ class BassetCache extends Command
      * @param  string  $asset
      * @return bool
      */
-    private function shouldSkipCachedAsset(string $asset): bool
+    private function shouldSkipCachedAsset(string $asset, array $attributes = []): bool
     {
         $entry = Basset::buildCacheEntry($asset);
+
+        // Never skip if the asset has the 'refresh' attribute
+        if (($attributes['refresh'] ?? false) || ($entry->getAttributes()['refresh'] ?? false)) {
+            return false;
+        }
 
         // Only skip URL assets — they're identified by their URL string
         if (! Str::isUrl($entry->getAssetPath())) {

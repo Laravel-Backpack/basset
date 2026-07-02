@@ -301,3 +301,117 @@ it('re-copies local file even when content has not changed', function () {
     // Cleanup
     File::delete($absolutePath);
 });
+
+it('always re-downloads URL asset when refresh attribute is set', function () {
+    $assetUrl = 'https://unpkg.com/vue@3/dist/vue.global.prod.js';
+    $diskPath = bassetInstance()->assetPathsManager->getPathOnDisk($assetUrl);
+
+    // Pre-populate cache with old content
+    disk()->put($diskPath, 'stale content');
+    Basset::cacheMap()->addAsset(
+        bassetInstance()->buildCacheEntry($assetUrl)
+    );
+    Basset::cacheMap()->save();
+
+    File::put($this->tempDir.'/test.blade.php',
+        "@basset('$assetUrl', false, ['refresh' => true])"
+    );
+
+    $this->artisan('basset:cache');
+
+    // Should have re-downloaded fresh content, not kept stale
+    $expectedContent = getStub('vue.global.prod.js');
+    expect(disk()->get($diskPath))->toBe($expectedContent);
+});
+
+it('always re-downloads named asset when refresh attribute is set', function () {
+    $assetUrl = 'https://unpkg.com/vue@3/dist/vue.global.prod.js';
+    $diskPath = bassetInstance()->assetPathsManager->getPathOnDisk($assetUrl);
+
+    // Map as named asset with refresh
+    Basset::map('refreshable-asset', $assetUrl, ['refresh' => true]);
+
+    // Pre-populate cache with old content
+    disk()->put($diskPath, 'stale content');
+    Basset::cacheMap()->addAsset(
+        bassetInstance()->buildCacheEntry($assetUrl)
+    );
+    Basset::cacheMap()->save();
+
+    // Reference the named asset in a blade file
+    File::put($this->tempDir.'/test.blade.php', "@basset('refreshable-asset', false)");
+
+    $this->artisan('basset:cache');
+
+    // Should have re-downloaded fresh content
+    $expectedContent = getStub('vue.global.prod.js');
+    expect(disk()->get($diskPath))->toBe($expectedContent);
+});
+
+it('does not skip URL asset when cache_map_comparison is disabled even without refresh', function () {
+    config(['backpack.basset.cache_map_comparison' => false]);
+
+    $assetUrl = 'https://unpkg.com/vue@3/dist/vue.global.prod.js';
+    $diskPath = bassetInstance()->assetPathsManager->getPathOnDisk($assetUrl);
+
+    // Pre-populate cache with stale content
+    disk()->put($diskPath, 'stale content');
+    Basset::cacheMap()->addAsset(
+        bassetInstance()->buildCacheEntry($assetUrl)
+    );
+    Basset::cacheMap()->save();
+
+    File::put($this->tempDir.'/test.blade.php', "@basset('$assetUrl', false)");
+
+    $this->artisan('basset:cache');
+
+    // Without comparison enabled, the file is kept as-is (old behavior preserved)
+    // — no re-download, no invalidation
+    expect(disk()->get($diskPath))->toBe('stale content');
+});
+
+it('resolves named asset with source key and re-downloads when refresh is set', function () {
+    $assetUrl = 'https://unpkg.com/vue@3/dist/vue.global.prod.js';
+    $diskPath = bassetInstance()->assetPathsManager->getPathOnDisk($assetUrl);
+
+    // Map with explicit source key + refresh
+    Basset::map('named-widget', $assetUrl, ['refresh' => true]);
+
+    // Pre-populate with stale content
+    disk()->put($diskPath, 'stale content');
+    Basset::cacheMap()->addAsset(
+        bassetInstance()->buildCacheEntry($assetUrl)
+    );
+    Basset::cacheMap()->save();
+
+    File::put($this->tempDir.'/test.blade.php', "@basset('named-widget', false)");
+
+    $this->artisan('basset:cache');
+
+    // Should re-download fresh content
+    $expectedContent = getStub('vue.global.prod.js');
+    expect(disk()->get($diskPath))->toBe($expectedContent);
+});
+
+it('uses key as source fallback when source is not set in attributes', function () {
+    $assetUrl = 'https://unpkg.com/vue@3/dist/vue.global.prod.js';
+    $diskPath = bassetInstance()->assetPathsManager->getPathOnDisk($assetUrl);
+
+    // Map where key IS the source (no explicit 'source' in attributes — just refresh)
+    Basset::map($assetUrl, $assetUrl, ['refresh' => true]);
+
+    // Pre-populate with stale content
+    disk()->put($diskPath, 'stale content');
+    Basset::cacheMap()->addAsset(
+        bassetInstance()->buildCacheEntry($assetUrl)
+    );
+    Basset::cacheMap()->save();
+
+    File::put($this->tempDir.'/test.blade.php', "@basset('$assetUrl', false)");
+
+    $this->artisan('basset:cache');
+
+    // Should re-download fresh content (key = source fallback worked)
+    $expectedContent = getStub('vue.global.prod.js');
+    expect(disk()->get($diskPath))->toBe($expectedContent);
+});
