@@ -248,7 +248,7 @@ class BassetCache extends Command
      * Remove cached assets that are no longer referenced in blade files.
      *
      * @param  array  $activeAssets  Asset names found in current blade files
-     * @return int  Number of stale assets removed
+     * @return int Number of stale assets removed
      */
     private function cleanStaleAssets(array $activeAssets): int
     {

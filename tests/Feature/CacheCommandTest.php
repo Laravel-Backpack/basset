@@ -1,6 +1,5 @@
 <?php
 
-use Backpack\Basset\Enums\StatusEnum;
 use Backpack\Basset\Facades\Basset;
 use Illuminate\Support\Facades\File;
 
