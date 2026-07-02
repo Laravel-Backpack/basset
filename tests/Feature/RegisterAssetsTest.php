@@ -11,7 +11,8 @@ afterEach(function () {
 });
 
 // Helper: mirror the registerBassetAssets dispatch logic for testing
-function invokeRegister(array $assets): void {
+function invokeRegister(array $assets): void
+{
     foreach ($assets as $key => $value) {
         if (is_string($value)) {
             Basset::map($value, $value);
