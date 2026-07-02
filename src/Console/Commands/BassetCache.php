@@ -23,7 +23,8 @@ class BassetCache extends Command
      *
      * @var string
      */
-    protected $signature = 'basset:cache';
+    protected $signature = 'basset:cache
+                            {--stale : Remove cached assets that are no longer referenced in blade files}';
 
     /**
      * The console command description.
@@ -112,6 +113,29 @@ class BassetCache extends Command
                 $args[2] = false;
             }
 
+            // Skip if the asset is a URL already cached (URL identity = content identity).
+            // Local files are never skipped — re-copying is cheap and content may have changed.
+            // Only active when cache_map_comparison is enabled (opt-in).
+            if (config('backpack.basset.cache_map_comparison') && $this->shouldSkipCachedAsset($args[0])) {
+                $internalizedAssets[] = $args[0];
+
+                if ($this->getOutput()->isVerbose()) {
+                    $this->line(str_pad(strval($i + 1), 3, ' ', STR_PAD_LEFT).' '.$args[0]);
+                    $this->line('    '.StatusEnum::SKIPPED->value);
+                    $this->newLine();
+                } else {
+                    $bar->advance();
+                }
+
+                return;
+            }
+
+            // When cache_map_comparison is enabled and this is a local file that's
+            // already cached, delete the old copy to force a fresh re-copy.
+            if (config('backpack.basset.cache_map_comparison') && $type === 'basset') {
+                $this->invalidateCachedLocalFile($args[0]);
+            }
+
             try {
                 if (in_array($type, ['basset', 'bassetArchive', 'bassetDirectory', 'bassetBlock'])) {
                     $result = Basset::{$type}(...$args)->value;
@@ -157,6 +181,14 @@ class BassetCache extends Command
 
         $notInternalizedAssets = implode(', ', array_unique($notInternalizedAssets));
 
+        // Remove stale assets that are no longer referenced in blade files
+        if ($this->option('stale')) {
+            $staleCount = $this->cleanStaleAssets($internalizedAssets);
+            if ($staleCount > 0) {
+                $this->line("Removed $staleCount stale asset(s).");
+            }
+        }
+
         // Save the cache map
         Basset::cacheMap()->save();
 
@@ -169,6 +201,77 @@ class BassetCache extends Command
 
         $this->newLine(2);
         $this->info(sprintf('Done in %.2fs', microtime(true) - $starttime));
+    }
+
+    /**
+     * Delete a cached local file from disk so it will be re-copied.
+     * URL assets are left alone — they are handled by shouldSkipCachedAsset.
+     *
+     * @param  string  $asset
+     * @return void
+     */
+    private function invalidateCachedLocalFile(string $asset): void
+    {
+        $entry = Basset::buildCacheEntry($asset);
+
+        // Only invalidate local (non-URL) assets
+        if (Str::isUrl($entry->getAssetPath())) {
+            return;
+        }
+
+        $disk = \Illuminate\Support\Facades\Storage::disk(config('backpack.basset.disk'));
+        if ($entry->existsOnDisk($disk)) {
+            $disk->delete($entry->getAssetDiskPath());
+        }
+    }
+
+    /**
+     * Determine if an asset should be skipped (already cached and is a URL).
+     * Local files are never skipped — re-copying is cheap and content may have changed.
+     *
+     * @param  string  $asset
+     * @return bool
+     */
+    private function shouldSkipCachedAsset(string $asset): bool
+    {
+        $entry = Basset::buildCacheEntry($asset);
+
+        // Only skip URL assets — they're identified by their URL string
+        if (! Str::isUrl($entry->getAssetPath())) {
+            return false;
+        }
+
+        return Basset::isAssetCached($asset);
+    }
+
+    /**
+     * Remove cached assets that are no longer referenced in blade files.
+     *
+     * @param  array  $activeAssets  Asset names found in current blade files
+     * @return int  Number of stale assets removed
+     */
+    private function cleanStaleAssets(array $activeAssets): int
+    {
+        $cacheMap = Basset::cacheMap();
+        $allCachedAssets = array_keys($cacheMap->getMap());
+        $staleAssets = array_diff($allCachedAssets, $activeAssets);
+
+        $count = 0;
+        foreach ($staleAssets as $staleAsset) {
+            $entry = Basset::buildCacheEntry($staleAsset);
+
+            // Delete the file from disk
+            $disk = $cacheMap->getDisk();
+            if ($disk && $disk->exists($entry->getAssetDiskPath())) {
+                $disk->delete($entry->getAssetDiskPath());
+            }
+
+            // Remove from cache map
+            $cacheMap->delete($entry);
+            $count++;
+        }
+
+        return $count;
     }
 
     /**

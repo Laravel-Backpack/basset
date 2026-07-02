@@ -4,6 +4,7 @@ namespace Backpack\Basset\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -44,7 +45,12 @@ class BassetClear extends Command
 
         $disk->deleteDirectory($path);
         $disk->makeDirectory($path);
+
+        // Remove cache map from both old (public) and new (private) locations
         $disk->delete('.basset');
+        if (File::exists(storage_path('basset/.basset'))) {
+            File::delete(storage_path('basset/.basset'));
+        }
 
         $this->info('Done');
     }

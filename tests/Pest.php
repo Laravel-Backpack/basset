@@ -45,6 +45,11 @@ uses(BaseTest::class)
 
         File::put(public_path('bootstrap/js/bootstrap.min.js'), getStub('bootstrap.min.js'));
         File::put(public_path('bootstrap/css/bootstrap.min.css'), getStub('bootstrap.min.css'));
+
+        // Clear the private .basset file to prevent cross-test contamination
+        if (File::exists(storage_path('basset/.basset'))) {
+            File::delete(storage_path('basset/.basset'));
+        }
     })
     ->in(__DIR__);
 

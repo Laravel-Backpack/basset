@@ -28,7 +28,16 @@ class CacheMap
 
         $this->disk = $disk;
         $this->basePath = $basePath;
-        $this->filePath = $this->disk->path($this->basePath.'.basset');
+        $this->filePath = storage_path('basset/.basset');
+
+        // Migration: if no file at new private location, try old public location
+        if (! File::exists($this->filePath)) {
+            $oldPath = $this->disk->path($this->basePath.'.basset');
+            if (File::exists($oldPath)) {
+                File::ensureDirectoryExists(dirname($this->filePath), 0755, true);
+                File::copy($oldPath, $this->filePath);
+            }
+        }
 
         try {
             if (File::exists($this->filePath)) {
@@ -49,6 +58,12 @@ class CacheMap
     {
         if (! $this->isDirty || ! $this->isActive) {
             return;
+        }
+
+        // ensure the directory exists before writing
+        $dir = dirname($this->filePath);
+        if (! File::isDirectory($dir)) {
+            File::makeDirectory($dir, 0755, true);
         }
 
         // save file
@@ -97,5 +112,15 @@ class CacheMap
     public function getMap(): array
     {
         return $this->map;
+    }
+
+    /**
+     * Get the disk used by the cache map.
+     *
+     * @return \Illuminate\Filesystem\FilesystemAdapter|null
+     */
+    public function getDisk(): ?FilesystemAdapter
+    {
+        return $this->isActive ? $this->disk : null;
     }
 }
