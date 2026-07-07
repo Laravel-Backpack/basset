@@ -8,6 +8,15 @@ return [
     // verify ssl certificate while fetching assets
     'verify_ssl_certificate' => env('BASSET_VERIFY_SSL_CERTIFICATE', true),
 
+    // maximum time (in seconds) to wait for a response when fetching an asset
+    'fetch_timeout' => env('BASSET_FETCH_TIMEOUT', 30),
+
+    // total number of HTTP attempts (initial + retries) when fetching an asset
+    'fetch_retries' => env('BASSET_FETCH_RETRIES', 3),
+
+    // delay (in milliseconds) between each retry attempt
+    'fetch_retry_delay' => env('BASSET_FETCH_RETRY_DELAY', 10000),
+
     // disk and path where to store bassets
     'disk' => env('BASSET_DISK', 'basset'),
 
@@ -17,6 +26,11 @@ return [
 
     // use cache map file (.basset).
     'cache_map' => env('BASSET_CACHE_MAP', true),
+
+    // when enabled, basset:cache will skip re-downloading assets that are
+    // already cached (same URL in cache map + file exists on disk).
+    // set to true once you've verified your CDN URLs are properly versioned.
+    'cache_map_comparison' => env('BASSET_CACHE_MAP_COMPARISON', false),
 
     // view paths that may use @basset
     // used to internalize assets in advance with artisan basset:internalize

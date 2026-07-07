@@ -193,12 +193,15 @@ Copying an asset from CDNs to your server could take a bit of time, depending on
 
 ```bash 
 php artisan basset:cache         # internalizes all @bassets and named assets
+php artisan basset:cache --stale # same as above, also removes assets no longer referenced
 php artisan basset:clear         # clears the basset directory
 php artisan basset:fresh         # runs clear + cache back-to-back
 php artisan basset:list-named    # shows all registered named assets
 ```
 
-In order to speed up the first page load on production, we recommend you to add `php artisan basset:cache` command to your deploy script.
+In order to speed up the first page load on production, we recommend you to add `php artisan basset:cache` command to your deploy script. If you want to also remove assets that are no longer referenced in your blade files, use `php artisan basset:cache --stale`.
+
+> **Note:** In previous versions we recommended `basset:fresh` (clear + cache). That is no longer necessary — `basset:cache` alone is sufficient. It preserves already-cached assets, skipping re-downloads for URLs that haven't changed, which makes your deployments faster and safer against CDN outages.
 
 ## Configuration
 
@@ -206,6 +209,8 @@ Take a look at [the config file](https://github.com/Laravel-Backpack/basset/blob
 - enable/disable dev mode using `BASSET_DEV_MODE=false` - when enabled Basset will check for changes in your url/files and update the cached assets
 - change the disk where assets get internalized using `BASSET_DISK=yourdiskname`
 - disable the cache map using `BASSET_CACHE_MAP=false` (needed on serverless like Laravel Vapor)
+- configure HTTP fetch behavior with `BASSET_FETCH_TIMEOUT` (default 30s), `BASSET_FETCH_RETRIES` (default 3 attempts), and `BASSET_FETCH_RETRY_DELAY` (default 10000ms between retries)
+- enable URL comparison to skip re-downloads with `BASSET_CACHE_MAP_COMPARISON=true` — when enabled, `basset:cache` will skip re-downloading assets whose URL hasn't changed since the last cache (safe for versioned CDN URLs)
 
 ### Dev Mode
 
@@ -218,7 +223,7 @@ There are a lot of deployment options for Laravel apps, but we'll try to cover t
 ### VPS / SSH / Composer available
 
 - it is mandatory to run `php artisan storage:link` in production, for Basset to work; so it's recommended you add that to your `composer.json`'s scripts section, either under `post-composer-install` or `post-composer-update`;
-- it is recommended to run `php artisan basset:fresh` after each deployment; so it's recommended you add that to your `composer.json`'s scripts section, either under `post-composer-update`;
+- it is recommended to run `php artisan basset:cache` after each deployment; optionally add `--stale` to clean up assets no longer referenced; so it's recommended you add that to your `composer.json`'s scripts section, either under `post-composer-update`;
 
 ### Laravel Forge
 
@@ -240,7 +245,7 @@ BASSET_CACHE_MAP=false
 
 If you deploy your project by uploading it from localhost (either manually or automatically), you should:
 - make sure the alias exists that would have been created by `php artisan storage:link`; otherwise your alias might point to an inexisting localhost path; alternatively you can change the disk that Basset is using, in its config;
-- before each deployment, make sure to disable dev mode (`do BASSET_DEV_MODE=false` in your `.ENV` file) then run `php artisan basset:fresh`; that will make sure your localhost downloads all assets, then you upload them in your zip;
+- before each deployment, make sure to disable dev mode (`do BASSET_DEV_MODE=false` in your `.ENV` file) then run `php artisan basset:cache`; that will make sure your localhost downloads all assets, then you upload them in your zip;
 
 
 ## Why does this package exist?
@@ -313,6 +318,7 @@ Basset provides a few options out-of-the-box:
 - **`basset` disk** - inside the storage directory (eg. `storage/app/basset`) [DEFAULT]
     - PROs: the Git history is clean - because your cached assets will NOT be tracked by Git;
     - CONs: you have to run `php artisan basset:cache` in your deploy script, which adds seconds to your deploy time; plus, it opens up a corner case on deployment - because assets are being re-cached upon deployment, if a CDN is down during deployment, the system will not be able to internalize it; if will however internalize it when the CDN is back on, and the page that loads the file gets accessed; we consider the tradeoffs minor and unlikely, which is why this is the DEFAULT;
+    - The `.basset` cache map file is stored privately at `storage/app/basset/.basset` (not publicly accessible).
     - How to enable: do nothing, or do `BASSET_DISK=basset` in your .env file;
 - **`public_basset` disk** - inside the public directory (eg. `public/basset`)
     - PROs: you are certain the same assets you have on localhost will be in production, because the assets are commited to Git;

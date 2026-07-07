@@ -113,6 +113,20 @@ class BassetManager
     }
 
     /**
+     * Checks if the asset is already cached (exists on disk AND in the cache map).
+     * Used by basset:cache to skip re-downloading assets that haven't changed.
+     *
+     * @return bool
+     */
+    public function isAssetCached(CacheEntry|string $asset): bool
+    {
+        $entry = $this->buildCacheEntry($asset);
+        $mapped = $this->cacheMap->getAsset($entry);
+
+        return $mapped !== false && $entry->existsOnDisk($this->disk);
+    }
+
+    /**
      * Returns the current loaded basset list on app lifecycle.
      *
      * @return array
@@ -177,23 +191,30 @@ class BassetManager
         if ($mapped) {
             // if dev mode is not active we will just return the cached asset
             if (! $this->dev) {
-                $output && $this->output->write($mapped);
+                // Only trust the cache map if the file actually exists on disk
+                if ($asset->existsOnDisk($this->disk)) {
+                    $output && $this->output->write($mapped);
 
-                return $this->loader->finish(StatusEnum::IN_CACHE);
-            }
-
-            if (Str::isUrl($mapped->getAssetPath())) {
-                if ($mapped->getAssetPath() !== $asset->getAssetPath()) {
-                    return $this->replaceAsset($asset, $mapped, $output);
+                    return $this->loader->finish(StatusEnum::IN_CACHE);
                 }
 
-                $output && $this->output->write($mapped);
+                // Cache map entry exists but file is missing — remove stale entry and re-download
+                $this->cacheMap->delete($mapped);
+            } else {
+                // Dev mode: compare URL or content hash to detect changes
+                if (Str::isUrl($mapped->getAssetPath())) {
+                    if ($mapped->getAssetPath() !== $asset->getAssetPath()) {
+                        return $this->replaceAsset($asset, $mapped, $output);
+                    }
 
-                return $this->loader->finish(StatusEnum::IN_CACHE);
-            }
+                    $output && $this->output->write($mapped);
 
-            if ($mapped->getContentHash() !== $asset->generateContentHash()) {
-                return $this->replaceAsset($asset, $mapped, $output);
+                    return $this->loader->finish(StatusEnum::IN_CACHE);
+                }
+
+                if ($mapped->getContentHash() !== $asset->generateContentHash()) {
+                    return $this->replaceAsset($asset, $mapped, $output);
+                }
             }
         }
 
@@ -476,12 +497,24 @@ class BassetManager
 
     /**
      * Fetch the content body of an url.
+     *
+     * @throws \RuntimeException when all retry attempts fail or the final response is non-2xx
      */
     public function fetchContent(string $url): string
     {
-        return Http::withOptions(['verify' => config('backpack.basset.verify_ssl_certificate', true)])
-            ->get($url)
-            ->body();
+        $retries = (int) config('backpack.basset.fetch_retries', 3);
+        $retryDelay = (int) config('backpack.basset.fetch_retry_delay', 10000);
+
+        $response = Http::withOptions(['verify' => config('backpack.basset.verify_ssl_certificate', true)])
+            ->timeout(config('backpack.basset.fetch_timeout', 30))
+            ->retry($retries, $retryDelay)
+            ->get($url);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException("Failed to fetch asset from '$url': HTTP {$response->status()} after {$retries} retries");
+        }
+
+        return $response->body();
     }
 
     private function replaceAsset(CacheEntry $asset, CacheEntry $mapped, $output): StatusEnum
@@ -502,7 +535,13 @@ class BassetManager
     private function getAssetContent(CacheEntry $asset, bool $output = true): StatusEnum|string
     {
         if (Str::isUrl($asset->getAssetPath())) {
-            $content = $this->fetchContent($asset->getAssetPath());
+            try {
+                $content = $this->fetchContent($asset->getAssetPath());
+            } catch (\Throwable $e) {
+                report($e);
+
+                return $this->loader->finish(StatusEnum::INVALID);
+            }
         } else {
             if (! $asset->isLocalAsset()) {
                 return $this->loader->finish(StatusEnum::INVALID);
