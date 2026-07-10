@@ -15,9 +15,4 @@ final class AssetHashManager implements AssetHashManagerInterface
     {
         return preg_replace('/\.(css|js)$/i', "-{$hash}.$1", $path);
     }
-
-    public function validateHash(string $content, string $hash): bool
-    {
-        return $this->generateHash($content) === $hash;
-    }
 }

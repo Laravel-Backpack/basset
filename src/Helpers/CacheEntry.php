@@ -20,8 +20,6 @@ final class CacheEntry implements Arrayable, JsonSerializable
 
     private array $assetAttributes = [];
 
-    private string $assetContentHash = '';
-
     private bool $isPublicFile = false;
 
     private AssetPathManager $assetPathsManager;
@@ -85,10 +83,6 @@ final class CacheEntry implements Arrayable, JsonSerializable
 
         if (! isset($this->assetDiskPath)) {
             $this->assetDiskPath = $this->getPathOnDisk($this->assetPathsManager->getCleanPath($assetPath));
-        }
-
-        if ($this->isLocalAsset()) {
-            $this->generateContentHash();
         }
 
         return $this;
@@ -156,7 +150,6 @@ final class CacheEntry implements Arrayable, JsonSerializable
             'asset_path' => $this->assetPath,
             'asset_disk_path' => isset($this->assetDiskPath) ? $this->assetDiskPath : $this->getPathOnDisk($this->assetPath),
             'asset_attributes' => $this->assetAttributes,
-            'asset_content_hash' => $this->assetContentHash,
         ];
     }
 
@@ -179,28 +172,14 @@ final class CacheEntry implements Arrayable, JsonSerializable
         return $content;
     }
 
-    public function getContentHash(): string
-    {
-        return $this->assetContentHash;
-    }
-
     public function getPathOnDiskHashed(string $content): string
     {
         $path = $this->assetPathsManager->getPathOnDisk($this->assetPath);
-
-        // get the hash for the content
         $hash = $this->assetHashManager->generateHash($content);
 
-        $this->assetContentHash = $this->assetHashManager->appendHashToPath($content, $hash);
+        $this->assetDiskPath = $this->assetHashManager->appendHashToPath($path, $hash);
 
-        return $path;
-    }
-
-    public function generateContentHash(?string $content = null): string
-    {
-        $content = $content ?? $this->getContent();
-
-        return $this->assetContentHash = $this->assetHashManager->generateHash($content);
+        return $this->assetDiskPath;
     }
 
     private function getPathOnDisk(string $asset): string
