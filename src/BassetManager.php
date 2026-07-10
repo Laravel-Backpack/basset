@@ -201,7 +201,7 @@ class BassetManager
                 // Cache map entry exists but file is missing — remove stale entry and re-download
                 $this->cacheMap->delete($mapped);
             } else {
-                // Dev mode: compare URL or content hash to detect changes
+                // Dev mode: compare URL to detect changes
                 if (Str::isUrl($mapped->getAssetPath())) {
                     if ($mapped->getAssetPath() !== $asset->getAssetPath()) {
                         return $this->replaceAsset($asset, $mapped, $output);
@@ -210,10 +210,6 @@ class BassetManager
                     $output && $this->output->write($mapped);
 
                     return $this->loader->finish(StatusEnum::IN_CACHE);
-                }
-
-                if ($mapped->getContentHash() !== $asset->generateContentHash()) {
-                    return $this->replaceAsset($asset, $mapped, $output);
                 }
             }
         }
