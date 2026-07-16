@@ -34,7 +34,7 @@ class CacheMap
         if (! File::exists($this->filePath)) {
             $oldPath = $this->disk->path($this->basePath.'.basset');
             if (File::exists($oldPath)) {
-                File::ensureDirectoryExists(dirname($this->filePath), 0755, true);
+                File::ensureDirectoryExists(dirname($this->filePath), 0775, true);
                 File::copy($oldPath, $this->filePath);
             }
         }
@@ -63,7 +63,7 @@ class CacheMap
         // ensure the directory exists before writing
         $dir = dirname($this->filePath);
         if (! File::isDirectory($dir)) {
-            File::makeDirectory($dir, 0755, true);
+            File::makeDirectory($dir, 0775, true);
         }
 
         // save file
