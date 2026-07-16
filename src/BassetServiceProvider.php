@@ -197,6 +197,16 @@ class BassetServiceProvider extends ServiceProvider
             'url' => url('').'/storage',
             'visibility' => 'public',
             'throw' => false,
+            'permissions' => [
+                'dir' => [
+                    'public' => 0775,
+                    'private' => 0775,
+                ],
+                'file' => [
+                    'public' => 0664,
+                    'private' => 0664,
+                ],
+            ],
         ]]);
     }
 
@@ -219,6 +229,16 @@ class BassetServiceProvider extends ServiceProvider
             'url' => url(''),
             'visibility' => 'public',
             'throw' => false,
+            'permissions' => [
+                'dir' => [
+                    'public' => 0775,
+                    'private' => 0775,
+                ],
+                'file' => [
+                    'public' => 0664,
+                    'private' => 0664,
+                ],
+            ],
         ]]);
     }
 
