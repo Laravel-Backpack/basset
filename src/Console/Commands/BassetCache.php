@@ -116,7 +116,8 @@ class BassetCache extends Command
             // Skip if the asset is a URL already cached (URL identity = content identity).
             // Local files are never skipped — re-copying is cheap and content may have changed.
             // Only active when cache_map_comparison is enabled (opt-in).
-            if (config('backpack.basset.cache_map_comparison') && $this->shouldSkipCachedAsset($args[0], $args[2] ?? [])) {
+            $attributes = is_array($args[2] ?? null) ? $args[2] : [];
+            if (config('backpack.basset.cache_map_comparison') && $this->shouldSkipCachedAsset($args[0], $attributes)) {
                 $internalizedAssets[] = $args[0];
 
                 if ($this->getOutput()->isVerbose()) {
