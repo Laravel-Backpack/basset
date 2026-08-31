@@ -70,9 +70,17 @@ class BassetCache extends Command
                 $content = File::get($file);
                 $bassets = collect();
 
-                preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\((.+?)\)/s', $content, $matches);
-                foreach ($matches[1] as $i => $type) {
-                    $args = $this->parseBassetArguments($matches[2][$i]);
+                preg_match_all('/(basset|@bassetArchive|@bassetDirectory)\(/', $content, $matches, PREG_OFFSET_CAPTURE);
+
+                foreach ($matches[1] as $i => $typeMatch) {
+                    $type = $typeMatch[0];
+                    $argsString = $this->extractBalancedArguments($content, $typeMatch[1] + strlen($type));
+
+                    if ($argsString === null) {
+                        continue;
+                    }
+
+                    $args = $this->parseBassetArguments($argsString);
                     $bassets->push([ltrim($type, '@'), $args]);
                 }
 
@@ -298,6 +306,49 @@ class BassetCache extends Command
         }
 
         return $count;
+    }
+
+    private function extractBalancedArguments(string $content, int $openParenOffset): ?string
+    {
+        $length = strlen($content);
+        $depth = 0;
+        $quote = null;
+
+        for ($i = $openParenOffset; $i < $length; $i++) {
+            $char = $content[$i];
+
+            // A backslash escapes the next character (handles \', \" and \\,
+            // and parity works out for double backslashes).
+            if ($char === '\\') {
+                $i++;
+                continue;
+            }
+
+            if ($quote !== null) {
+                if ($char === $quote) {
+                    $quote = null;
+                }
+
+                continue;
+            }
+
+            if ($char === '"' || $char === "'") {
+                $quote = $char;
+                continue;
+            }
+
+            if ($char === '(') {
+                $depth++;
+            } elseif ($char === ')') {
+                $depth--;
+
+                if ($depth === 0) {
+                    return substr($content, $openParenOffset + 1, $i - $openParenOffset - 1);
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
