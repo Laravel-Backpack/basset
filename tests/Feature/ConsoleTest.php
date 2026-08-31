@@ -2,6 +2,7 @@
 
 use Backpack\Basset\Facades\Basset;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->tempDir = storage_path('framework/testing/disks/basset-test');
@@ -127,6 +128,35 @@ BLADE));
 
     $assetPath = bassetInstance()->assetPathsManager->getPathOnDisk(
         'https://unpkg.com/vue@3/dist/vue.global.prod.js'
+    );
+    disk()->assertExists($assetPath);
+});
+
+it('caches @basset with a base_path() expression argument', function () {
+    File::ensureDirectoryExists(base_path('test-assets'));
+    File::put(base_path('test-assets/local.js'), 'window.local = true;');
+
+    File::put($this->tempDir.'/test.blade.php', "@basset(base_path('test-assets/local.js'))");
+
+    $this->artisan('basset:cache');
+
+    $assetPath = bassetInstance()->assetPathsManager->getPathOnDisk(
+        base_path('test-assets/local.js')
+    );
+    disk()->assertExists($assetPath);
+});
+
+it('caches @basset with parentheses inside quoted string arguments', function () {
+    Http::fake([
+        'https://unpkg.com/vue@3/dist/vue(1).js' => Http::response(getStub('vue.global.prod.js')),
+    ]);
+
+    File::put($this->tempDir.'/test.blade.php', "@basset('https://unpkg.com/vue@3/dist/vue(1).js')");
+
+    $this->artisan('basset:cache');
+
+    $assetPath = bassetInstance()->assetPathsManager->getPathOnDisk(
+        'https://unpkg.com/vue@3/dist/vue(1).js'
     );
     disk()->assertExists($assetPath);
 });
