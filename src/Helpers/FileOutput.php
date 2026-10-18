@@ -21,7 +21,7 @@ class FileOutput
     public function __construct()
     {
         $this->nonce = config('backpack.basset.nonce', null);
-        $this->cachebusting = '?'.substr(md5(base_path('composer.lock')), 0, 12);
+        $this->cachebusting = '?'.substr(md5_file(base_path('composer.lock')), 0, 12);
         $this->useRelativePaths = config('backpack.basset.relative_paths', true);
         $this->scriptAttributes = config('backpack.basset.script_attributes', []);
 
