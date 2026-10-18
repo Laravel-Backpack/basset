@@ -21,7 +21,7 @@ class FileOutput
     public function __construct()
     {
         $this->nonce = config('backpack.basset.nonce', null);
-        $this->cachebusting = '?'.substr(md5_file(base_path('composer.lock')), 0, 12);
+        $this->cachebusting = $this->getCachebusting();
         $this->useRelativePaths = config('backpack.basset.relative_paths', true);
         $this->scriptAttributes = config('backpack.basset.script_attributes', []);
 
@@ -119,5 +119,16 @@ class FileOutput
         }
 
         return $args;
+    }
+
+    private function getCachebusting(): string
+    {
+        $composerLock = base_path('composer.lock');
+
+        // composer.lock may be missing (e.g. testbench, or deploys that don't ship it),
+        // so fall back to hashing its path, which keeps a stable string.
+        $hash = is_readable($composerLock) ? md5_file($composerLock) : md5($composerLock);
+
+        return '?'.substr($hash, 0, 12);
     }
 }
