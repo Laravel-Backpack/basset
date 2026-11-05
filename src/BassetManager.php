@@ -205,7 +205,10 @@ class BassetManager
         }
 
         // Clean source map
-        $content = preg_replace('/sourceMappingURL=/', '', $content);
+        // (skipped when an integrity hash is given, because changing the content would break it)
+        if (! isset($attributes['integrity'])) {
+            $content = preg_replace('/sourceMappingURL=/', '', $content);
+        }
 
         $result = $this->disk->put($path, $content, 'public');
 

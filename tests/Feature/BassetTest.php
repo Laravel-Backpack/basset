@@ -43,6 +43,30 @@ it('cleans the content of a downloaded basset', function ($asset) {
     expect(disk()->get($path))->toBe(getStub("$asset.output"));
 })->with('cdn');
 
+it('does not change the content of a downloaded basset that has an integrity hash', function ($asset) {
+    $integrity = 'sha384-'.base64_encode(hash('sha384', getStub($asset), true));
+
+    bassetInstance($asset, false, ['integrity' => $integrity, 'crossorigin' => 'anonymous']);
+    $path = bassetInstance()->getPath($asset);
+
+    expect(disk()->get($path))->toBe(getStub($asset));
+})->with('cdn');
+
+it('does not change the content of a local basset that has an integrity hash', function ($asset) {
+    // create the stub resource in disk
+    disk()->put($asset, getStub($asset));
+    $path = disk()->path($asset);
+    $integrity = 'sha384-'.base64_encode(hash('sha384', getStub($asset), true));
+
+    // internalize the file
+    $result = bassetInstance($path, false, ['integrity' => $integrity]);
+    $path = bassetInstance()->getPath($path);
+
+    expect(disk()->get($path))->toBe(getStub($asset));
+
+    expect($result)->toBe(StatusEnum::INTERNALIZED);
+})->with('local');
+
 it('copies a local basset', function ($asset) {
     // prepare test
     disk()->put($asset, getStub($asset));
